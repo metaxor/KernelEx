@@ -1,0 +1,1 @@
+BOOL ErrorCodeToString(DWORD dwErrorCode, LPVOID lpMsgBuf);
