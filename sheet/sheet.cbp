@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="sheet" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Win32 Release">
+				<Option output="F:/Projects/KernelEx/sheet/Release/sheet" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Release" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="-W" />
+					<Add option="-fexceptions" />
+					<Add option="-O2" />
+					<Add option="-DWIN32" />
+					<Add option="-DNDEBUG" />
+					<Add option="-D_WINDOWS" />
+					<Add option="-D_MBCS" />
+					<Add option="-D_USRDLL" />
+					<Add option="-DSHEET_EXPORTS" />
+					<Add directory="../common" />
+				</Compiler>
+				<Linker>
+					<Add option="--dll " />
+					<Add library="kernel32" />
+					<Add library="user32" />
+					<Add library="gdi32" />
+					<Add library="winspool" />
+					<Add library="comdlg32" />
+					<Add library="advapi32" />
+					<Add library="shell32" />
+					<Add library="ole32" />
+					<Add library="oleaut32" />
+					<Add library="uuid" />
+					<Add library="odbc32" />
+					<Add library="odbccp32" />
+					<Add library="comctl32" />
+					<Add library="shlwapi" />
+					<Add library="..\kexcrt\kexcrt" />
+					<Add library="libc" />
+				</Linker>
+			</Target>
+			<Target title="Win32 Debug">
+				<Option output="F:/Projects/KernelEx/sheet/Debug/sheet" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Debug" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="-W" />
+					<Add option="-fexceptions" />
+					<Add option="-g" />
+					<Add option="-DWIN32" />
+					<Add option="-D_DEBUG" />
+					<Add option="-D_WINDOWS" />
+					<Add option="-D_MBCS" />
+					<Add option="-D_USRDLL" />
+					<Add option="-DSHEET_EXPORTS" />
+					<Add directory="../common" />
+				</Compiler>
+				<Linker>
+					<Add option="--dll " />
+					<Add library="kernel32" />
+					<Add library="user32" />
+					<Add library="gdi32" />
+					<Add library="winspool" />
+					<Add library="comdlg32" />
+					<Add library="advapi32" />
+					<Add library="shell32" />
+					<Add library="ole32" />
+					<Add library="oleaut32" />
+					<Add library="uuid" />
+					<Add library="odbc32" />
+					<Add library="odbccp32" />
+					<Add library="comctl32" />
+					<Add library="shlwapi" />
+					<Add library="..\kexcrt\kexcrt" />
+					<Add library="libc" />
+				</Linker>
+			</Target>
+		</Build>
+		<Unit filename="KexLinkage.cpp" />
+		<Unit filename="KexLinkage.h" />
+		<Unit filename="factory.cpp" />
+		<Unit filename="factory.h" />
+		<Unit filename="resource.h" />
+		<Unit filename="server.cpp" />
+		<Unit filename="server.def" />
+		<Unit filename="server.h" />
+		<Unit filename="sheet.cpp" />
+		<Unit filename="sheet.h" />
+		<Unit filename="sheet.rc">
+			<Option compilerVar="WINDRES" />
+		</Unit>
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

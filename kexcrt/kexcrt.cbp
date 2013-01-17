@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="kexcrt" />
+		<Option makefile="makefile" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="default">
+				<Option output="kexcrt" prefix_auto="1" extension_auto="1" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+			</Target>
+		</Build>
+		<Unit filename="_vsnprintf.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="abort.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="assert.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="atoi.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="atol.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="atoll.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ctype/ctypefunc.h" />
+		<Unit filename="ctype/isalnum.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ctype/isalpha.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ctype/isascii.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ctype/isblank.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ctype/iscntrl.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ctype/isdigit.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ctype/isgraph.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ctype/islower.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ctype/isprint.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ctype/ispunct.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ctype/isspace.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ctype/isupper.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ctype/isxdigit.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ctype/tolower.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ctype/toupper.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ctypes.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ctypes.h" />
+		<Unit filename="exit.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="memccpy.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="memchr.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="memcmp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="memcpy.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="memmem.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="memmove.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="memory-cpp.cpp" />
+		<Unit filename="memory.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="memrchr.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="memset.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="memswap.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="msvc/argcargv.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="msvc/argcargv.h" />
+		<Unit filename="msvc/concrt0.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="msvc/dllcrt0.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="msvc/init.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="msvc/init.h" />
+		<Unit filename="msvc/purecall.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="msvc/wincrt0.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="printf.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="snprintf.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="sprintf.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="sscanf.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="strcat.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="strchr.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="strcmp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="strcmpi.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="strcpy.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="strdup.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="strlen.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="strncat.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="strncmp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="strncpy.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="strnicmp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="strnlen.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="strntoimax.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="strntoumax.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="strpbrk.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="strrchr.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="strsep.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="strstr.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="strtok.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="strtok_r.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="strtol.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="strtoll.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="strtoul.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="strtoull.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="strtoumax.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="strupr.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="strxspn.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="strxspn.h" />
+		<Unit filename="vsnprintf.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="vsprintf.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="vsscanf.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="write.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="kexbases" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Win32 Release">
+				<Option output="F:/Projects/KernelEx/apilibs/kexbases/Release/kexbases" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Release" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="-W" />
+					<Add option="-fexceptions" />
+					<Add option="-O2" />
+					<Add option="-DWIN32" />
+					<Add option="-DNDEBUG" />
+					<Add option="-D_WINDOWS" />
+					<Add option="-D_MBCS" />
+					<Add option="-D_USRDLL" />
+					<Add option="-DKERNELEXBASESHARED_EXPORTS" />
+					<Add option="-D_WIN32_WINNT=0x0500" />
+					<Add directory="." />
+					<Add directory="../../common" />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="../../common" />
+				</ResourceCompiler>
+				<Linker>
+					<Add option="--dll " />
+					<Add library="kernel32" />
+					<Add library="user32" />
+					<Add library="gdi32" />
+					<Add library="winspool" />
+					<Add library="comdlg32" />
+					<Add library="advapi32" />
+					<Add library="shell32" />
+					<Add library="ole32" />
+					<Add library="oleaut32" />
+					<Add library="uuid" />
+					<Add library="odbc32" />
+					<Add library="odbccp32" />
+					<Add library="version" />
+					<Add library="../../common/KernelEx" />
+					<Add library="../../kexcrt/kexcrt" />
+					<Add library="libc" />
+				</Linker>
+			</Target>
+			<Target title="Win32 Debug">
+				<Option output="F:/Projects/KernelEx/apilibs/kexbases/Debug/kexbases" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Debug" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="-W" />
+					<Add option="-fexceptions" />
+					<Add option="-g" />
+					<Add option="-DWIN32" />
+					<Add option="-D_DEBUG" />
+					<Add option="-D_WINDOWS" />
+					<Add option="-D_MBCS" />
+					<Add option="-D_USRDLL" />
+					<Add option="-DKERNELEXBASESHARED_EXPORTS" />
+					<Add option="-D_WIN32_WINNT=0x0500" />
+					<Add directory="." />
+					<Add directory="../../common" />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="../../common" />
+				</ResourceCompiler>
+				<Linker>
+					<Add option="--dll " />
+					<Add library="kernel32" />
+					<Add library="user32" />
+					<Add library="gdi32" />
+					<Add library="winspool" />
+					<Add library="comdlg32" />
+					<Add library="advapi32" />
+					<Add library="shell32" />
+					<Add library="ole32" />
+					<Add library="oleaut32" />
+					<Add library="uuid" />
+					<Add library="odbc32" />
+					<Add library="odbccp32" />
+					<Add library="version" />
+					<Add library="../../common/KernelEx" />
+					<Add library="../../kexcrt/kexcrt" />
+					<Add library="libc" />
+				</Linker>
+			</Target>
+		</Build>
+		<Unit filename="../../common/common.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../common/common.h" />
+		<Unit filename="../../common/k32ord.def" />
+		<Unit filename="../../common/k32ord.h" />
+		<Unit filename="Advapi32/OpenSCManager_stub.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Advapi32/RegDisablePredefinedCache.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Advapi32/RegOpenCurrentUser.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Advapi32/RegSetValueExA_fix.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Advapi32/RtlGenRandom.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Advapi32/TraceMessage.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Advapi32/_advapi32_apilist.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Advapi32/_advapi32_apilist.h" />
+		<Unit filename="Advapi32/_advapi32_stubs.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Advapi32/lsa.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Advapi32/security.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Advapi32/uniadvapi32.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Gdi32/EnumFont.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Gdi32/FontResourceEx.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Gdi32/GdiObjects.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Gdi32/GdiObjects.h" />
+		<Unit filename="Gdi32/GetGlyphOutlineA_fix.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Gdi32/GetTextExtentPoint32_fix.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Gdi32/MaskBlt.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Gdi32/Orhpans.cpp" />
+		<Unit filename="Gdi32/Orhpans.h" />
+		<Unit filename="Gdi32/TextOut.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Gdi32/_gdi32_apilist.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Gdi32/_gdi32_apilist.h" />
+		<Unit filename="Gdi32/_gdi32_stubs.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Gdi32/unigdi32.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Kernel32/GetConsoleWindow.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Kernel32/GetModuleHandleEx.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Kernel32/IsProcessorFeaturePresent.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Kernel32/KEXVersion.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Kernel32/RtlCaptureContext.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Kernel32/_kernel32_apilist.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Kernel32/_kernel32_apilist.h" />
+		<Unit filename="Kernel32/_kernel32_stubs.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Kernel32/critsect.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Kernel32/directory.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Kernel32/file.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Kernel32/jobs.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Kernel32/locale.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Kernel32/locale_casemap.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Kernel32/locale_collation.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Kernel32/locale_fold.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Kernel32/locale_sortkey.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Kernel32/locale_unicode.h" />
+		<Unit filename="Kernel32/locale_wctype.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Kernel32/mem.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Kernel32/pointer.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Kernel32/port.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Kernel32/process.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Kernel32/session.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Kernel32/thread.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Kernel32/time.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Kernel32/uilang.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Kernel32/unikernel32.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Kernel32/version.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="Kernel32/widecharconv.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="User32/GetMouseMovePointsEx.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="User32/LockWorkStation.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="User32/SystemParametersInfo_fix.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="User32/_user32_apilist.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="User32/_user32_apilist.h" />
+		<Unit filename="User32/_user32_stubs.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="User32/desktop.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="User32/desktop.h" />
+		<Unit filename="User32/dialog.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="User32/exit.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="User32/hwnd9x.h" />
+		<Unit filename="User32/input.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="User32/lstr.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="User32/menu.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="User32/message.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="User32/thuni_conv.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="User32/thuni_layer.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="User32/thuni_layer.h" />
+		<Unit filename="User32/thuni_macro.h" />
+		<Unit filename="User32/thuni_proc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="User32/thuni_stuff.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="User32/thuni_thunk.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="User32/thuni_thunk.h" />
+		<Unit filename="User32/uniuser32.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="User32/window.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="User32/winsta.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="comctl32/_comctl32_apilist.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="comctl32/_comctl32_apilist.h" />
+		<Unit filename="comctl32/newclassreg.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="comctl32/syslink.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="comdlg32/PrintDlgEx.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="comdlg32/_comdlg32_apilist.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="comdlg32/_comdlg32_apilist.h" />
+		<Unit filename="dirlist" />
+		<Unit filename="kexbases.def" />
+		<Unit filename="kexbases.rc">
+			<Option compilerVar="WINDRES" />
+		</Unit>
+		<Unit filename="main.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="shell32/CommandLineToArgvW.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="shell32/IsUserAnAdmin.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="shell32/_shell32_apilist.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="shell32/_shell32_apilist.h" />
+		<Unit filename="shell32/_shell32_stubs.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="version/_version_apilist.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="version/_version_apilist.h" />
+		<Unit filename="version/universion.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

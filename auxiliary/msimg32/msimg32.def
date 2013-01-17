@@ -1,0 +1,8 @@
+LIBRARY msimg32.dll BASE=0x79790000
+EXPORTS
+
+vSetDdrawflag @1
+AlphaBlend = AlphaBlend_NEW @2
+DllInitialize = DllMain @3 PRIVATE
+GradientFill = GradientFill_NEW @4
+TransparentBlt = TransparentBlt_NEW @5

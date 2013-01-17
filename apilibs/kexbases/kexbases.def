@@ -1,0 +1,8 @@
+LIBRARY kexbases.dll BASE=0xBFA40000
+SECTIONS
+	.text SHARED
+	.bss SHARED
+	.data SHARED
+	.edata SHARED
+	.rdata SHARED
+	.idata SHARED

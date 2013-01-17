@@ -1,0 +1,18 @@
+LIBRARY userenv.dll BASE=0x7D0A0000
+EXPORTS
+	CreateEnvironmentBlock
+	DestroyEnvironmentBlock
+	ExpandEnvironmentStringsForUserA
+	ExpandEnvironmentStringsForUserW
+	GetAllUsersProfileDirectoryA
+	GetAllUsersProfileDirectoryW
+	GetProfilesDirectoryA
+	GetProfilesDirectoryW
+	GetProfileType
+	GetUserProfileDirectoryA
+	GetUserProfileDirectoryW
+	LoadUserProfileA
+	LoadUserProfileW
+	RegisterGPNotification
+	UnloadUserProfile
+	UnregisterGPNotification

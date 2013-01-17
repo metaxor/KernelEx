@@ -1,0 +1,4 @@
+LIBRARY ApiLog.dll BASE=0x77000000
+EXPORTS
+	kexApiHook_initonce
+	kexApiHook_register

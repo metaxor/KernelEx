@@ -1,0 +1,32 @@
+# Makefile for Microsoft Visual C++ Compiler (MSVC)
+
+OBJ = msimg32.obj
+RES = msimgme.res
+DEF = /DEF:msimg32.def
+BIN = ..\msimg32.dll
+LIBS = -nodefaultlib kernel32.lib gdi32.lib
+LDFLAGS = /DLL /OPT:NOWIN98 /ENTRY:DllMain@12
+CFLAGS = /W3 /O2 /Oi /FD
+CXXFLAGS = $(CFLAGS)
+
+all : $(BIN)
+	-@if exist $(BIN:.dll=.exp) del $(BIN:.dll=.exp)
+	-@if exist $(BIN:.dll=.lib) del $(BIN:.dll=.lib)
+
+.PHONY : clean
+clean : 
+	-@if exist *.obj del *.obj
+	-@if exist *.idb del *.idb
+	-@if exist *.res del *.res
+
+realclean : clean
+	-@if exist $(BIN) del $(BIN)
+
+$(BIN) : $(OBJ) $(RES)
+	link /nologo $(LDFLAGS) $(DEF) /OUT:$(BIN) $(LIBS) $(OBJ) $(RES)
+
+.c.obj : 
+	cl /nologo $(CFLAGS) /c /Fo$@ $<
+
+.cpp.obj : 
+	cl /nologo $(CXXFLAGS) /c /Fo$@ $<

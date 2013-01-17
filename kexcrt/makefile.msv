@@ -1,0 +1,24 @@
+OBJ = abort.obj assert.obj atoi.obj atol.obj atoll.obj ctypes.obj memccpy.obj memchr.obj memcmp.obj memcpy.obj memmem.obj memmove.obj memory.obj memory-cpp.obj memrchr.obj memset.obj memswap.obj printf.obj snprintf.obj sprintf.obj sscanf.obj strcat.obj strchr.obj strcmp.obj strcmpi.obj strcpy.obj strdup.obj strlen.obj strncat.obj strncmp.obj strncpy.obj strnicmp.obj strnlen.obj strntoimax.obj strntoumax.obj strpbrk.obj strrchr.obj strsep.obj strstr.obj strtok.obj strtok_r.obj strtol.obj strtoll.obj strtoul.obj strtoull.obj strtoumax.obj strupr.obj strxspn.obj vsnprintf.obj vsprintf.obj vsscanf.obj _vsnprintf.obj write.obj exit.obj \
+ctype/isalnum.obj ctype/isalpha.obj ctype/isascii.obj ctype/isblank.obj ctype/iscntrl.obj ctype/isdigit.obj ctype/isgraph.obj ctype/islower.obj ctype/isprint.obj ctype/ispunct.obj ctype/isspace.obj ctype/isupper.obj ctype/isxdigit.obj ctype/tolower.obj ctype/toupper.obj \
+msvc/init.obj msvc/dllcrt0.obj msvc/argcargv.obj msvc/concrt0.obj msvc/wincrt0.obj msvc/purecall.obj
+
+CFLAGS = /O2 /Oi- /I. /nologo /D_CTYPE_DISABLE_MACROS
+
+CC = cl
+BIN = kexcrt.lib
+
+all : $(BIN)
+
+clean :
+	@del *.obj >NUL
+	@del ctype\*.obj >NUL
+	@del msvc\*.obj >NUL
+
+$(BIN) : $(OBJ)
+	link /LIB /NODEFAULTLIB /OUT:$@ $(OBJ)
+
+.c.obj : 
+	$(CC) $(CFLAGS) /c /Fo$@ $<
+
+.cpp.obj :
+	$(CC) $(CFLAGS) /c /Fo$@ $<

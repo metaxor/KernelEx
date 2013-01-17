@@ -1,0 +1,15 @@
+To compile you need Microsoft Visual C++ 6.0 SP6 
+with updated xtree header (http://www.dinkumware.com/xtree.txt) 
+and supplied with Platform SDK 2003.
+
+You can use batch build feature to automate builds.
+
+If you build manually, you need to compile KEXCRT and PREP projects first as other projects rely on them.
+To build KEXCONTROL you have to build debug CORE first.
+KEXBASES and KEXBASEN projects rely on CORE be built first.
+
+To build VKRNLEX project you need Microsoft Windows 98 Driver Development Kit (DDK) or Microsoft Windows 2000 Driver Development Kit (DDK).
+
+To build installer you need NSIS install system.
+
+-Xeno86

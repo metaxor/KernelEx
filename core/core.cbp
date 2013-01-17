@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="core" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Win32 Release">
+				<Option output="Release/KernelEx" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Release" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="-W" />
+					<Add option="-fexceptions" />
+					<Add option="-O2" />
+					<Add option="-DWIN32" />
+					<Add option="-DNDEBUG" />
+					<Add option="-D_WINDOWS" />
+					<Add option="-D_MBCS" />
+					<Add option="-D_USRDLL" />
+					<Add option="-DKERNELEX_EXPORTS" />
+					<Add option="-DKEXCORE_EXPORTS" />
+					<Add directory="." />
+					<Add directory="../common" />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="../common" />
+				</ResourceCompiler>
+				<Linker>
+					<Add option="--dll " />
+					<Add option="--implib ../common/KernelEx.lib" />
+					<Add library="kernel32" />
+					<Add library="user32" />
+					<Add library="gdi32" />
+					<Add library="winspool" />
+					<Add library="comdlg32" />
+					<Add library="advapi32" />
+					<Add library="shell32" />
+					<Add library="ole32" />
+					<Add library="oleaut32" />
+					<Add library="uuid" />
+					<Add library="odbc32" />
+					<Add library="odbccp32" />
+					<Add library="comctl32" />
+					<Add library="..\kexcrt\kexcrt" />
+					<Add library="libc" />
+					<Add library='&quot;../common/KernelEx' />
+				</Linker>
+			</Target>
+			<Target title="Win32 Debug">
+				<Option output="Debug/KernelEx" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Debug" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="-W" />
+					<Add option="-fexceptions" />
+					<Add option="-g" />
+					<Add option="-DWIN32" />
+					<Add option="-D_DEBUG" />
+					<Add option="-D_WINDOWS" />
+					<Add option="-D_MBCS" />
+					<Add option="-D_USRDLL" />
+					<Add option="-DKERNELEX_EXPORTS" />
+					<Add option="-DKEXCORE_EXPORTS" />
+					<Add option="-D_ENABLE_APIHOOK" />
+					<Add directory="." />
+					<Add directory="../common" />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="../common" />
+				</ResourceCompiler>
+				<Linker>
+					<Add option="--dll " />
+					<Add option="--implib ../common/KernelEx.lib" />
+					<Add library="kernel32" />
+					<Add library="user32" />
+					<Add library="gdi32" />
+					<Add library="winspool" />
+					<Add library="comdlg32" />
+					<Add library="advapi32" />
+					<Add library="shell32" />
+					<Add library="ole32" />
+					<Add library="oleaut32" />
+					<Add library="uuid" />
+					<Add library="odbc32" />
+					<Add library="odbccp32" />
+					<Add library="comctl32" />
+					<Add library="..\kexcrt\kexcrt" />
+					<Add library="libc" />
+					<Add library='&quot;../common/KernelEx' />
+				</Linker>
+			</Target>
+			<Target title="Win32 Release APIHOOK">
+				<Option output="Release_APIHOOK/KernelEx" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Release_APIHOOK" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="-W" />
+					<Add option="-O2" />
+					<Add option="-DNDEBUG" />
+					<Add option="-DWIN32" />
+					<Add option="-D_WINDOWS" />
+					<Add option="-D_MBCS" />
+					<Add option="-D_USRDLL" />
+					<Add option="-DKEXCORE_EXPORTS" />
+					<Add option="-D_ENABLE_APIHOOK" />
+					<Add directory="." />
+					<Add directory="../common" />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="../common" />
+				</ResourceCompiler>
+				<Linker>
+					<Add option="--dll " />
+					<Add option="--implib ../common/KernelEx.lib" />
+					<Add library="kernel32" />
+					<Add library="user32" />
+					<Add library="gdi32" />
+					<Add library="advapi32" />
+					<Add library="comctl32" />
+					<Add library="..\kexcrt\kexcrt" />
+					<Add library="libc" />
+					<Add library='&quot;../common/KernelEx' />
+				</Linker>
+			</Target>
+		</Build>
+		<Unit filename="../common/is_sorted.hpp" />
+		<Unit filename="../common/k32ord.def">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../common/k32ord.h" />
+		<Unit filename="../common/kexcoresdk.h" />
+		<Unit filename="../common/kstructs.h" />
+		<Unit filename="../common/pemanip.cpp" />
+		<Unit filename="../common/pemanip.h" />
+		<Unit filename="../common/sstring.hpp" />
+		<Unit filename="../common/version.h" />
+		<Unit filename="Core.rc">
+			<Option compilerVar="WINDRES" />
+		</Unit>
+		<Unit filename="ModInit.cpp" />
+		<Unit filename="ModInit.h" />
+		<Unit filename="ProcessStorage.cpp" />
+		<Unit filename="ProcessStorage.h" />
+		<Unit filename="SettingsDB.cpp" />
+		<Unit filename="SettingsDB.h" />
+		<Unit filename="apiconf.cpp" />
+		<Unit filename="apiconf.h" />
+		<Unit filename="apiconfmgr.cpp" />
+		<Unit filename="apiconfmgr.h" />
+		<Unit filename="apihook.cpp" />
+		<Unit filename="apihook.h" />
+		<Unit filename="apilib.cpp" />
+		<Unit filename="apilib.h" />
+		<Unit filename="core.def" />
+		<Unit filename="debug.cpp">
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="debug.h" />
+		<Unit filename="debugproto.cpp">
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="debugproto.h" />
+		<Unit filename="internals.cpp" />
+		<Unit filename="internals.h" />
+		<Unit filename="kexcoresdk.cpp" />
+		<Unit filename="main.cpp" />
+		<Unit filename="resolver.cpp" />
+		<Unit filename="resolver.h" />
+		<Unit filename="sharedmem.cpp" />
+		<Unit filename="sharedmem.h" />
+		<Unit filename="thunks.cpp" />
+		<Unit filename="thunks.h" />
+		<Unit filename="wildcmp.cpp" />
+		<Unit filename="wildcmp.h" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

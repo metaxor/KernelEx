@@ -1,0 +1,195 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Polish resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_PLK)
+#ifdef _WIN32
+LANGUAGE LANG_POLISH, SUBLANG_DEFAULT
+#pragma code_page(1250)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+#ifndef _MAC
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,7
+ PRODUCTVERSION 1,0,0,7
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "000004b0"
+        BEGIN
+            VALUE "Comments", "\0"
+            VALUE "CompanyName", "Xeno86\0"
+            VALUE "FileDescription", "KernelEx Properties Tab\0"
+            VALUE "FileVersion", "1, 0, 0, 7\0"
+            VALUE "InternalName", "sheet\0"
+            VALUE "LegalCopyright", "Copyright © 2009-2011, Xeno86\0"
+            VALUE "LegalTrademarks", "\0"
+            VALUE "OriginalFilename", "sheet.dll\0"
+            VALUE "PrivateBuild", "\0"
+            VALUE "ProductName", "KernelEx\0"
+            VALUE "ProductVersion", "1, 0, 0, 7\0"
+            VALUE "SpecialBuild", "\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x0, 1200
+    END
+END
+
+#endif    // !_MAC
+
+#endif    // Polish resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_PROPPAGE DIALOG DISCARDABLE  0, 0, 232, 191
+STYLE WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "KernelEx"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    GROUPBOX        "Basic options",IDC_GCOMPAT,7,30,218,78
+    CONTROL         "Use default compatibility options [%s]",IDC_DEFAULT,
+                    "Button",BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,15,
+                    43,208,10
+    CONTROL         "Disable KernelEx extensions",IDC_DISABLE,"Button",
+                    BS_AUTORADIOBUTTON | WS_TABSTOP,15,57,208,10
+    CONTROL         "Use specific compatibility mode:",IDC_COMPAT,"Button",
+                    BS_AUTORADIOBUTTON | WS_TABSTOP,15,71,208,10
+    COMBOBOX        IDC_SYSTEM,15,84,157,60,CBS_DROPDOWNLIST | WS_DISABLED | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "kexver here",IDC_KEXVER,7,175,71,9,WS_DISABLED
+    LTEXT           "Try changing compatibility options if you have problems\nrunning the program.",
+                    IDC_TCOMPAT,7,7,218,22
+    CONTROL         "",IDC_HORIZ1,"Static",SS_BLACKFRAME | SS_SUNKEN,7,174,
+                    218,1
+    GROUPBOX        "Advanced options",IDC_GADVAN,7,114,218,57
+    CONTROL         "Don't use these settings in child processes",
+                    IDC_NOINHERIT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,
+                    127,208,10
+    CONTROL         "Use API hook",IDC_HOOK,"Button",BS_AUTOCHECKBOX | NOT 
+                    WS_VISIBLE | WS_TABSTOP,15,141,208,10
+    CONTROL         "Override settings of invidual modules",IDC_OVERRIDE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,155,208,10
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_PROPPAGE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 225
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 184
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    TIP_DEFAULT             "Use default settings for this module as specified during installation (brackets). This option allows overriding by main executable or parent process executable settings."
+    TIP_DISABLE             "Select this option to execute module as if KernelEx wasn't installed."
+    TIP_COMPAT              "Choose desired compatibility mode as required by the application. This option allows changing operating system identification and emulation of different operating system behavior."
+    TIP_SYSTEM              "Select desired compatibility mode from the list."
+    TIP_NOINHERIT           "Disables inheritance of these settings. Normally programs started by this application use settings from this tab as their default settings. Use this option to disable such behaviour."
+    TIP_OVERRIDE            "Disables usage of per module settings. Use this option to use same settings for all modules in the application."
+    TIP_HOOK                "Use this option to enable api hooking debugging feature."
+    IDS_ENABLED             "KernelEx is enabled"
+    IDS_DISABLED            "KernelEx is disabled"
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

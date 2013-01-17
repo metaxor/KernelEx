@@ -1,0 +1,22 @@
+LIBRARY wtsapi32.dll BASE=0x7D040000
+EXPORTS
+	WTSCloseServer
+	WTSDisconnectSession
+	WTSEnumerateProcessesA
+	WTSEnumerateProcessesW
+	WTSEnumerateServersA
+	WTSEnumerateServersW
+	WTSEnumerateSessionsA
+	WTSEnumerateSessionsW
+	WTSFreeMemory
+	WTSOpenServerA
+	WTSOpenServerW
+	WTSQuerySessionInformationA
+	WTSQuerySessionInformationW
+	WTSQueryUserConfigA
+	WTSQueryUserConfigW
+	WTSQueryUserToken
+	WTSRegisterSessionNotification
+	WTSTerminateProcess
+	WTSUnRegisterSessionNotification
+	WTSWaitSystemEvent

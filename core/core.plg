@@ -1,0 +1,237 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: kexcrt - Win32 Release--------------------
+</h3>
+<h3>Command Lines</h3>
+
+
+
+<h3>Results</h3>
+kexcrt.lib - 0 error(s), 0 warning(s)
+<h3>
+--------------------Configuration: Core - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+
+
+
+<h3>Results</h3>
+KernelEx.dll - 0 error(s), 0 warning(s)
+<h3>
+--------------------Configuration: KernelEx Base Shared - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\Users\Ludovic\AppData\Local\Temp\RSPC522.bat" with contents
+[
+@echo off
+if not exist "F:\Projects\KernelEx\util\prep\Release\prep.exe" goto error
+"F:\Projects\KernelEx\util\prep\Release\prep.exe" "."
+goto quit
+:error
+echo Error - compile PREP (Release) project first
+echo 1 | choice /C:1 /N >NUL
+:quit
+]
+Creating command line "C:\Users\Ludovic\AppData\Local\Temp\RSPC522.bat"
+Creating temporary file "C:\Users\Ludovic\AppData\Local\Temp\RSPC533.tmp" with contents
+[
+/nologo /MLd /W3 /Gm /Zi /Od /I "." /I "../../common" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D _WIN32_WINNT=0x0500 /Fp"Debug/kexbases.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /TP /GF /c 
+"F:\Projects\KernelEx\apilibs\kexbases\Kernel32\process.c"
+"F:\Projects\KernelEx\apilibs\kexbases\User32\desktop.c"
+"F:\Projects\KernelEx\apilibs\kexbases\User32\winsta.c"
+"F:\Projects\KernelEx\apilibs\kexbases\comctl32\syslink.c"
+"F:\Projects\KernelEx\apilibs\kexbases\main.c"
+]
+Creating command line "cl.exe @C:\Users\Ludovic\AppData\Local\Temp\RSPC533.tmp" 
+Performing Custom Build Step on .\dirlist
+KernelEx source preparser by Xeno86
+Processing project at: .
+Processing directory: 'kernel32\'
+Parsing file: 'kernel32\GetConsoleWindow.c'
+Parsing file: 'kernel32\GetModuleHandleEx.c'
+Parsing file: 'kernel32\IsProcessorFeaturePresent.c'
+Parsing file: 'kernel32\KEXVersion.c'
+Parsing file: 'kernel32\RtlCaptureContext.c'
+Parsing file: 'kernel32\_kernel32_apilist.c'
+!Unresolved exports: 4
+Parsing file: 'kernel32\_kernel32_stubs.c'
+Parsing file: 'kernel32\critsect.c'
+Parsing file: 'kernel32\directory.c'
+File doesn't contain exports
+Parsing file: 'kernel32\file.c'
+Parsing file: 'kernel32\jobs.c'
+Parsing file: 'kernel32\locale.c'
+Parsing file: 'kernel32\locale_casemap.c'
+File doesn't contain exports
+Parsing file: 'kernel32\locale_collation.c'
+File doesn't contain exports
+Parsing file: 'kernel32\locale_fold.c'
+File doesn't contain exports
+Parsing file: 'kernel32\locale_sortkey.c'
+File doesn't contain exports
+Parsing file: 'kernel32\locale_wctype.c'
+File doesn't contain exports
+Parsing file: 'kernel32\mem.c'
+Parsing file: 'kernel32\pointer.c'
+Parsing file: 'kernel32\port.c'
+Parsing file: 'kernel32\process.c'
+Parsing file: 'kernel32\session.c'
+Parsing file: 'kernel32\thread.c'
+Parsing file: 'kernel32\time.c'
+Parsing file: 'kernel32\uilang.c'
+Parsing file: 'kernel32\unikernel32.c'
+Parsing file: 'kernel32\version.c'
+Parsing file: 'kernel32\widecharconv.c'
+Definitions output: 'kernel32\_kernel32_apilist.c'
+Declarations output: 'kernel32\_kernel32_apilist.h'
+Processing directory: 'user32\'
+Parsing file: 'user32\GetMouseMovePointsEx.c'
+Parsing file: 'user32\LockWorkStation.c'
+Parsing file: 'user32\SystemParametersInfo_fix.c'
+Parsing file: 'user32\_user32_apilist.c'
+!Unresolved exports: 12
+Parsing file: 'user32\_user32_stubs.c'
+Parsing file: 'user32\desktop.c'
+Parsing file: 'user32\dialog.c'
+Parsing file: 'user32\exit.c'
+Parsing file: 'user32\input.c'
+Parsing file: 'user32\lstr.c'
+Parsing file: 'user32\menu.c'
+!Unresolved exports: 1
+Parsing file: 'user32\message.c'
+Parsing file: 'user32\thuni_conv.c'
+File doesn't contain exports
+Parsing file: 'user32\thuni_layer.c'
+Parsing file: 'user32\thuni_proc.c'
+Parsing file: 'user32\thuni_stuff.c'
+File doesn't contain exports
+Parsing file: 'user32\thuni_thunk.c'
+File doesn't contain exports
+Parsing file: 'user32\uniuser32.c'
+Parsing file: 'user32\window.c'
+Parsing file: 'user32\winsta.c'
+Definitions output: 'user32\_user32_apilist.c'
+Declarations output: 'user32\_user32_apilist.h'
+Processing directory: 'gdi32\'
+Directory is up to date
+Processing directory: 'advapi32\'
+Directory is up to date
+Processing directory: 'comdlg32\'
+Directory is up to date
+Processing directory: 'shell32\'
+Directory is up to date
+Processing directory: 'version\'
+Directory is up to date
+Processing directory: 'comctl32\'
+Directory is up to date
+Creating temporary file "C:\Users\Ludovic\AppData\Local\Temp\RSPC756.tmp" with contents
+[
+kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib version.lib ../../common/KernelEx.lib ../../kexcrt/kexcrt.lib libc.lib /nologo /dll /incremental:yes /pdb:"Debug/kexbases.pdb" /map:"Debug/kexbases.map" /debug /machine:I386 /nodefaultlib /def:".\kexbases.def" /out:"../../output-i386/Debug/kexbases.dll" /implib:"Debug/kexbases.lib" /ignore:4092 /OPT:NOWIN98 
+.\Debug\_kernel32_apilist.obj
+.\Debug\_kernel32_stubs.obj
+.\Debug\critsect.obj
+.\Debug\directory.obj
+.\Debug\file.obj
+.\Debug\GetConsoleWindow.obj
+.\Debug\GetModuleHandleEx.obj
+.\Debug\IsProcessorFeaturePresent.obj
+.\Debug\jobs.obj
+.\Debug\KEXVersion.obj
+.\Debug\locale.obj
+.\Debug\locale_casemap.obj
+.\Debug\locale_collation.obj
+.\Debug\locale_fold.obj
+.\Debug\locale_sortkey.obj
+.\Debug\locale_wctype.obj
+.\Debug\mem.obj
+.\Debug\pointer.obj
+.\Debug\port.obj
+.\Debug\process.obj
+.\Debug\RtlCaptureContext.obj
+.\Debug\session.obj
+.\Debug\thread.obj
+.\Debug\time.obj
+.\Debug\uilang.obj
+.\Debug\unikernel32.obj
+.\Debug\version.obj
+.\Debug\widecharconv.obj
+.\Debug\_user32_apilist.obj
+.\Debug\_user32_stubs.obj
+.\Debug\desktop.obj
+.\Debug\dialog.obj
+.\Debug\exit.obj
+.\Debug\GetMouseMovePointsEx.obj
+.\Debug\input.obj
+.\Debug\LockWorkStation.obj
+.\Debug\lstr.obj
+.\Debug\menu.obj
+.\Debug\message.obj
+.\Debug\SystemParametersInfo_fix.obj
+.\Debug\thuni_conv.obj
+.\Debug\thuni_layer.obj
+.\Debug\thuni_proc.obj
+.\Debug\thuni_stuff.obj
+.\Debug\thuni_thunk.obj
+.\Debug\uniuser32.obj
+.\Debug\window.obj
+.\Debug\winsta.obj
+.\Debug\_gdi32_apilist.obj
+.\Debug\_gdi32_stubs.obj
+.\Debug\EnumFont.obj
+.\Debug\FontResourceEx.obj
+.\Debug\GdiObjects.obj
+.\Debug\GetGlyphOutlineA_fix.obj
+.\Debug\GetTextExtentPoint32_fix.obj
+.\Debug\MaskBlt.obj
+.\Debug\Orhpans.obj
+.\Debug\TextOut.obj
+.\Debug\unigdi32.obj
+.\Debug\_advapi32_apilist.obj
+.\Debug\_advapi32_stubs.obj
+.\Debug\lsa.obj
+.\Debug\OpenSCManager_stub.obj
+.\Debug\RegDisablePredefinedCache.obj
+.\Debug\RegOpenCurrentUser.obj
+.\Debug\RegSetValueExA_fix.obj
+.\Debug\RtlGenRandom.obj
+.\Debug\security.obj
+.\Debug\TraceMessage.obj
+.\Debug\uniadvapi32.obj
+.\Debug\_comdlg32_apilist.obj
+.\Debug\PrintDlgEx.obj
+.\Debug\_version_apilist.obj
+.\Debug\universion.obj
+.\Debug\_shell32_apilist.obj
+.\Debug\_shell32_stubs.obj
+.\Debug\CommandLineToArgvW.obj
+.\Debug\IsUserAnAdmin.obj
+.\Debug\_comctl32_apilist.obj
+.\Debug\newclassreg.obj
+.\Debug\syslink.obj
+.\Debug\common.obj
+.\Debug\main.obj
+.\Debug\kexbases.res
+.\Debug\k32ord.lib
+]
+Creating command line "link.exe @C:\Users\Ludovic\AppData\Local\Temp\RSPC756.tmp"
+<h3>Output Window</h3>
+Compiling...
+process.c
+desktop.c
+winsta.c
+F:\Projects\KernelEx\apilibs\kexbases\User32\desktop.c(426) : warning C4700: local variable 'hEvent' used without having been initialized
+syslink.c
+main.c
+Linking...
+   Creating library Debug/kexbases.lib and object Debug/kexbases.exp
+
+
+
+<h3>Results</h3>
+kexbases.dll - 0 error(s), 1 warning(s)
+</pre>
+</body>
+</html>

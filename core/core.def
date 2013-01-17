@@ -1,0 +1,8 @@
+LIBRARY KernelEx.dll BASE=0xBFA00000
+SECTIONS
+	.text SHARED
+	.bss SHARED
+	.data SHARED
+	.edata SHARED
+	.rdata SHARED
+	.idata SHARED

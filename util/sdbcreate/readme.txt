@@ -1,0 +1,1 @@
+This program requires Windows NT 6.0 or higher to function.

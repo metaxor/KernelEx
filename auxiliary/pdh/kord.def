@@ -1,0 +1,5 @@
+LIBRARY     KERNEL32.dll
+
+EXPORTS
+    CommonUnimpStub@0 @17 NONAME
+

@@ -1,0 +1,19 @@
+LIBRARY     KERNEL32.dll
+
+EXPORTS
+    CommonUnimpStub @17 NONAME
+    VxDCall1 @1 NONAME
+    VxDCall2 @2 NONAME
+    VxDCall3 @3 NONAME
+    VxDCall4 @4 NONAME
+    VxDCall5 @5 NONAME
+    VxDCall6 @6 NONAME
+    VxDCall7 @7 NONAME
+    VxDCall8 @8 NONAME
+    _GetpWin16Lock @93 NONAME
+    _EnterSysLevel @97 NONAME
+    _LeaveSysLevel @98 NONAME
+    MakeCriticalSectionGlobal
+    MapSL
+    LoadLibrary16 @35 NONAME
+    K32_RtlNtStatusToDosError

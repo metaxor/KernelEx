@@ -1,0 +1,3 @@
+GTA: San Andreas
+----------------
+It can't use jemalloc heap. It depends on undocumented Windows heap feature and expects HeapReAlloc to always shrink allocation blocks in place, thus leading to fragmentation, which jemalloc can't guarantee.

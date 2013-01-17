@@ -1,0 +1,17 @@
+LIBRARY     APPHELP.DLL
+
+EXPORTS
+	SdbCreateDatabase
+	SdbDeclareIndex
+	SdbCloseDatabase
+	SdbCloseDatabaseWrite
+	SdbCommitIndexes
+	SdbStartIndexing
+	SdbStopIndexing
+	SdbBeginWriteListTag
+	SdbEndWriteListTag
+	SdbWriteBinaryTag
+	SdbWriteBinaryTagFromFile
+	SdbWriteStringTag
+	SdbWriteDWORDTag
+	SdbGUIDFromString

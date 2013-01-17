@@ -1,0 +1,38 @@
+# Makefile for Microsoft Visual C++ Compiler (MSVC)
+
+OBJ = kord.lib uxtheme.obj metric.obj
+RES = 
+DEF = /DEF:uxtheme.def
+BIN = ..\uxtheme.dll
+LIBS = -nodefaultlib kernel32.lib gdi32.lib user32.lib
+LDFLAGS = /DLL /OPT:NOWIN98 /ENTRY:DllMain@12
+CFLAGS = /W3 /O2 /Oi /FD
+CXXFLAGS = $(CFLAGS)
+
+all : $(BIN)
+	-@if exist $(BIN:.dll=.exp) del $(BIN:.dll=.exp)
+	-@if exist $(BIN:.dll=.lib) del $(BIN:.dll=.lib)
+
+.PHONY : clean
+clean : 
+	-@if exist *.obj del *.obj
+	-@if exist *.idb del *.idb
+	-@if exist *.res del *.res
+	-@if exist *.exp del *.exp
+	-@if exist *.lib del *.lib
+
+realclean : clean
+	-@if exist $(BIN) del $(BIN)
+
+$(BIN) : $(OBJ) $(RES)
+	link /nologo $(LDFLAGS) $(DEF) /OUT:$(BIN) $(LIBS) $(OBJ) $(RES)
+
+.c.obj : 
+	cl /nologo $(CFLAGS) /c /Fo$@ $<
+
+.cpp.obj : 
+	cl /nologo $(CXXFLAGS) /c /Fo$@ $<
+
+kord.lib : kord.def
+	link /LIB /NOLOGO /MACHINE:IX86 /DEF:$? /OUT:$@
+

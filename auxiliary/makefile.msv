@@ -1,0 +1,42 @@
+all :
+	cd msimg32
+	@$(MAKE) /nologo /f makefile.msv $@
+	cd ..
+	cd pdh
+	@$(MAKE) /nologo /f makefile.msv $@
+	cd ..
+	cd wtsapi32
+	@$(MAKE) /nologo /f makefile.msv $@
+	cd ..
+	cd uxtheme
+	@$(MAKE) /nologo /f makefile.msv $@
+	cd ..
+	cd psapi
+	@$(MAKE) /nologo /f makefile.msv $@
+	cd ..
+	cd userenv
+	@$(MAKE) /nologo /f makefile.msv $@
+	cd ..
+
+clean :
+	cd msimg32
+	@$(MAKE) /nologo /f makefile.msv $@
+	cd ..
+	cd pdh
+	@$(MAKE) /nologo /f makefile.msv $@
+	cd ..
+	cd wtsapi32
+	@$(MAKE) /nologo /f makefile.msv $@
+	cd ..
+	cd uxtheme
+	@$(MAKE) /nologo /f makefile.msv $@
+	cd ..
+	cd psapi
+	@$(MAKE) /nologo /f makefile.msv $@
+	cd ..
+	cd userenv
+	@$(MAKE) /nologo /f makefile.msv $@
+	cd ..
+
+ide : all clean
+	-@if exist Release\NUL rd Release
