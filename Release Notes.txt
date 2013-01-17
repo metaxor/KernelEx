@@ -1,0 +1,286 @@
+KernelEx v4.5.2 by Xeno86
+2011-11-14
+
+What's new:
+----------------------------------
+* Added KernelEx Virtual Device (VKrnlEx.vxd) project which makes modification of kernel32.dll file on disk unnecessary by patching the image directly in memory from kernel space before the shell starts
+* Implemented a fix for a crash occuring when accessing a locked file through file mapping object
+* Some programs shouldn't complain about not having admin privileges anymore
+* Various bugfixes
+
+Apps fixed / now working:
+-------------------------
+* Now working: Mozilla Firefox 8.0
+
+#################################################
+
+KernelEx v4.5.1 by Xeno86
+2011-05-06
+
+What's new:
+----------------------------------
+* New KernelEx API Hook infrastructure for developers
+* Various bugfixes
+
+Apps fixed / now working:
+-------------------------
+* New Opera 11 non-MSI installer now works
+* Fixed download numbers in Opera 11 not being displayed properly
+* Fixed missing checkboxes in GTK applications - Pidgin and GIMP among others
+* Fixed Google Earth installation on non-english systems
+
+#################################################
+
+KernelEx v4.5 Final by Xeno86
+2010-12-30
+
+What's new:
+----------------------------------
+* Reworked installer (should be more compatible with kernel32 updates)
+* New welcome screen
+* Fixed stability of extended TLS code
+* Fixed hang issues with printers
+* Added Windows Installer compatibility database for MSI files patching
+
+Apps fixed / now working:
+-------------------------
+* Fixed: Foxit Reader 3.1 drag-and-drop crash
+* Fixed: Qt 4.6+ hotkey issues
+* Fixed: Opera 11 'about:' pages
+* Fixed: Firefox displaying file save dialog twice
+* Fixed: caret not showing on some configurations (Opera)
+* Now working: Google Earth 5.2 (6.0 beta experimentally)
+
+#################################################
+
+KernelEx v4.5 RC 5 by Xeno86
+2010-11-02
+
+What's new:
+----------------------------------
+* KernelEx should now work better with Windows 95 shell
+* Fixed stability issues with GDI anti-leaking code
+
+Apps fixed / now working:
+-------------------------
+* Fixed: OpenOffice.org often crashed on closing
+* Fixed: VLC 1.1.x crashed on DVD playback on windows 98 shell
+* Fixed: MAME insufficient memory error
+* Fixed: Inkscape 0.47 invisible save dialog problem
+* Fixed: Foxit Reader 3,4 resource leaks and random scrolling crashes
+* Fixed: Opera crashed in 'Windows 2000' mode when trying to save file
+* Fixed: Qt4 apps not showing interface fonts
+* Fixed: AkelPad had broken national input
+* Fixed: Easy Assembler Shell installer crash
+* Now working: Media Player Classic Home Cinema rev 2374+
+* Now working: MS Office 2003 Word/Excel + Viewers (experimental)
+* Now working: MS Office 2007 converters [docx only] (experimental)
+
+#################################################
+
+KernelEx v4.5 RC 4 by Xeno86
+2010-09-21
+
+What's new:
+-----------
+* Fixed: missing background colors and images in Mozilla Firefox 3.6.9/3.6.10
+* Fixed: MSIMG32 warning and menu icon transparency issues in Opera 10.62
+* Fixed: crashes introduced in RC 3
+* KernelEx auxiliary libraries weren't loaded when full path to system file was passed in call to LoadLibary
+
+#################################################
+
+KernelEx v4.5 RC 3 by Xeno86
+2010-09-10
+
+hotfix to prevent DLL circular-references causing crashes on certain configurations
+
+#################################################
+
+KernelEx v4.5 RC 2 by Xeno86
+2010-09-08
+
+What's new:
+-----------
+* Implemented SysLink common control class
+
+Apps fixed / now working:
+-------------------------
+* Fixed: Google Picasa options dialog (empty tabs)
+* Fixed: Adobe Flash Player crashes (reported by mailcat via sf.net forum)
+* Fixed: Adobe Flash Player 10.1 volume control
+* Fixed: Wizard101 game crash (bug #3041092)
+* Fixed: Maxthon browser (freezing)
+* Now working: Maxthon 1.6.7
+* Now working: VLC 1.1.2 (without RP9)
+
+#################################################
+
+KernelEx v4.5 RC 1 by Xeno86
+2010-07-30
+
+What's new:
+----------------------------------
+* Reworked 'Compatibility' tab to allow resetting compatibility settings to default values
+* Resources with high ID are disallowed when KernelEx is disabled
+* Platform check is now re-enabled when KernelEx is disabled
+* Fixed settings not applied for applications with international characters in path
+* Implemented get-post I/O completion ports functionality
+
+Apps fixed / now working:
+-------------------------
+* Fixed: MSYS (broken)
+* Fixed: Microsoft Access XP (crashing)
+* Fixed: Rally Championship '99 (crashing)
+* Fixed: GTA San Andreas (crashing)
+* Fixed: VLC 1.0+ (UI)
+* Fixed: Firefox 3.6.4+ (high cpu usage)
+* Now working: Adobe Flash 10.1 plugin
+* Now working: Mozilla Firefox 4.0 Beta 2
+* Now working: Artweaver 1.0
+* Now working: MPC-HC (newer builds, svn build 1391+)
+
+#################################################
+
+KernelEx v4.5 Beta 2 by Xeno86
+2010-02-14
+
+What's new:
+----------------------------------
+* Implemented Uniscribe font caching (improves Firefox 3 performance).
+* New thread pool implementation (fixes IE6 problems).
+* Fixed rare font related Firefox 3 crash.
+* Implemented timer queue APIs.
+* Implemented SHParseDisplayName and restricted to XP+ configs to fix Firefox mailto issues.
+* Fixed premature kexCOM unloading crashing Photoshop 5 and other buggy apps.
+* Updated jemalloc to version from FF3.6.
+* Fixed jemalloc sensitiveness to invalid pointers. Fixes vmwareuser, cvtaplog crashing.
+* Implemented EnumPrintersW (Foxit 3.1 Unicode printing support).
+* Fixed Opera 10.50 Beta Acid3 crash.
+* Other small fixes / stubs.
+
+#################################################
+
+KernelEx v4.5 Beta 1 by Xeno86
+2010-01-18
+
+What's new:
+----------------------------------
+* Noticeably improved speed of applications which make extensive use of memory.
+This was made possible by introducing new memory allocator originating from FreeBSD - jemalloc.
+It improves heap memory allocation/free speed and reduces virtual memory fragmentation.
+* Improved compatibility with Unicode applications by implementing new windowing layer
+which provides NT-consistent way to work with Unicode window procedures.
+* Extended TLS slot limitation from 80 to 1000+, for some heavy apps.
+* Lifted PE loader named resource limitation, allowing named resource-heavy libraries to load.
+* Changed kernel obfuscator to produce positive object (process, thread) IDs in order to improve compatibility.
+* Introduced kexCOM - new library to take care of missing COM interfaces. Fixes creating shell shortcuts in newer installers.
+* GDI object destroying rules adjusted in order to fix certain resource leaks or unstability with Flash and other apps.
+* Implemented certain userenv, unicode winspool, thread pool functions.
+* Lot of API fixes and stubs.
+* Improved Compatibility tab.
+* Various architecture improvements.
+* Fixed uninstall kernel32.bak not restoring reliably issue.
+
+Apps now working / fixed:
+-------------------------
+* .NET Framework 2 (fixed install/uninstall and apps)
+* AbiWord 2.8 (usable, minor problems)
+* Adobe Flash 10.1 beta
+* Adobe Acrobat Reader 9 (very unstable)
+* Adobe ImageReady CS2 (no Photoshop yet)
+* Arora (WebKit Internet Browser)
+* FastStone Image Viewer (fixed plugin crash)
+* Foxit Reader 3.1
+* ICQ 6.5 / ICQLite
+* InkScape (usable)
+* GIMP 2.6 (usable, fixed brush trace)
+* Half-Life 2 Episode One/Two
+* Miranda IM 0.8.x Unicode
+* Mozilla Thunderbird 3 (fixed out of space errors)
+* Nero DiscSpeed 4
+* QtCreator 1.2.1
+* SoftMaker Office 2008 (fixed input bugs)
+* WinAmp 5.5x (fixed ML crash, charset problems)
+* X-Moto
+
+
+Notes:
+------
+* This release is beta quality in order to test several major changes in KernelEx.
+Please test the apps which were working before. Compare the performance and memory usage of any heavy apps you use.
+Pay attention to possible national language input problems.
+* If you want to downgrade to Final 2, you have to uninstall this beta first.
+* Enjoy this great release. win9x 4ever.
+
+#################################################
+
+KernelEx v4.0 Final 2 by Xeno86
+2009-08-20
+
+Major changes:
+--------------
+* system won't try to load auxiliary libraries (PSAPI, MSIMG32, PDH, UXTHEME, WTSAPI32) when extensions are disabled
+
+Fixed regressions:
+------------------
+* fixed ZoneAlarm not working properly
+* Firefox 3 couldn't be uninstalled if KernelEx was installed with extensions disabled
+* Foobar2000 v0.9.6.x installer was crashing
+
+#################################################
+
+KernelEx v4.0 Final by Xeno86
+2009-07-23
+
+Now working on Windows 98/Me:
+-----------------------------
+* Flash 10 in Internet Explorer
+
+Major changes:
+--------------
+* added option to installer to select between enabling KernelEx extensions for all applications and disabling them
+* added installation verifier
+* printer driver software no longer running in NT mode
+* file select dialogs in Flash applets and certain applications should work correctly now
+* improved RP9 compatibility
+* loading MSLU altered floating point unit flags and caused certain programs to crash
+* MSLU (Unicows.dll) is no longer loaded right on startup and should be seen referenced less often in system
+* Dependency Walker is no longer slow when profiling
+* startup speed improvements
+* stability improvements
+* tons of small changes
+
+#################################################
+
+KernelEx v4.0 RC 2 by Xeno86
+2009-03-21
+
+Now working on Windows 98/Me:
+-----------------------------
+* The Chronicles of Riddick EFBB Demo
+* QEmu 0.9
+
+Fixed regressions:
+------------------
+* fixed Adobe Acrobat Reader 7.0 not working with RC 1
+* .Net framework was broken in RC 1 now should work correctly
+* input issue in Firefox 3 affecting special characters
+* eMule couldn't complete downloads in RC 1, now fixed
+* transparency issue in Firefox 3
+* incompatibility with Norton Utilities
+
+#################################################
+
+KernelEx v4.0 RC 1 by Xeno86
+2009-03-10
+
+Now working on Windows 98/Me:
+-----------------------------
+* Firefox 3.6 alpha
+* JDK 6 / JRE 6 works fine with the exception of Java applets which don't work (reason: missing proper named-pipe support in the system)
+* PDF-XChange Viewer now works
+
+Fixed regressions:
+------------------
+* Sysinternals TCPView display fix
