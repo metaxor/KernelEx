@@ -1,5 +1,5 @@
-  !define _VERSION '4.5.2'
-  !define _VERSION_CODE 0x04050078
+  !define _VERSION '4.5.3 Beta 1'
+  !define _VERSION_CODE 0x04050300
   
   !ifndef _DEBUG
     !define FLAVOUR 'Release'
@@ -25,7 +25,7 @@
   ;Name and file
   Name "KernelEx"
   Caption "KernelEx ${VERSION} Setup"
-  OutFile "KernelEx-dev.exe"
+  OutFile "output-i386\Setup\KernelEx-4.5.3-Beta1Dev.exe"
 
   ;Default installation folder
   InstallDir "$WINDIR\KernelEx"
@@ -238,35 +238,35 @@ Section "Install"
   ;UpdateDLL_Func params:
   ;$R4 - target; $R5 - tempdir; $R6 - register?; $R7 - source
   GetTempFileName $0 "$INSTDIR"
-  File /oname=$0 "Core\${FLAVOUR}\KernelEx.dll"
+  File /oname=$0 "output-i386\${FLAVOUR}\KernelEx.dll"
   StrCpy $R4 "$INSTDIR\KernelEx.dll"
   StrCpy $R6 "0"
   StrCpy $R7 $0
   Call UpgradeDLL_Func
   
   GetTempFileName $0 "$INSTDIR"
-  File /oname=$0 "apilibs\kexbases\${FLAVOUR}\kexbases.dll"
+  File /oname=$0 "output-i386\${FLAVOUR}\kexbases.dll"
   StrCpy $R4 "$INSTDIR\kexbases.dll"
   StrCpy $R6 "0"
   StrCpy $R7 $0
   Call UpgradeDLL_Func
   
   GetTempFileName $0 "$INSTDIR"
-  File /oname=$0 "apilibs\kexbasen\${FLAVOUR}\kexbasen.dll"
+  File /oname=$0 "output-i386\${FLAVOUR}\kexbasen.dll"
   StrCpy $R4 "$INSTDIR\kexbasen.dll"
   StrCpy $R6 "0"
   StrCpy $R7 $0
   Call UpgradeDLL_Func
   
   GetTempFileName $0 "$INSTDIR"
-  File /oname=$0 "sheet\${FLAVOUR}\sheet.dll"
+  File /oname=$0 "output-i386\${FLAVOUR}\sheet.dll"
   StrCpy $R4 "$INSTDIR\sheet.dll"
   StrCpy $R6 "1"
   StrCpy $R7 $0
   Call UpgradeDLL_Func
   
   GetTempFileName $0 "$INSTDIR"
-  File /oname=$0 "kexCOM\${FLAVOUR}\kexCOM.dll"
+  File /oname=$0 "output-i386\${FLAVOUR}\kexCOM.dll"
   StrCpy $R4 "$INSTDIR\kexCOM.dll"
   StrCpy $R6 "1"
   StrCpy $R7 $0
@@ -280,47 +280,47 @@ Section "Install"
   File "Release Notes.txt"
   
   GetTempFileName $0 "$INSTDIR"
-  File /oname=$0 "vxd\${FLAVOUR}\VKrnlEx.vxd"
+  File /oname=$0 "output-i386\${FLAVOUR}\VKrnlEx.vxd"
   Delete "$INSTDIR\VKrnlEx.vxd"
   Rename /REBOOTOK $0 "$INSTDIR\VKrnlEx.vxd"
   
   GetTempFileName $0 "$INSTDIR"
-  File /oname=$0 auxiliary\msimg32.dll
+  File /oname=$0 output-i386\Release\msimg32.dll
   Delete "$INSTDIR\msimg32.dll"
   Rename /REBOOTOK $0  "$INSTDIR\msimg32.dll"
   WriteRegStr HKLM "Software\KernelEx\KnownDLLs" \
     "MSIMG32" "MSIMG32.DLL"
   
   GetTempFileName $0 "$INSTDIR"
-  File /oname=$0 auxiliary\pdh.dll
+  File /oname=$0 output-i386\Release\pdh.dll
   Delete "$INSTDIR\pdh.dll"
   Rename /REBOOTOK $0  "$INSTDIR\pdh.dll"
   WriteRegStr HKLM "Software\KernelEx\KnownDLLs" \
     "PDH" "PDH.DLL"
   
   GetTempFileName $0 "$INSTDIR"
-  File /oname=$0 auxiliary\psapi.dll
+  File /oname=$0 output-i386\Release\psapi.dll
   Delete "$INSTDIR\psapi.dll"
   Rename /REBOOTOK $0  "$INSTDIR\psapi.dll"
   WriteRegStr HKLM "Software\KernelEx\KnownDLLs" \
     "PSAPI" "PSAPI.DLL"
   
   GetTempFileName $0 "$INSTDIR"
-  File /oname=$0 auxiliary\uxtheme.dll
+  File /oname=$0 output-i386\Release\uxtheme.dll
   Delete "$INSTDIR\uxtheme.dll"
   Rename /REBOOTOK $0  "$INSTDIR\uxtheme.dll"
   WriteRegStr HKLM "Software\KernelEx\KnownDLLs" \
     "UXTHEME" "UXTHEME.DLL"
   
   GetTempFileName $0 "$INSTDIR"
-  File /oname=$0 auxiliary\wtsapi32.dll
+  File /oname=$0 output-i386\Release\wtsapi32.dll
   Delete "$INSTDIR\wtsapi32.dll"
   Rename /REBOOTOK $0  "$INSTDIR\wtsapi32.dll"
   WriteRegStr HKLM "Software\KernelEx\KnownDLLs" \
     "WTSAPI32" "WTSAPI32.DLL"
   
   GetTempFileName $0 "$INSTDIR"
-  File /oname=$0 auxiliary\userenv.dll
+  File /oname=$0 output-i386\Release\userenv.dll
   Delete "$INSTDIR\userenv.dll"
   Rename /REBOOTOK $0  "$INSTDIR\userenv.dll"
   WriteRegStr HKLM "Software\KernelEx\KnownDLLs" \
@@ -352,7 +352,7 @@ Section "Install"
   
   ;Write verifier
   SetOverWrite on
-  File verify\${FLAVOUR}\verify.exe
+  File output-i386\${FLAVOUR}\verify.exe
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Run" \
     "KexVerify" "$INSTDIR\verify.exe"
   SetOverwrite lastused
