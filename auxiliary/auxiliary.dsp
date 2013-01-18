@@ -24,7 +24,7 @@ CFG=auxiliary - Win32 Release
 # PROP AllowPerConfigDependencies 0
 # PROP Scc_ProjName ""
 # PROP Scc_LocalPath ""
-# PROP BASE Use_MFC
+# PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
 # PROP BASE Output_Dir "Release"
 # PROP BASE Intermediate_Dir "Release"
@@ -33,7 +33,7 @@ CFG=auxiliary - Win32 Release
 # PROP BASE Target_File "auxiliary.exe"
 # PROP BASE Bsc_Name "auxiliary.bsc"
 # PROP BASE Target_Dir ""
-# PROP Use_MFC
+# PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
 # PROP Output_Dir "Release"
 # PROP Intermediate_Dir "Release"
@@ -53,6 +53,66 @@ CFG=auxiliary - Win32 Release
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
+# Begin Group "msimg32"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\msimg32\msimg32.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\msimg32\msimgme.rc
+# End Source File
+# End Group
+# Begin Group "pdh"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\pdh\pdh.c
+# End Source File
+# End Group
+# Begin Group "psapi"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\psapi\psapi.c
+# End Source File
+# End Group
+# Begin Group "userenv"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\userenv\userenv.c
+# End Source File
+# End Group
+# Begin Group "uxtheme"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\uxtheme\metric.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\uxtheme\uxtheme.c
+# End Source File
+# End Group
+# Begin Group "wtsapi32"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\wtsapi32\wtsapi32.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\wtsapi32\wtsapi32.h
+# End Source File
+# End Group
 # End Group
 # Begin Group "Header Files"
 
