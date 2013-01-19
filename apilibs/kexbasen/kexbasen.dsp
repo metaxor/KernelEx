@@ -101,67 +101,27 @@ LINK32=link.exe
 # Begin Source File
 
 SOURCE=.\kernel32\jemalloc\jemalloc.c
-
-!IF  "$(CFG)" == "KernelEx Base NonShared - Win32 Release"
-
 # PROP Exclude_From_Build 1
-
-!ELSEIF  "$(CFG)" == "KernelEx Base NonShared - Win32 Debug"
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
 SOURCE=.\kernel32\jemalloc\jemalloc.h
-
-!IF  "$(CFG)" == "KernelEx Base NonShared - Win32 Release"
-
 # PROP Exclude_From_Build 1
-
-!ELSEIF  "$(CFG)" == "KernelEx Base NonShared - Win32 Debug"
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
 SOURCE=.\kernel32\jemalloc\ql.h
-
-!IF  "$(CFG)" == "KernelEx Base NonShared - Win32 Release"
-
 # PROP Exclude_From_Build 1
-
-!ELSEIF  "$(CFG)" == "KernelEx Base NonShared - Win32 Debug"
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
 SOURCE=.\kernel32\jemalloc\qr.h
-
-!IF  "$(CFG)" == "KernelEx Base NonShared - Win32 Release"
-
 # PROP Exclude_From_Build 1
-
-!ELSEIF  "$(CFG)" == "KernelEx Base NonShared - Win32 Debug"
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
 SOURCE=.\kernel32\jemalloc\rb.h
-
-!IF  "$(CFG)" == "KernelEx Base NonShared - Win32 Release"
-
 # PROP Exclude_From_Build 1
-
-!ELSEIF  "$(CFG)" == "KernelEx Base NonShared - Win32 Debug"
-
-!ENDIF 
-
 # End Source File
 # End Group
 # Begin Source File
@@ -451,6 +411,22 @@ SOURCE=.\cryptui\_cryptui_apilist.h
 # Begin Source File
 
 SOURCE=.\cryptui\CryptUIDlgViewContext.c
+# End Source File
+# End Group
+# Begin Group "ntdll"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\ntdll\_ntdll_apilist.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ntdll\_ntdll_apilist.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ntdll\_ntdll_stubs.c
 # End Source File
 # End Group
 # Begin Source File
