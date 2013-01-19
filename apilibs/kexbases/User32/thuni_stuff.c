@@ -46,8 +46,8 @@ BOOL InitUniThunkLayerStuff()
     GetDialogBaseUnits();
 
 	//FreeLibrary16(hUser16);
-    /* ecx holds gSharedInfo structure */
-    _asm mov [g_SharedInfo], ecx
+    /* ecx holds gSharedInfo */
+    __asm mov [g_SharedInfo], ecx
 
 	return (g_UserBase && g_hUser32 && g_SharedInfo);
 }

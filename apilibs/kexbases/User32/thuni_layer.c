@@ -25,6 +25,7 @@
 #include "thuni_thunk.h"
 #include "thuni_layer.h"
 #include "thuni_macro.h"
+#include "_user32_apilist.h"
 
 static CRITICAL_SECTION wndproc_cs;
 
@@ -36,7 +37,7 @@ BOOL InitUniThunkLayer()
 	return InitUniThunkLayerStuff();
 }
 
-static WNDPROC WINAPI _GetWindowProc32(PWND pwnd)
+WNDPROC WINAPI GetWindowProc32(PWND pwnd)
 {
 	if ( !pwnd ) return NULL;
 	if ( !IS32BITWIN(pwnd) ) return NULL;
@@ -46,7 +47,7 @@ static WNDPROC WINAPI _GetWindowProc32(PWND pwnd)
 	return proc32->proc;
 }
 
-static PMSGQUEUE _GetWindowQueue(PWND pwnd)
+PMSGQUEUE GetWindowQueue(PWND pwnd)
 {
 	return pwnd ? (PMSGQUEUE)MapSL( (DWORD)pwnd->hQueue << 16 ) : NULL;
 }
@@ -68,7 +69,7 @@ BOOL IsWindowReallyUnicode(HWND hwnd)
 	PWND pwnd = HWNDtoPWND(hwnd);
 	if ( pwnd && IS32BITWIN(pwnd) )
 	{
-		THUNKPROC proc = (THUNKPROC)_GetWindowProc32( pwnd );
+		THUNKPROC proc = (THUNKPROC)GetWindowProc32( pwnd );
 		if ( proc && proc->sign == wtoa_code && IsValidThunk(proc) ) return TRUE;			
 	}
 	return FALSE;
@@ -379,7 +380,7 @@ static void CALLBACK UnicodeEvent( HWINEVENTHOOK hWinEventHook, DWORD event, HWN
 		isUnicode = TRUE; //16-bit window, will be Unicode
 	else
 	{
-		THUNKPROC proc = (THUNKPROC)_GetWindowProc32( pwnd );
+		THUNKPROC proc = (THUNKPROC)GetWindowProc32( pwnd );
 		if ( IS_SHARED(proc) || (proc && proc->sign == wtoa_code && IsValidThunk(proc)) ) //shared control or Unicode thunk
 			isUnicode = TRUE;
 	}
@@ -400,7 +401,7 @@ HWND WINAPI CreateWindowExW_NEW(DWORD dwExStyle, LPCWSTR lpClassName, LPCWSTR lp
 	STACK_WtoA(lpClassName, lpClassNameA);
 	STACK_WtoA(lpWindowName, lpWindowNameA);	
 	uniEvent = SetWinCreateEvent(UnicodeEvent);
-	ret = CreateWindowExA(dwExStyle,lpClassNameA,lpWindowNameA,dwStyle,x,y,nWidth,nHeight,hWndParent,hMenu,hInstance,lpParam);
+	ret = CreateWindowExA_fix(dwExStyle,lpClassNameA,lpWindowNameA,dwStyle,x,y,nWidth,nHeight,hWndParent,hMenu,hInstance,lpParam);
 	UnhookWinEvent(uniEvent);
 	return ret;
 }
@@ -495,10 +496,10 @@ LRESULT WINAPI SendMessageW_NEW( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lPar
 		PWND pwnd = HWNDtoPWND(hWnd);		
 		if ( pwnd )
 		{
-			PMSGQUEUE msgq = _GetWindowQueue(pwnd);
+			PMSGQUEUE msgq = GetWindowQueue(pwnd);
 			PMSGQUEUE ourmsgq = GetCurrentThreadQueue();
 			if ( ourmsgq == msgq && !msgq->block1 && !msgq->block2 ) //hooray! we're in the same queue and can be 32-bit!
-				procW = ConvertWndProcAToW( _GetWindowProc32(pwnd) );
+				procW = ConvertWndProcAToW( GetWindowProc32(pwnd) );
 		}
 		ReleaseWin16Lock();
 		if ( procW )

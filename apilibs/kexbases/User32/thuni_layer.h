@@ -1,11 +1,11 @@
 #pragma once
 
 #include "k32ord.h"
-#include "hwnd9x.h"
 
 static const char c_szDBCSProp[]="kexDBCS";
 
 #define REBASEUSER(x) ((x) != 0 ? g_UserBase + (DWORD)(x) : 0)
+#define USER32FAR16(x) ((x) != 0 ? (DWORD)(x) - g_UserBase : 0)
 
 #define ISOURPROCESSHWND(hwnd) ( GetWindowProcessId(hwnd) == GetCurrentProcessId() )
 #define IS_SHARED(x) (((DWORD)x) & 0x80000000)
@@ -31,12 +31,18 @@ extern HMODULE g_hUser32;
 BOOL InitUniThunkLayerStuff();
 void GrabWin16Lock();
 void ReleaseWin16Lock();
+
+/* The hwnd9x header will need some functions from the thuni layer */
+#include "hwnd9x.h"
+
 DWORD GetWindowProcessId( HWND hwnd );
 LRESULT WINAPI CallWindowProc_stdcall( WNDPROC lpPrevWndFunc, HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 int GetCPFromLocale(LCID Locale);
 UINT GetCurrentKeyboardCP();
 PMSGQUEUE GetCurrentThreadQueue();
 void UpdateLRKeyState(LPMSG msg);
+WNDPROC WINAPI GetWindowProc32(PWND pwnd);
+PMSGQUEUE GetWindowQueue(PWND pwnd);
 
 //conv
 WPARAM wparam_AtoW( HWND hwnd, UINT message, WPARAM wParam, BOOL messDBCS );
@@ -56,7 +62,6 @@ BOOL InitUniThunkLayer();
 
 //sendmessage_fix
 LRESULT WINAPI SendMessageA_fix(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
-
 
 #ifdef __cplusplus
 extern "C"
