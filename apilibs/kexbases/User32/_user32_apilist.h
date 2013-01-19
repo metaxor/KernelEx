@@ -45,6 +45,8 @@ extern GetMouseMovePoints_t GetMouseMovePoints_pfn;
 typedef HANDLE (WINAPI *CREATEKERNELTHREAD)(LPSECURITY_ATTRIBUTES, SIZE_T, LPTHREAD_START_ROUTINE, LPVOID, DWORD, LPDWORD);
 extern CREATEKERNELTHREAD CreateKernelThread;
 
+extern PPDB98 Msg32Process;
+
 extern BOOL fShutdown;
 
 BOOL init_user32();
@@ -58,6 +60,7 @@ extern const apilib_api_table apitable_user32;
 int WINAPI GetMouseMovePointsEx_98(UINT size, LPMOUSEMOVEPOINT ptin, LPMOUSEMOVEPOINT ptout, int count, DWORD res);
 BOOL WINAPI LockWorkStation_new(void);
 BOOL WINAPI SystemParametersInfoA_fix(UINT uiAction, UINT uiParam, PVOID pvParam, UINT fWinIni);
+STUB InitSharedTable_stub;
 STUB PrintWindow_stub;
 STUB RegisterServicesProcess_stub;
 STUB SetLayeredWindowAttributes_stub;
@@ -162,17 +165,26 @@ HDESK WINAPI OpenDesktopW_new(LPWSTR lpszDesktopW, DWORD dwFlags, BOOL fInherit,
 HWINSTA WINAPI OpenWindowStationW_new(LPWSTR lpszWinStaW, BOOL fInherit, ACCESS_MASK dwDesiredAccess);
 UINT WINAPI RealGetWindowClassW_new(HWND hwnd, LPWSTR pszTypeW, UINT cchType);
 BOOL WINAPI AllowSetForegroundWindow_98(DWORD procid);
+BOOL WINAPI AnyPopup_nothunk(VOID);
+HWND WINAPI CreateMDIWindowA_fix(LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int X, int Y, int nWidth, int nHeight, HWND hWndParent, HINSTANCE hInstance, LPARAM lParam);
 HWND WINAPI CreateWindowExA_fix(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam);
 void __stdcall DisableProcessWindowsGhosting_new(void);
 BOOL WINAPI EnableWindow_new(HWND hWnd, BOOL bEnable);
+BOOL WINAPI EnumChildWindows_nothunk(HWND hWndParent, WNDENUMPROC lpEnumFunc, LPARAM lParam);
+BOOL WINAPI EnumThreadWindows_nothunk(DWORD dwThreadId, WNDENUMPROC lpfn, LPARAM lParam);
+BOOL WINAPI EnumWindows_nothunk(WNDENUMPROC lpEnumFunc, LPARAM lParam);
+HWND WINAPI GetParent_nothunk(HWND hWnd);
 BOOL WINAPI LockSetForegroundWindow_98(UINT lockcode);
 HWND APIENTRY GetAncestor_fix(HWND hwnd, UINT gaFlags);
+HWND WINAPI GetForegroundWindow_fix(VOID);
 HWND APIENTRY GetShellWindow_new(VOID);
 BOOL WINAPI IsHungAppWindow_new(HWND hWnd);
+BOOL WINAPI SetForegroundWindow_fix(HWND hWnd);
 BOOL WINAPI SetWindowPos_fix(HWND hWnd, HWND hWndInsertAfter, int X, int Y, int cx, int cy, UINT uFlags);
 BOOL WINAPI ShowWindow_fix(HWND hWnd, int nCmdShow);
 BOOL WINAPI ShowWindowAsync_fix(HWND hWnd, int nCmdShow);
 HWND WINAPI SetParent_fix(HWND hWndChild, HWND hWndNewParent);
+HWND WINAPI SetParent_nothunk(HWND hWndChild, HWND hWndNewParent);
 BOOL WINAPI UpdateLayeredWindow_new(HWND hwnd, HDC hdcDst, POINT *pptDst, SIZE *psize, HDC hdcSrc, POINT *pptSrc, COLORREF crKey, BLENDFUNCTION *pblend, DWORD dwFlags);
 BOOL WINAPI CloseWindowStation_new(HWINSTA hWinSta);
 HWINSTA WINAPI CreateWindowStationA_new(LPCSTR lpwinsta, DWORD dwFlags, ACCESS_MASK dwDesiredAccess, LPSECURITY_ATTRIBUTES lpsa);
