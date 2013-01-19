@@ -1,6 +1,6 @@
 /*
  *  KernelEx
- *  Copyright (C) 2010, Tihiy
+ *  Copyright (C) 2013, Ley0k
  *
  *  This file is part of KernelEx source code.
  *

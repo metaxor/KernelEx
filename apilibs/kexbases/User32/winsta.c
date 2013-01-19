@@ -1,6 +1,6 @@
 /*
  *  KernelEx
- *  Copyright (C) 2008, Xeno86
+ *  Copyright (C) 2013, Ley0k
  *
  *  This file is part of KernelEx source code.
  *
@@ -202,7 +202,14 @@ HWINSTA WINAPI GetProcessWindowStation_new(void)
 
 	Process = get_pdb();
 
-	return Process->Win32Process->hwinsta;
+	__try
+	{
+		return Process->Win32Process->hwinsta;
+	}
+	__except(EXCEPTION_EXECUTE_HANDLER)
+	{
+		return NULL;
+	}
 }
 
 /* MAKE_EXPORT GetUserObjectInformationA_new=GetUserObjectInformationA */

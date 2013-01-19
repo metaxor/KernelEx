@@ -1,6 +1,7 @@
 /*
  *  KernelEx
  *  Copyright (C) 2008, Xeno86
+ *  Copyright (C) 2013, Ley0k
  *
  *  This file is part of KernelEx source code.
  *
@@ -110,7 +111,8 @@ VOID pti_uninit(PTDB98 Thread)
 	if(IsBadReadPtr(Thread, sizeof(TDB98)))
 		Thread = get_tdb();
 
-	kexFreeObject(Thread->Win32Thread);
+	if(!IsBadReadPtr(Thread->Win32Thread, sizeof(THREADINFO)))
+		kexFreeObject(Thread->Win32Thread);
 }
 
 VOID ppi_uninit(PPDB98 Process)
@@ -118,7 +120,8 @@ VOID ppi_uninit(PPDB98 Process)
 	if(IsBadReadPtr(Process, sizeof(PDB98)))
 		Process = get_pdb();
 
-	kexFreeObject(Process->Win32Process);
+	if(!IsBadReadPtr(Process->Win32Process, sizeof(PROCESSINFO)))
+		kexFreeObject(Process->Win32Process);
 }
 
 VOID thread_uninit(PTDB98 Thread)

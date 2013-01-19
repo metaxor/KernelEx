@@ -1,6 +1,6 @@
 /*
  *  KernelEx
- *  Copyright (C) 2008-2010, Xeno86, Tihiy
+ *  Copyright (C) 2008-2010, Xeno86, Tihiy, Ley0k
  *
  *  This file is part of KernelEx source code.
  *

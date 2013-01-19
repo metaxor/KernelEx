@@ -1,6 +1,7 @@
 /*
  *  KernelEx
  *  Copyright (C) 2008, Tihiy
+ *  Copyright (C) 2013, Ley0k
  *  This file is part of KernelEx source code.
  *
  *  KernelEx is free software; you can redistribute it and/or modify

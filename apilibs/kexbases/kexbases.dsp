@@ -129,6 +129,10 @@ SOURCE=.\Kernel32\GetModuleHandleEx.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\Kernel32\inter.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\Kernel32\IsProcessorFeaturePresent.c
 # End Source File
 # Begin Source File
@@ -487,6 +491,10 @@ SOURCE=.\shell32\CommandLineToArgvW.c
 
 SOURCE=.\shell32\IsUserAnAdmin.c
 # End Source File
+# Begin Source File
+
+SOURCE=.\shell32\shexit.c
+# End Source File
 # End Group
 # Begin Group "comctl32"
 
@@ -530,6 +538,10 @@ SOURCE=.\ntdll\ntprocess.c
 # Begin Source File
 
 SOURCE=.\ntdll\ntthread.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ntdll\sys.c
 # End Source File
 # End Group
 # Begin Source File
@@ -662,6 +674,10 @@ SOURCE=..\..\common\k32ord.def
 # Begin Source File
 
 SOURCE=..\..\common\k32ord.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\main.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"

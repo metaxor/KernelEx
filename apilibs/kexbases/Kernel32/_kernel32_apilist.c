@@ -19,11 +19,6 @@
  *
  */
 
-/*TODOS:
-CreateRemoteThread
-http://17slon.com/blogs/gabr/2007/02/four-ways-to-detect-vista.html
-*/
-
 #include "common.h"
 #include "kexcoresdk.h"
 #include "_kernel32_apilist.h"

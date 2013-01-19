@@ -20,12 +20,16 @@
  *
  */
 
+#pragma once
+
 #include <windows.h>
+#include "common.h"
+#include "thuni_layer.h"
 
 #ifndef _HWND32_H
 #define _HWND32_H
 
-#define IS_SYSTEM_HWND(hwnd) ((hwnd)>=(HWND)0x80 && (hwnd)<=(HWND)0x88)
+#define IS_SYSTEM_HWND(hwnd) ((hwnd)>=(HWND)0x80 && (hwnd)<=(HWND)0x8C)
 
 #pragma pack (1)
 typedef struct _RECTS
@@ -141,6 +145,46 @@ typedef struct _QUEUEKEYBUFFER
 
 
 #pragma pack()
+
+/* New way to get the relative 32-bit window */
+PWND inline GetWindowObject(HWND hWnd)
+{
+    PWND pWnd;
+
+    GrabWin16Lock();
+
+    if(hWnd == NULL)
+        goto _ret;
+
+    /* Check if hWnd is a multiple of 4 */
+    if((DWORD)hWnd & 3)
+        goto _ret;
+
+    /* if hWnd is below 0x80 */
+    if((DWORD)hWnd < 0x80)
+        goto _ret;
+
+    /* if hWnd is above the max HWND value */
+    if((DWORD)hWnd > *(PDWORD)(g_SharedInfo + 0x10070) )
+        goto _ret;
+
+    /* Grab the pointer from gSharedInfo (USER's DGROUP) */
+    pWnd = (PWND)*(PDWORD)(hWnd + 0x10000 + g_SharedInfo);
+
+    /* HWND structures must be above 0x20000 */
+    if((DWORD)pWnd < 0x20000)
+    {
+        pWnd = NULL;
+        goto _ret;
+    }
+
+    /* Now get the flat PTR from the PWND structure */
+    pWnd = (PWND)((DWORD)pWnd + g_SharedInfo);
+
+_ret:
+    ReleaseWin16Lock();
+    return pWnd;
+}
 
 /* IsWindow returns PWND */
 #define HWNDtoPWND(hwnd) (PWND)IsWindow(hwnd) 
