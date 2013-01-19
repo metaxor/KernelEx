@@ -31,9 +31,11 @@ DWORD HungAppTimeout = 0;
 typedef struct _SHUTDOWNDATA
 {
 	UINT uFlags;
-	UINT uReserved;
+	PWINSTATION_OBJECT WindowStation;
 	DWORD Result;
 	DWORD ShellProcessId;
+	DWORD dwProcessId;
+	DWORD dwThreadId;
 } SHUTDOWNDATA, *PSHUTDOWNDATA;
 
 /* - In Win9x, the shutdown is processed by the process that call ExitWindowsEx
@@ -47,8 +49,12 @@ BOOL CALLBACK EnumThreadWndProc(HWND hwnd, LPARAM lParam)
 	PSHUTDOWNDATA ShutdownData = (PSHUTDOWNDATA)lParam;
 	DWORD dwResult = 0;
 	DWORD smt = 0;
-	BOOL fHung = IsHungAppWindow_new(hwnd);
+	BOOL fHung = FALSE;
 
+	if(IS_SYSTEM_HWND(hwnd))
+		return TRUE;
+
+	fHung = IsHungThread_pfn(ShutdownData->dwThreadId);
 	smt = SendMessageTimeout(hwnd,
 							WM_QUERYENDSESSION,
 							0,
@@ -58,7 +64,7 @@ BOOL CALLBACK EnumThreadWndProc(HWND hwnd, LPARAM lParam)
 							&dwResult);
 
 	/* Abort if the message timeout or the thread doesn't want to quit
-	   and EWX_FORCE flag is not specified */
+	   and EWX_FORCE flag is not specified/the application is not hung */
 	if((!smt || !dwResult) && (!(ShutdownData->uFlags & EWX_FORCE) || !fHung))
 	{
 		ShutdownData->Result = 0;
@@ -75,9 +81,11 @@ BOOL CALLBACK EnumThreadsProc(DWORD dwThreadId, PSHUTDOWNDATA ShutdownData)
 {
 	/* Using result data to make sure it's not EnumThreadWindows that fail */
 	ShutdownData->Result = 1;
+	ShutdownData->dwThreadId = dwThreadId;
 
 	/* FIXME: Should we post a message to threads that doesn't have windows ? */
-	EnumThreadWindows(dwThreadId, EnumThreadWndProc, (LPARAM)ShutdownData);
+	while(GetLastError() == 0 && ShutdownData->dwProcessId == dwKernelProcessId)
+		EnumThreadWindows_nothunk(dwThreadId, EnumThreadWndProc, (LPARAM)ShutdownData);
 
 	if(ShutdownData->Result == 0)
 		return FALSE;
@@ -92,6 +100,7 @@ BOOL CALLBACK EnumProcessesProc(DWORD dwProcessId, PSHUTDOWNDATA ShutdownData)
 	DWORD Threads = 0;
 	ULONG i = 0;
 	PPDB98 Process = NULL;
+	PPROCESSINFO ppi = NULL;
 
 	Process = (PPDB98)kexGetProcess(dwProcessId);
 
@@ -99,7 +108,12 @@ BOOL CALLBACK EnumProcessesProc(DWORD dwProcessId, PSHUTDOWNDATA ShutdownData)
 		return TRUE;
 
 	/* Skip services processes */
-	if(Process->Flags & fServiceProcess)
+	if(Process->Flags & fServiceProcess || Process == Msg32Process)
+		return TRUE;
+
+	ppi = Process->Win32Process;
+
+	if(ppi != NULL && ppi->rpwinsta != ShutdownData->WindowStation && Process != pKernelProcess)
 		return TRUE;
 
 	ShutdownData->ShellProcessId = GetWindowProcessId(GetShellWindow_new());
@@ -111,6 +125,8 @@ BOOL CALLBACK EnumProcessesProc(DWORD dwProcessId, PSHUTDOWNDATA ShutdownData)
 	kexEnumThreads(dwProcessId, pThread, sizeof(pThread), &Threads);
 
 	Threads /= sizeof(DWORD);
+
+	ShutdownData->dwProcessId = dwProcessId;
 
 	for(i=0;i<=Threads;i++)
 	{
@@ -158,9 +174,6 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 
 		RegOpenKeyEx(HKEY_CURRENT_USER,  "Control Panel\\Desktop", 0, KEY_ALL_ACCESS, &hKey);
 
-		WaitToKillAppTimeout = 20000;
-		HungAppTimeout = 5000;
-
 		if(hKey != NULL)
 		{
 			CHAR KeyValue[7];
@@ -190,22 +203,36 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 			CloseHandle(hKey);
 		}
 
+		if(WaitToKillAppTimeout == 0)
+			WaitToKillAppTimeout = 20000;
+
+		if(HungAppTimeout == 0)
+			HungAppTimeout = 5000;
+
 		kexEnumProcesses(pProcess, sizeof(pProcess), &Processes);
 
 		Processes /= sizeof(DWORD);
 
 		sa.uFlags = msg.wParam;
-		sa.uReserved = msg.lParam;
+		sa.WindowStation = (PWINSTATION_OBJECT)msg.lParam;
 		sa.Result = 1;
+		sa.dwProcessId = 0;
+		sa.dwThreadId = 0;
 
-		for(i=0;i<=Processes;i++)
+		__try
 		{
-			Sleep(100);
-			if(!EnumProcessesProc(pProcess[i], &sa))
+			for(i=0;i<=Processes;i++)
 			{
-				fAborted = TRUE;
-				break;
+				Sleep(100);
+				if(!EnumProcessesProc(pProcess[i], &sa))
+				{
+					fAborted = TRUE;
+					break;
+				}
 			}
+		}
+		__except(EXCEPTION_EXECUTE_HANDLER)
+		{
 		}
 
 		if(fAborted)
@@ -223,6 +250,7 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 			}
 		}
 
+		/* FIXME: Instead of calling ExitWindowsEx, send a logoff message to MPREXE */
 		ExitWindowsEx(sa.uFlags, 0);
 
 finished:
@@ -232,18 +260,25 @@ finished:
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
+
+	return 0;
 }
 
 /* MAKE_EXPORT ExitWindowsEx_fix=ExitWindowsEx */
 BOOL WINAPI ExitWindowsEx_fix(UINT uFlags, DWORD dwReserved)
 {
-	PPROCESSINFO ppi;
+	/* dwReserved will be used for window stations */
+
+	PPROCESSINFO ppi = NULL;
+	HWINSTA hWinSta = (HWINSTA)dwReserved;
+	PWINSTATION_OBJECT WindowStation = NULL;
 
 	ppi = get_pdb()->Win32Process;
 
 	if(ppi != NULL)
 	{
-		/* SECURITY: Check for the WINSTA_EXITWINDOWS access right */
+		/* Check for the WINSTA_EXITWINDOWS access right
+		   this also prevent KERNEL32/Services process from shutting down the system */
 		if(!(kexGetHandleAccess(ppi->hwinsta) & WINSTA_EXITWINDOWS))
 			return FALSE;
 	}
@@ -251,15 +286,11 @@ BOOL WINAPI ExitWindowsEx_fix(UINT uFlags, DWORD dwReserved)
 	if(fShutdown)
 		return TRUE;
 
-	return PostThreadMessage(dwShutdownThreadId, WM_QUERYENDSESSION, uFlags, dwReserved);
-	//HANDLE hThread;
-	//DWORD dwThreadId;
+	if(hWinSta != NULL && !IntValidateWindowStationHandle(hWinSta, &WindowStation))
+		return FALSE;
 
-	/* Create a new shutdown thread so that the application doesn't freeze during shutdown */
-	/*hThread = CreateKernelThread(NULL, 0, ShutdownThread, (PVOID)uFlags, 0, &dwThreadId);
+	if(hWinSta == NULL)
+		WindowStation = ppi->rpwinsta;
 
-	if(hThread)
-		CloseHandle(hThread);
-
-	return hThread != NULL ? TRUE : FALSE;*/
+	return PostThreadMessage(dwShutdownThreadId, WM_QUERYENDSESSION, uFlags, (LPARAM)WindowStation);
 }
