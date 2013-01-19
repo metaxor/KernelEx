@@ -92,6 +92,61 @@ BOOL WINAPI HeapLock_new(
 	return TRUE;
 }
 
+BOOL WINAPI HeapQueryInformation_new(HANDLE HeapHandle,
+	HEAP_INFORMATION_CLASS HeapInformationClass,
+	PVOID HeapInformation,
+	SIZE_T HeapInformationLength,
+	PSIZE_T ReturnLength
+)
+{
+	if(!IsValidHeap(HeapHandle))
+	{
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return FALSE;
+	}
+
+	if(IsBadWritePtr(HeapInformation, HeapInformationLength))
+	{
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return FALSE;
+	}
+
+	memcpy(HeapInformation, NULL, HeapInformationLength);
+
+	if(!IsBadWritePtr(ReturnLength, sizeof(SIZE_T)))
+		*ReturnLength = 0;
+
+	return TRUE;
+}
+
+/* MAKE_EXPORT HeapSetInformation_new=HeapSetInformation */
+BOOL WINAPI HeapSetInformation_new(HANDLE HeapHandle,
+	HEAP_INFORMATION_CLASS HeapInformationClass,
+	PVOID HeapInformation,
+	SIZE_T HeapInformationLength
+)
+{
+	if(!IsValidHeap(HeapHandle))
+	{
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return FALSE;
+	}
+
+	if(HeapInformationClass > HeapCompatibilityInformation)
+	{
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return FALSE;
+	}
+
+	if(IsBadReadPtr(HeapInformation, HeapInformationLength))
+	{
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
 /* MAKE_EXPORT HeapUnlock_new=HeapUnlock */
 BOOL WINAPI HeapUnlock_new(
 	HANDLE hHeap
@@ -100,6 +155,60 @@ BOOL WINAPI HeapUnlock_new(
 	if ( !IsValidHeap(hHeap) ) return FALSE;
 	LeaveCriticalSection((CRITICAL_SECTION*)((DWORD)hHeap+0x50));
 	return TRUE;
+}
+
+/* MAKE_EXPORT HeapValidate_new=HeapValidate */
+BOOL WINAPI HeapValidate_new(HANDLE hHeap, DWORD dwFlags, LPCVOID lpMem)
+{
+	SIZE_T BlockSize = 0;
+
+	if(!IsValidHeap(hHeap))
+		return FALSE;
+
+	/* Get the block size */
+	BlockSize = HeapSize(hHeap, dwFlags, lpMem);
+
+	if(BlockSize == -1)
+		return FALSE;
+
+	/* FIXME: if lpMem is NULL, validate the entire heap */
+
+	/* Is this a valid memory block ? */
+	if(IsBadReadPtr(lpMem, BlockSize))
+		return FALSE;
+
+	/* Is the block greater or equal than the heap and 
+	   is the block lower than the maximum size ? */
+	if((DWORD)lpMem <= (DWORD)hHeap || (DWORD)lpMem >= ((DWORD)lpMem + BlockSize))
+		return FALSE;
+
+	return TRUE;
+}
+
+/* MAKE_EXPORT HeapWalk_new=HeapWalk */
+BOOL WINAPI HeapWalk_new(HANDLE hHeap,
+						 LPPROCESS_HEAP_ENTRY lpEntry
+)
+{
+	HEAPENTRY32 he32;
+	HEAPLIST32 hl32;
+	HANDLE hSnapshot = NULL;
+
+	if(!IsValidHeap(hHeap))
+		return FALSE;
+
+	memset(&he32, 0, sizeof(HEAPENTRY32));
+	memset(&hl32, 0, sizeof(HEAPLIST32));
+
+	he32.dwSize = sizeof(HEAPENTRY32);
+	hl32.dwSize = sizeof(HEAPLIST32);
+
+	/* FIXME: Get the process id */
+	hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPHEAPLIST, 0);
+
+	CloseHandle(hSnapshot);
+	SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+	return FALSE;
 }
 
 typedef struct _VMEMPARAMS
