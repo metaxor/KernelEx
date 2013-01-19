@@ -21,7 +21,7 @@
 
 #include "common.h"
 
-/* SetDllDirectoryA_new=SetDllDirectoryA */
+/* MAKE_EXPORT SetDllDirectoryA_new=SetDllDirectoryA */
 BOOL WINAPI SetDllDirectoryA_new(LPCSTR lpPathName)
 {
 	DWORD i, j, len, lasterr;
@@ -49,7 +49,7 @@ BOOL WINAPI SetDllDirectoryA_new(LPCSTR lpPathName)
 	return ret;
 }
 
-/* SetDllDirectoryW_new=SetDllDirectoryW */
+/* MAKE_EXPORT SetDllDirectoryW_new=SetDllDirectoryW */
 BOOL WINAPI SetDllDirectoryW_new(LPCWSTR lpPathNameW)
 {
 	ALLOC_WtoA(lpPathName);
