@@ -31,6 +31,7 @@
 BOOL WINAPI CreateProcessA_fix(LPCSTR lpApplicationName, LPSTR lpCommandLine, LPSECURITY_ATTRIBUTES lpProcessAttributes, LPSECURITY_ATTRIBUTES lpThreadAttributes, BOOL bInheritHandles, DWORD dwCreationFlags, LPVOID lpEnvironment, LPCSTR lpCurrentDirectory, LPSTARTUPINFOA lpStartupInfo, LPPROCESS_INFORMATION lpProcessInformation)
 {
     PTDB98 Thread = get_tdb();
+	PPDB98 Process = get_pdb();
 	PCHAR pszDesktop;
 
     if(IsBadWritePtr(lpStartupInfo, sizeof(STARTUPINFO)) || IsBadWritePtr(lpProcessInformation, sizeof(PROCESS_INFORMATION)))
@@ -58,7 +59,7 @@ BOOL WINAPI CreateProcessA_fix(LPCSTR lpApplicationName, LPSTR lpCommandLine, LP
 
 	if(lpStartupInfo->lpDesktop == NULL || IsBadStringPtr(lpStartupInfo->lpDesktop, -1))
 	{
-		lpStartupInfo->lpDesktop = Thread->Win32Thread->rpdesk->lpName;
+		lpStartupInfo->lpDesktop = Process->Win32Process->rpdeskStartup->lpName;
 	}
 
 	/* Make the desktop name a shared string */
