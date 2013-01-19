@@ -1,0 +1,178 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// French (France) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_FRA)
+#ifdef _WIN32
+LANGUAGE LANG_FRENCH, SUBLANG_FRENCH
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_DLGSECURITY DIALOG DISCARDABLE  6, 18, 305, 117
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "Windows Security"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    DEFPUSHBUTTON   "Lock &Workstation",IDC_LOCKWORKSTATION,5,81,93,14
+    PUSHBUTTON      "&Logoff...",IDC_LOGOFF,103,81,93,14
+    PUSHBUTTON      "&Shut down...",IDC_SHUTDOWN,201,81,93,14
+    PUSHBUTTON      "&Change Password...",IDC_CHANGEPASSWORD,5,99,93,14
+    PUSHBUTTON      "&Task Manager...",IDC_TASKMAN,103,99,93,14
+    PUSHBUTTON      "Cancel",IDC_CANCEL,201,99,93,14
+    LTEXT           "Use the Task Manager to close an application that is not responding.",
+                    IDC_STATIC1,7,65,290,8
+    GROUPBOX        "Logon Information",IDC_GROUP1,7,5,290,52
+    LTEXT           "You are logged on as %s\\%s.",IDC_LOGONNAME,15,19,251,
+                    18
+    LTEXT           "Logon date:  %s",IDC_LOGONDATE,15,40,55,8
+END
+
+IDD_LOGOFF DIALOG DISCARDABLE  0, 0, 170, 50
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Logoff Windows"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    ICON            32516,102,5,5,18,16
+    LTEXT           "This will end your Windows %s session.",IDC_ENDTEXT,30,
+                    10,139,8
+    DEFPUSHBUTTON   "OK",IDOK,35,30,40,14
+    PUSHBUTTON      "Cancel",IDCANCEL,95,30,40,14
+END
+
+IDD_SHUTDOWN DIALOG DISCARDABLE  29, 47, 195, 100
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "Shut down Windows"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    RADIOBUTTON     "Shutdown",IDC_CSHUTDOWN,37,40,98,10,WS_GROUP
+    RADIOBUTTON     "Shutdown and &Restart",IDC_CRESTART,37,53,139,10,
+                    WS_GROUP
+    RADIOBUTTON     "Shutdown and &Power off",IDC_CPOWEROFF,37,66,137,10,
+                    WS_GROUP
+    LTEXT           "Shutting down will end your Windows %s session and prepare your computer to be turned off.",
+                    IDC_SHUTDOWNTEXT,37,10,135,26
+    PUSHBUTTON      "OK",IDOK,49,75,40,14
+    PUSHBUTTON      "Cancel",IDCANCEL,105,75,40,14
+    DEFPUSHBUTTON   "OK",IDC_POK,49,80,40,14
+    PUSHBUTTON      "Cancel",IDC_PCANCEL,105,80,40,14
+    ICON            32516,102,9,10,21,20
+END
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+#ifndef _MAC
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "Comments", "\0"
+            VALUE "CompanyName", "KernelEx\0"
+            VALUE "FileDescription", "Windows 9x/ME Security\0"
+            VALUE "FileVersion", "1, 0, 0, 1\0"
+            VALUE "InternalName", "security\0"
+            VALUE "LegalCopyright", "\0"
+            VALUE "LegalTrademarks", "\0"
+            VALUE "OriginalFilename", "security.exe\0"
+            VALUE "PrivateBuild", "\0"
+            VALUE "ProductName", "security\0"
+            VALUE "ProductVersion", "1, 0, 0, 1\0"
+            VALUE "SpecialBuild", "\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+#endif    // !_MAC
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_ICON256             ICON    DISCARDABLE     "Lock_256.ico"
+IDI_ICON128             ICON    DISCARDABLE     "Lock_128.ico"
+IDI_ICON64              ICON    DISCARDABLE     "Lock_64.ico"
+IDI_ICON16              ICON    DISCARDABLE     "Lock_16.ico"
+IDI_ICON32              ICON    DISCARDABLE     "Lock_32.ico"
+#endif    // French (France) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+
