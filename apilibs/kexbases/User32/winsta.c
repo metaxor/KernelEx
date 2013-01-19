@@ -53,7 +53,8 @@ BOOL IntValidateWindowStationHandle(HWINSTA hWindowStation, PWINSTATION_OBJECT *
 	if(Object == NULL)
 		return FALSE;
 
-	*WindowStationObject = Object;
+	if(!IsBadWritePtr(WindowStationObject, sizeof(DWORD)))
+		*WindowStationObject = Object;
 
 	return TRUE;
 }
@@ -108,7 +109,7 @@ HWINSTA WINAPI CreateWindowStationA_new(LPCSTR lpwinsta, DWORD dwFlags, ACCESS_M
 	if(IsBadStringPtr(lpwinsta, -1))
 		return NULL;
 
-    kexGrabWin16Lock();
+    GrabWin16Lock();
     Process = get_pdb();
 
 	if(!IsBadReadPtr(lpsa, sizeof(SECURITY_ATTRIBUTES)) && lpsa->bInheritHandle == TRUE)
@@ -127,7 +128,7 @@ HWINSTA WINAPI CreateWindowStationA_new(LPCSTR lpwinsta, DWORD dwFlags, ACCESS_M
 	if((WindowStation = (HWINSTA)OpenWindowStationA_new((LPTSTR)lpwinsta, flags & HF_INHERIT, dwDesiredAccess)) != NULL)
 	{
 		SetLastError(ERROR_ALREADY_EXISTS);
-		kexReleaseWin16Lock();
+		ReleaseWin16Lock();
 		return WindowStation;
 	}
 
@@ -136,7 +137,7 @@ HWINSTA WINAPI CreateWindowStationA_new(LPCSTR lpwinsta, DWORD dwFlags, ACCESS_M
 	if(WindowStationObject == NULL)
 	{
 		SetLastError(ERROR_NOT_ENOUGH_MEMORY);
-		kexReleaseWin16Lock();
+		ReleaseWin16Lock();
 		return NULL;
 	}
 
@@ -165,7 +166,7 @@ HWINSTA WINAPI CreateWindowStationA_new(LPCSTR lpwinsta, DWORD dwFlags, ACCESS_M
 	/* Create the desktop switch event */
 	CreateEvent(NULL, FALSE, FALSE, "WinSta0_DesktopSwitch");
 
-    kexReleaseWin16Lock();
+    ReleaseWin16Lock();
 
     return WindowStation;
 }
