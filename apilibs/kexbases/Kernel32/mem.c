@@ -92,6 +92,7 @@ BOOL WINAPI HeapLock_new(
 	return TRUE;
 }
 
+/* MAKE_EXPORT HeapQueryInformation_new=HeapQueryInformation */
 BOOL WINAPI HeapQueryInformation_new(HANDLE HeapHandle,
 	HEAP_INFORMATION_CLASS HeapInformationClass,
 	PVOID HeapInformation,
