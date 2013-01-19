@@ -6,3 +6,4 @@ comdlg32
 shell32
 version
 comctl32
+ntdll
