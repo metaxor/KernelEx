@@ -122,5 +122,49 @@ SOURCE=.\wtsapi32\wtsapi32.h
 
 # PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 # End Group
+# Begin Group "Definition Files"
+
+# PROP Default_Filter ""
+# Begin Group "uxtheme_kord"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\uxtheme\kord.def
+# End Source File
+# End Group
+# Begin Group "pdb_kord"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\pdh\kord.def
+# End Source File
+# End Group
+# Begin Source File
+
+SOURCE=.\msimg32\msimg32.def
+# End Source File
+# Begin Source File
+
+SOURCE=.\pdh\pdh.def
+# End Source File
+# Begin Source File
+
+SOURCE=.\psapi\psapi.def
+# End Source File
+# Begin Source File
+
+SOURCE=.\userenv\userenv.def
+# End Source File
+# Begin Source File
+
+SOURCE=.\uxtheme\uxtheme.def
+# End Source File
+# Begin Source File
+
+SOURCE=.\wtsapi32\wtsapi32.def
+# End Source File
+# End Group
 # End Target
 # End Project
