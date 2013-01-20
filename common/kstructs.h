@@ -403,19 +403,19 @@ typedef struct _FILEMAPPING {  // Size = 0x28 (from Kernel32)
 
 #pragma warning (disable:4035)		// turn off no return code warning
 
-static inline
+static __inline
 PDB98* get_pdb(void)
 {
 	__asm mov eax, fs:30h
 }
 
-static inline
+static __inline
 TIB98* get_tib(void)
 {
 	__asm mov eax, fs:18h
 }
 
-static inline
+static __inline
 TDB98* get_tdb(void)
 {
 	get_tib();
