@@ -25,6 +25,8 @@
 extern "C" {
 #endif
 
+  // session notification message
+#define WM_WTSSESSION_CHANGE		0x02B1
 
 typedef enum tagWTS_INFO_CLASS
 {
@@ -60,6 +62,21 @@ typedef enum _WTS_CONNECTSTATE_CLASS
 	WTSDown,
 	WTSInit
 } WTS_CONNECTSTATE_CLASS;
+
+  // session notification message flags
+#define WTS_CONSOLE_CONNECT			0x1
+#define WTS_CONSOLE_DISCONNECT		0x2
+#define WTS_REMOTE_CONNECT			0x3
+#define WTS_REMOTE_DISCONNECT		0x4
+#define WTS_SESSION_LOGON			0x5
+#define WTS_SESSION_LOGOFF			0x6
+#define WTS_SESSION_LOCK			0x7
+#define WTS_SESSION_UNLOCK			0x8
+#define WTS_SESSION_REMOTE_CONTROL	0x9
+
+  // WTSRegisterSessionNotifiction flags
+#define NOTIFY_FOR_THIS_SESSION		0
+#define NOTIFY_FOR_ALL_SESSIONS		1
 
 typedef enum _WTS_CONFIG_CLASS
 {

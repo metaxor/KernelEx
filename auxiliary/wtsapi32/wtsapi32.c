@@ -23,6 +23,7 @@
 /*#include "windef.h"
 #include "winbase.h"*/
 #include "wtsapi32.h"
+#include "../../common/listhead.h"
 //#include "wine/debug.h"
 #include <stdio.h>
 
@@ -38,6 +39,16 @@
 #define FIXME(x,args...) TRACE("FIXME: "x,args)
 
 #endif
+
+typedef struct _HWNDLIST
+{
+	HWND hWnd;
+	LIST_ENTRY ListEntry;
+} HWNDLIST, *PHWNDLIST;
+
+LIST_ENTRY RegisteredWindowListHead;
+
+BOOL fInitialized = FALSE;
 
 //WINE_DEFAULT_DEBUG_CHANNEL(wtsapi);
 static const char* debugstr_a(const char* a)
@@ -80,6 +91,13 @@ BOOL WINAPI DllMain (HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 			GetVersionEx(&osv);
 			if (osv.dwMajorVersion < 5)
 				return FALSE;
+
+			if(!fInitialized)
+			{
+				fInitialized = TRUE;
+				memset(&RegisteredWindowListHead, 0, sizeof(LIST_ENTRY));
+			}
+
 			DisableThreadLibraryCalls(hinstDLL);
 			WTSAPI32_hModule = hinstDLL;
 			break;
@@ -225,8 +243,26 @@ void WINAPI WTSFreeMemory(PVOID pMemory)
  *                WTSNotifySession (WTSAPI32.@1)
  *                Internal to KernelEx
  */
-void WINAPI WTSNotifySession(UINT uMsg)
+void WINAPI WTSNotifySession(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	PLIST_ENTRY WindowList = NULL;
+	PHWNDLIST hWndList = NULL;
+	HWND hWnd = NULL;
+
+	for(WindowList = RegisteredWindowListHead.Flink; WindowList != &RegisteredWindowListHead; WindowList = WindowList->Flink)
+	{
+		hWndList = CONTAINING_RECORD(WindowList, HWNDLIST, ListEntry);
+
+		hWnd = hWndList->hWnd;
+
+		if(!IsWindow(hWnd))
+		{
+			RemoveEntryList(&hWndList->ListEntry);
+			continue;
+		}
+
+		PostMessage(hWnd, uMsg, wParam, lParam);
+	}
 }
 
 /************************************************************
@@ -327,7 +363,25 @@ BOOL WINAPI WTSQueryUserToken(ULONG SessionId, PHANDLE phToken)
  */
 BOOL WINAPI WTSRegisterSessionNotification(HWND hWnd, DWORD dwFlags)
 {
-	FIXME("Stub %p 0x%08x\n", hWnd, dwFlags);
+	HWNDLIST hWndList;
+
+	if(dwFlags > NOTIFY_FOR_ALL_SESSIONS)
+	{
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return FALSE;
+	}
+
+	if(!IsWindow(hWnd))
+	{
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return FALSE;
+	}
+
+	hWndList.hWnd = hWnd;
+
+	InitializeListHead(&hWndList.ListEntry);
+	InsertTailList(&RegisteredWindowListHead, &hWndList.ListEntry);
+
 	return TRUE;
 }
 
@@ -346,7 +400,26 @@ BOOL WINAPI WTSTerminateProcess(HANDLE hServer, DWORD ProcessId, DWORD ExitCode)
  */
 BOOL WINAPI WTSUnRegisterSessionNotification(HWND hWnd)
 {
-	FIXME("Stub %p\n", hWnd);
+	PLIST_ENTRY WindowList;
+	PHWNDLIST hWndList;
+
+	if(!IsWindow(hWnd))
+	{
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return FALSE;
+	}
+
+	for(WindowList = RegisteredWindowListHead.Flink; WindowList != &RegisteredWindowListHead; WindowList = WindowList->Flink)
+	{
+		hWndList = CONTAINING_RECORD(WindowList, HWNDLIST, ListEntry);
+
+		if(hWndList->hWnd == hWnd)
+		{
+			RemoveEntryList(&hWndList->ListEntry);
+			return TRUE;
+		}
+	}
+
 	return TRUE;
 }
 
