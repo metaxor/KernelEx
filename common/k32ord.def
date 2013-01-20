@@ -16,4 +16,7 @@ EXPORTS
     MakeCriticalSectionGlobal
     MapSL
     LoadLibrary16 @35 NONAME
+	FreeLibrary16 @36 NONAME
+	GetProcAddress16 @37 NONAME
+	QT_Thunk
     K32_RtlNtStatusToDosError

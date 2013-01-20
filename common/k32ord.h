@@ -62,9 +62,9 @@ MAKE_HEADER(ULONG __stdcall CommonUnimpStub())
 
 MAKE_HEADER(DWORD __stdcall MapSL(DWORD addr16))
 MAKE_HEADER(DWORD __stdcall LoadLibrary16(LPSTR libname))
-//MAKE_HEADER(DWORD __stdcall GetProcAddress16(HANDLE hModule, LPSTR procname))
-//MAKE_HEADER(DWORD __cdecl   QT_Thunk(void))
-//MAKE_HEADER(DWORD __stdcall FreeLibrary16(HANDLE hModule))
+MAKE_HEADER(DWORD __stdcall GetProcAddress16(HANDLE hModule, LPSTR procname))
+MAKE_HEADER(void __cdecl  QT_Thunk())
+MAKE_HEADER(DWORD __stdcall FreeLibrary16(HANDLE hModule))
 MAKE_HEADER(ULONG __stdcall K32_RtlNtStatusToDosError(LONG status))
 
 #ifdef __cplusplus
