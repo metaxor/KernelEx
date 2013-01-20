@@ -9,6 +9,7 @@ EXPORTS
 	WTSEnumerateSessionsA
 	WTSEnumerateSessionsW
 	WTSFreeMemory
+	WTSNotifySession @1 NONAME
 	WTSOpenServerA
 	WTSOpenServerW
 	WTSQuerySessionInformationA

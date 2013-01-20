@@ -222,6 +222,14 @@ void WINAPI WTSFreeMemory(PVOID pMemory)
 }
 
 /************************************************************
+ *                WTSNotifySession (WTSAPI32.@1)
+ *                Internal to KernelEx
+ */
+void WINAPI WTSNotifySession(UINT uMsg)
+{
+}
+
+/************************************************************
  *                WTSOpenServerA (WTSAPI32.@)
  */
 HANDLE WINAPI WTSOpenServerA(LPSTR pServerName)
