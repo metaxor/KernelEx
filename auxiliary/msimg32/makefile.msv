@@ -3,8 +3,8 @@
 OBJ = msimg32.obj
 RES = msimgme.res
 DEF = /DEF:msimg32.def
-BIN = ..\msimg32.dll
-LIBS = -nodefaultlib kernel32.lib gdi32.lib
+BIN = ..\..\output-i386\Release\msimg32.dll
+LIBS = -nodefaultlib kernel32.lib gdi32.lib ../../kexcrt/kexcrt.lib
 LDFLAGS = /DLL /OPT:NOWIN98 /ENTRY:DllMain@12
 CFLAGS = /W3 /O2 /Oi /FD
 CXXFLAGS = $(CFLAGS)

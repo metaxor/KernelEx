@@ -8,7 +8,7 @@ RES =
 DEF = pdh.def
 LIBS = kord.a -nostdlib -lkernel32
 LDFLAGS = -s -shared -e _DllMain@12 -Wl,--enable-stdcall-fixup
-BIN = ..\pdh.dll
+BIN = ..\..\output-i386\Release\pdh.dll
 CFLAGS = -Os -Wall
 CXXFLAGS = $(CFLAGS)
 

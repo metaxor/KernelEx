@@ -8,7 +8,7 @@ RES =
 DEF = psapi.def
 LIBS = -nostdlib -lkernel32 -L../../common -lkernelex
 LDFLAGS = -s -shared -Wl,--enable-stdcall-fixup -e _DllMain@12
-BIN = ..\psapi.dll
+BIN = ..\..\output-i386\Release\psapi.dll
 CFLAGS = -Os -Wall -I../../common
 CXXFLAGS = $(CFLAGS)
 

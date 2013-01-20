@@ -7,7 +7,7 @@ OBJ = msimg32.o
 RES = msimgme.o
 LIBS = -nostdlib -lkernel32 -lgdi32
 LDFLAGS = -s -shared -Wl,--kill-at -e _DllMain@12 -Wl,--enable-stdcall-fixup
-BIN = ..\msimg32.dll
+BIN = ..\..\output-i386\Release\msimg32.dll
 CFLAGS = -O2 -Wall
 CXXFLAGS = $(CFLAGS)
 

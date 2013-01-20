@@ -3,7 +3,7 @@
 OBJ = kord.lib pdh.obj
 RES = 
 DEF = /DEF:pdh.def
-BIN = ..\pdh.dll
+BIN = ..\..\output-i386\Release\pdh.dll
 LIBS = -nodefaultlib kernel32.lib gdi32.lib
 LDFLAGS = /DLL /OPT:NOWIN98 /ENTRY:DllMain@12
 CFLAGS = /W3 /O2 /Oi /FD

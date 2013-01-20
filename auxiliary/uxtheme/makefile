@@ -8,7 +8,7 @@ RES =
 DEF = uxtheme.def
 LIBS = kord.a -nostdlib -lkernel32
 LDFLAGS = -s -shared -Wl,--enable-stdcall-fixup -e _DllMain@12
-BIN = ..\uxtheme.dll
+BIN = ..\..\output-i386\Release\uxtheme.dll
 CFLAGS = -Os -Wall
 CXXFLAGS = $(CFLAGS)
 

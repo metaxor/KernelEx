@@ -3,7 +3,7 @@
 OBJ = userenv.obj
 RES = 
 DEF = /DEF:userenv.def
-BIN = ..\userenv.dll
+BIN = ..\..\output-i386\Release\userenv.dll
 LIBS = -nodefaultlib kernel32.lib gdi32.lib shell32.lib shlwapi.lib
 LDFLAGS = /DLL /OPT:NOWIN98 /ENTRY:DllMain@12
 CFLAGS = /W3 /O2 /Oi /FD
