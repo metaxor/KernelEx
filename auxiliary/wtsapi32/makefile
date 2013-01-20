@@ -8,7 +8,7 @@ RES =
 LIBS =
 DEF = wtsapi32.def
 LDFLAGS = -s -shared -Wl,--kill-at
-BIN = ..\wtsapi32.dll
+BIN = ..\..\output-i386\Release\wtsapi32.dll
 CFLAGS = -Os -Wall
 CXXFLAGS = $(CFLAGS)
 

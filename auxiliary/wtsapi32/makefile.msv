@@ -3,7 +3,7 @@
 OBJ = wtsapi32.obj
 RES = 
 DEF = /DEF:wtsapi32.def
-BIN = ..\wtsapi32.dll
+BIN = ..\..\output-i386\Release\wtsapi32.dll
 LIBS = -nodefaultlib kernel32.lib gdi32.lib
 LDFLAGS = /DLL /OPT:NOWIN98 /ENTRY:DllMain@12
 CFLAGS = /W3 /O2 /Oi /FD
