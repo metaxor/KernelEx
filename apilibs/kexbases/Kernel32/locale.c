@@ -24,17 +24,6 @@
 #include "common.h"
 #include "locale_unicode.h"
 
-#ifdef _MSC_VER
-#pragma warning(disable:4002)
-#define TRACE() ((void)0)
-#define TRACE_() ((void)0)
-#define WARN() ((void)0)
-#else
-#define TRACE(...) do {} while(0)
-#define TRACE_(x) TRACE
-#define WARN(...) do {} while(0)
-#endif
-
 
 /******************************************************************************
  *           CompareStringW    (KERNEL32.@)
@@ -62,7 +51,7 @@ INT WINAPI CompareStringW_new(LCID lcid, DWORD style,
 
 	/* this style is related to diacritics in Arabic, Japanese, and Hebrew */
 	if (style & 0x10000000)
-		WARN("Ignoring unknown style 0x10000000\n");
+		WARN_OUT("Ignoring unknown style 0x10000000\n");
 
 	if (len1 < 0) len1 = strlenW(str1);
 	if (len2 < 0) len2 = strlenW(str2);
