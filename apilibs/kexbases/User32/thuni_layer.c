@@ -49,6 +49,9 @@ WNDPROC WINAPI GetWindowProc32(PWND pwnd)
 
 PMSGQUEUE GetWindowQueue(PWND pwnd)
 {
+	if(IsBadReadPtr(pwnd, sizeof(WND)))
+		return NULL;
+
 	return pwnd ? (PMSGQUEUE)MapSL( (DWORD)pwnd->hQueue << 16 ) : NULL;
 }
 
