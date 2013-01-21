@@ -1,6 +1,6 @@
 /*
  *  KernelEx
- *  Copyright (C) 2008, Xeno86
+ *  Copyright (C) 2013, Ley0k
  *
  *  This file is part of KernelEx source code.
  *
@@ -35,35 +35,38 @@ PDESKTOP gpdeskInputDesktop = NULL;
 PTDB98 pDesktopThread = NULL;
 DWORD dwDesktopThreadId = NULL;
 
-/* FIXME: Declaring this function disable KernelEx */
-/*
 VOID RepaintScreen(VOID)
 {
-	typedef void (WINAPI *REPAINTSCREEN)(void);
 	HINSTANCE hModule;
-	REPAINTSCREEN _RepaintScreen;
+	DWORD RepaintScreen;
 
 	hModule = (HINSTANCE)LoadLibrary16("USER.EXE");
 
 	if((DWORD)hModule < 32)
 		return;
 
-	_RepaintScreen = (REPAINTSCREEN)GetProcAddress16(hModule, "REPAINTSCREEN");
+	RepaintScreen = GetProcAddress16(hModule, "REPAINTSCREEN");
 
-	if(_RepaintScreen == NULL)
+	if(RepaintScreen == NULL)
 	{
 		FreeLibrary16(hModule);
 		return;
 	}
 
-	//_RepaintScreen();
-	__asm mov edx, [_RepaintScreen]
-	__asm call QT_Thunk
+	/* RepaintScreen has normally no parameters but we need to pass 4 parameters to not crash
+	   the current application... */
+	__asm	push 0
+	__asm	push 0
+	__asm	push 0
+	__asm	push 0
+	__asm	mov edx, [RepaintScreen]
+	__asm	call ds:QT_Thunk
+	__asm	add esp, 10h
 
 	FreeLibrary16(hModule);
 
 	return;
-}*/
+}
 
 BOOL WINAPI CreateWindowStationAndDesktops()
 {
@@ -223,6 +226,7 @@ BOOL InitDesktops()
 	{
 		//sprintf(Path, "%s\\%s", WINSTA_ROOT_NAME, pszWinSta);
 		hWindowStation = OpenWindowStationA_new(pszWinSta, FALSE, WINSTA_ALL_ACCESS); //(HWINSTA)kexOpenObjectByName(Path, K32OBJ_WINSTATION, WINSTA_ALL_ACCESS);
+		//MessageBox(NULL, pszWinSta, NULL, 0);
 
 		if(hWindowStation == NULL)
 			goto error;
@@ -242,6 +246,7 @@ BOOL InitDesktops()
 	{
 		//sprintf(Path, "\\%s", pszDesktop);
 		hDesktop = OpenDesktopA_new(pszDesktop, 0, FALSE, DESKTOP_ALL_ACCESS); //(HDESK)kexOpenObjectByName(Path, K32OBJ_DESKTOP, DESKTOP_ALL_ACCESS);
+		//MessageBox(NULL, pszDesktop, NULL, 0);
 
 		if(hDesktop == NULL)
 			goto error;
@@ -287,7 +292,8 @@ BOOL IntValidateDesktopHandle(HDESK hDesktop, PDESKTOP *DesktopObject)
 	if(Object == NULL)
 		return FALSE;
 
-	*DesktopObject = Object;
+	if(!IsBadWritePtr(DesktopObject, sizeof(DWORD)))
+		*DesktopObject = Object;
 
 	/* FIXME: Should we dereference the object's count after finished using it ? */
 
@@ -304,10 +310,6 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
 	PTHREADINFO pti;
 	PPROCESSINFO ppi;
 
-	/* We don't want our desktop thread crash, so we safely use
-	   exception handling */
-	__try
-	{
 	dwThreadId = GetWindowThreadProcessId(hwnd, &dwProcessId);
 
 	if(dwThreadId == 0)
@@ -322,7 +324,6 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
 	if(Process == pKernelProcess)
 		return TRUE;
 
-	/* FIXME: 16-bit process must have a Win32Process/Win32Thread ! */
 	//if(Process->Flags & fWin16Process)
 	//	return TRUE;
 
@@ -334,17 +335,41 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
 	{
 		HWINSTA hWindowStation = NULL;
 		HDESK hDesktop = NULL;
+		PWINSTATION_OBJECT WindowStationObject = NULL;
+		PDESKTOP DesktopObject = NULL;
+
+		__try
+		{
+			WindowStationObject = Process->ParentPDB->Win32Process->rpwinsta;
+			if(WindowStationObject == NULL)
+			{
+				WindowStationObject = InputWindowStation;
+				__leave;
+			}
+
+			DesktopObject = Process->ParentPDB->Win32Process->rpdeskStartup;
+			if(DesktopObject == NULL)
+			{
+				WindowStationObject = InputWindowStation;
+				DesktopObject = gpdeskInputDesktop;
+			}
+		}
+		__except(EXCEPTION_EXECUTE_HANDLER)
+		{
+			WindowStationObject = InputWindowStation;
+			DesktopObject = gpdeskInputDesktop;
+		}
 
 		ppi_init(Process);
 		ppi = Process->Win32Process;
 		/* Allocate handles */
-		hWindowStation = (HWINSTA)kexAllocHandle(Process, InputWindowStation, WINSTA_ALL_ACCESS);
-		kexAllocHandle(Process, InputWindowStation, WINSTA_ALL_ACCESS);
-		hDesktop = (HDESK)kexAllocHandle(Process, gpdeskInputDesktop, DESKTOP_ALL_ACCESS);
+		hWindowStation = (HWINSTA)kexAllocHandle(Process, WindowStationObject, WINSTA_ALL_ACCESS);
+		kexAllocHandle(Process, WindowStationObject, WINSTA_ALL_ACCESS);
+		hDesktop = (HDESK)kexAllocHandle(Process, DesktopObject, DESKTOP_ALL_ACCESS);
 		/* Set startup desktop and window station */
-		ppi->rpwinsta = InputWindowStation;
+		ppi->rpwinsta = WindowStationObject;
 		ppi->hwinsta = hWindowStation;
-		ppi->rpdeskStartup = gpdeskInputDesktop;
+		ppi->rpdeskStartup = DesktopObject;
 		ppi->hdeskStartup = hDesktop;
 	}
 
@@ -395,11 +420,6 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
 				pwnd->style |= WS_VISIBLE;
 		}
 	}
-	}
-	__except(EXCEPTION_EXECUTE_HANDLER)
-	{
-		return TRUE;
-	}
 
 	return TRUE;
 }
@@ -413,6 +433,9 @@ DWORD WINAPI DesktopThread(PVOID lParam)
 	dwDesktopThreadId = GetCurrentThreadId();
 	dwKernelProcessId = GetCurrentProcessId();
 
+	/* Prevent the kernel process from being terminated by adding the terminating flag */
+	pKernelProcess->Flags |= fTerminating;
+
 	while(1)
 	{
 		PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE);
@@ -422,7 +445,16 @@ DWORD WINAPI DesktopThread(PVOID lParam)
 
 		kexGrabLocks(); // Don't get interrupted while we are switching desktop/hiding some windows
 
-		EnumWindows(EnumWindowsProc, 0);
+		/* We don't want our desktop thread crash, so we safely use
+		exception handling, crash happen when there is no free memory */
+		__try
+		{
+			/* By using the nothunk version of EnumWindows, it saves the CPU consumption up to 10% */
+			EnumWindows_nothunk(EnumWindowsProc, 0);
+		}
+		__except(EXCEPTION_EXECUTE_HANDLER)
+		{
+		}
 
 		kexReleaseLocks();
 
@@ -436,7 +468,7 @@ DWORD WINAPI DesktopThread(PVOID lParam)
  *
  *
  *
- * Implementations start over here
+ * Implementations start from here
  *
  *
  *
@@ -517,15 +549,23 @@ HDESK WINAPI CreateDesktopA_new(LPCSTR lpszDesktop, LPCSTR lpszDevice, LPDEVMODE
 	PPDB98 Process = get_pdb();
 	PPROCESSINFO ppi = Process->Win32Process;
 	DWORD flags = 0;
+	PDEVMODE pdev = pDevmode;
 
-	kexGrabWin16Lock();
+	GrabWin16Lock();
+
+	if(pDevmode != NULL && IsBadReadPtr(pDevmode, sizeof(DEVMODE)))
+	{
+		SetLastError(ERROR_INVALID_PARAMETER);
+		ReleaseWin16Lock();
+		return NULL;
+	}
 
 	WindowStationObject = ppi->rpwinsta;
 
 	if(WindowStationObject == NULL)
 	{
 		SetLastError(ERROR_ACCESS_DENIED);
-		kexReleaseWin16Lock();
+		ReleaseWin16Lock();
 		return NULL;
 	}
 
@@ -536,7 +576,7 @@ HDESK WINAPI CreateDesktopA_new(LPCSTR lpszDesktop, LPCSTR lpszDevice, LPDEVMODE
 	if(dwDesiredAccess & SYNCHRONIZE)
 	{
 		SetLastError(ERROR_INVALID_PARAMETER);
-		kexReleaseWin16Lock();
+		ReleaseWin16Lock();
 		return NULL;
 	}
 
@@ -555,7 +595,7 @@ HDESK WINAPI CreateDesktopA_new(LPCSTR lpszDesktop, LPCSTR lpszDevice, LPDEVMODE
 	{
 		/* Nothing to do */
 		SetLastError(ERROR_ALREADY_EXISTS);
-		kexReleaseWin16Lock();
+		ReleaseWin16Lock();
 		return hDesktop;
 	}
 
@@ -564,15 +604,36 @@ HDESK WINAPI CreateDesktopA_new(LPCSTR lpszDesktop, LPCSTR lpszDevice, LPDEVMODE
 	if(DesktopObject == NULL)
 	{
 		SetLastError(ERROR_NOT_ENOUGH_MEMORY);
-		kexReleaseWin16Lock();
+		ReleaseWin16Lock();
 		return NULL;
+	}
+
+	if(pdev == NULL)
+	{
+		/* Allocate a new devmode for the desktop */
+		pdev = (PDEVMODE)kexAllocObject(sizeof(DEVMODEA));
+
+		if(pdev == NULL)
+		{
+			SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+			ReleaseWin16Lock();
+			return NULL;
+		}
+
+		pdev->dmSize = sizeof(DEVMODE);
+		/* Obtain the current display settings for the new devmode */
+		if(!EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, pdev))
+		{
+			ReleaseWin16Lock();
+			return NULL;
+		}
 	}
 
 	/* Copy the desktop name to a shared memory string */
 	DesktopName = (PCHAR)kexAllocObject(strlen(lpszDesktop));
 	strcpy(DesktopName, lpszDesktop);
 
-	/* Add the \Path to the desktop */
+	/* Add \Path to the desktop name */
 	DesktopPath = (PCHAR)kexAllocObject(strlen(DesktopName) + 1);
 
 	sprintf(DesktopPath, "\\%s", DesktopName);
@@ -584,10 +645,11 @@ HDESK WINAPI CreateDesktopA_new(LPCSTR lpszDesktop, LPCSTR lpszDevice, LPDEVMODE
 	DesktopObject->pName = kexAllocObjectName(DesktopObject, DesktopPath);
 	DesktopObject->lpName = (PCHAR)DesktopName;
 	DesktopObject->rpwinstaParent = Process->Win32Process->rpwinsta;
+	DesktopObject->pdev = pdev;
 
 	hDesktop = (HDESK)kexAllocHandle(Process, DesktopObject, dwDesiredAccess | flags);
 
-	kexReleaseWin16Lock();
+	ReleaseWin16Lock();
     return hDesktop;
 }
 
@@ -638,12 +700,7 @@ BOOL WINAPI EnumDesktopsA_new(HWINSTA hwinsta, DESKTOPENUMPROCA lpEnumFunc, LPAR
 /* MAKE_EXPORT EnumDesktopWindows_new=EnumDesktopWindows */
 BOOL WINAPI EnumDesktopWindows_new(HDESK hDesktop, WNDENUMPROC lpfn, LPARAM lParam)
 {
-	PTDB98 Thread;
-	PPDB98 Process;
-	PTHREADINFO pti;
 	PDESKTOP DesktopObject;
-	PWND pWnd;
-	PMSGQUEUE pQueue;
 
 	if(IsBadCodePtr((FARPROC)lpfn))
 		return FALSE;
@@ -651,16 +708,14 @@ BOOL WINAPI EnumDesktopWindows_new(HDESK hDesktop, WNDENUMPROC lpfn, LPARAM lPar
 	if(!IntValidateDesktopHandle(hDesktop, &DesktopObject))
 		return FALSE;
 
-	pWnd = HWNDtoPWND(GetDesktopWindow());
+	return EnumWindowsEx(0, lpfn, lParam, FALSE, hDesktop, TRUE);
 
-	if(pWnd == NULL)
-		return FALSE;
-
+#if 0
 	__try
 	{
 		for(; pWnd != NULL; pWnd = (PWND)REBASEUSER(pWnd->spwndNext))
 		{
-			pQueue = (PMSGQUEUE)MapSL((DWORD)pWnd->hQueue << 16);
+			pQueue = GetWindowQueue(pWnd);
 
 			if(pQueue == NULL)
 				continue;
@@ -694,6 +749,7 @@ BOOL WINAPI EnumDesktopWindows_new(HDESK hDesktop, WNDENUMPROC lpfn, LPARAM lPar
 	}
 
 	return TRUE;
+#endif
 }
 
 /* MAKE_EXPORT GetInputDesktop_new=GetInputDesktop */
@@ -853,27 +909,35 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
     HWINSTA hWinSta = GetProcessWindowStation_new();
 	BOOL FirstSwitch = (gpdeskInputDesktop == NULL);
 	HANDLE hEvent = NULL;
+	BOOL fFirstSwitch = (gpdeskInputDesktop == NULL);
 
-    kexGrabWin16Lock();
+    GrabWin16Lock();
 
     if(!IntValidateDesktopHandle(hDesktop, &DesktopObject))
     {
 		SetLastError(ERROR_INVALID_HANDLE);
-        kexReleaseWin16Lock();
+        ReleaseWin16Lock();
         return FALSE;
     }
+
+	if(DesktopObject == gpdeskInputDesktop)
+	{
+		/* Nothing to do */
+		ReleaseWin16Lock();
+		return TRUE;
+	}
 
 	if(!(kexGetHandleAccess(hDesktop) & DESKTOP_SWITCHDESKTOP))
 	{
 		SetLastError(ERROR_ACCESS_DENIED);
-		kexReleaseWin16Lock();
+		ReleaseWin16Lock();
 		return FALSE;
 	}
 
     if(!IntValidateWindowStationHandle(hWinSta, &WindowStationObject))
     {
 		SetLastError(ERROR_INVALID_HANDLE);
-        kexReleaseWin16Lock();
+        ReleaseWin16Lock();
         return FALSE;
     }
 
@@ -884,7 +948,7 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
         if(InputWindowStation->Flags & WSS_LOCKED)
         {
 			SetLastError(ERROR_ACCESS_DENIED);
-            kexReleaseWin16Lock();
+            ReleaseWin16Lock();
             return FALSE;
         }
 
@@ -897,10 +961,12 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
 
 	InputWindowStation->ActiveDesktop = gpdeskInputDesktop;
 
-	kexReleaseWin16Lock();
+	ChangeDisplaySettings(DesktopObject->pdev, CDS_UPDATEREGISTRY);
+	RepaintScreen();
 
-	SendMessage(GetDesktopWindow(), WM_PAINT, 0, 0);
+	ReleaseWin16Lock();
 
+	/* Signal the desktop switch event */
 	hEvent = OpenEvent(EVENT_MODIFY_STATE, FALSE, "WinSta0_DesktopSwitch");
 
 	if(hEvent != NULL)
