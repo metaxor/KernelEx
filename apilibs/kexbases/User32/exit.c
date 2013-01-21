@@ -96,7 +96,8 @@ BOOL CALLBACK EnumThreadsProc(DWORD dwThreadId, PSHUTDOWNDATA ShutdownData)
 	SetLastError(0);
 
 	/* FIXME: Should we post a message to threads that doesn't have windows ? */
-	EnumThreadWindows_nothunk(dwThreadId, EnumThreadWndProc, (LPARAM)ShutdownData);
+	if(dwThreadId != 0)
+		EnumThreadWindows_nothunk(dwThreadId, EnumThreadWndProc, (LPARAM)ShutdownData);
 
 	if(ShutdownData->Result == 0)
 		return FALSE;
