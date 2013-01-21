@@ -38,7 +38,7 @@ static inline void GetFontSignature(HKEY hkey, LOGFONTA* plfA, FONTSIGNATURE* si
 	DWORD sz = sizeof(FONTSIGNATURE);
 	if ( RegQueryValueEx(hkey,plfA->lfFaceName,0,NULL,(LPBYTE)sig,&sz) != ERROR_SUCCESS )
 	{
-		DBGPRINTF(("Querying signature from font %s",plfA->lfFaceName));
+		DBGPRINTF(("Querying signature from font %s\n",plfA->lfFaceName));
 		HDC hdc = CreateCompatibleDC(0);
 		HFONT fnt = CreateFontIndirect(plfA);
 		HGDIOBJ old = SelectObject(hdc,fnt);

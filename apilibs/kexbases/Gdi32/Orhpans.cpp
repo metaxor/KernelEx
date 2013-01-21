@@ -112,7 +112,7 @@ void GdiOrphans::CleanupOrphan()
 		//handle somehow got destroyed without us knowing?
 		if (!obj || obj->dwNumber != orphan->dwNumber)
 		{
-			DBGPRINTF(("WARNING: Handle %p invalidated!!!",orphan->hObject));
+			DBGPRINTF(("WARNING: Handle %p invalidated!!!\n",orphan->hObject));
 			cleanup = 1;
 		}
 		else //was object unselected?
