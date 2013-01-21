@@ -1,6 +1,7 @@
 /*
  *  KernelEx
  *  Copyright (C) 2011, Xeno86
+ *  Copyright (C) 2013, Ley0k
  *
  *  This file is part of KernelEx source code.
  *
@@ -20,11 +21,13 @@
  */
 
 #define WIN32_LEAN_AND_MEAN
+#define NOMB
 #include <windows.h>
 extern "C" {
 #define WANTVXDWRAPS
 #include <vmm.h>
 #include <debug.h>
+#include <shell.h>
 #include <vxdwraps.h>
 #include <vwin32.h>
 };
@@ -43,7 +46,8 @@ extern "C" {
 _Declare_Virtual_Device(VKRNLEX, V_MAJOR, V_MINOR, ControlDispatcher, UNDEFINED_DEVICE_ID, UNDEFINED_INIT_ORDER, 0, 0, 0);
 
 DWORD ( _stdcall *VKernelEx_W32_Proc[] )(DWORD, PDIOCPARAMETERS) = {
-        VKernelEx_IOCTL_Connect
+        VKernelEx_IOCTL_Connect,
+		VKernelEx_ShutdownSystem
 };
 
 #define MAX_VKERNELEX_W32_API (sizeof(VKernelEx_W32_Proc)/sizeof(DWORD))
@@ -207,6 +211,41 @@ BOOL _stdcall VKernelEx_Begin_PM_App(HVM hVM)
 		_HeapFree(backup, 0);
 
 	return TRUE;
+}
+
+#define ShutdownNoReboot	0
+#define ShutdownReboot		1
+#define ShutdownPowerOff	2
+
+DWORD _stdcall VKernelEx_ShutdownSystem(DWORD hDevice, PDIOCPARAMETERS lpDIOCParms)
+{
+	HVM SysVM;
+	DWORD Action;
+
+	Action = *(DWORD*)lpDIOCParms->lpvInBuffer;
+
+	switch(Action)
+	{
+	case ShutdownNoReboot:
+		break;
+
+	case ShutdownReboot:
+		SysVM = Get_Sys_VM_Handle();
+
+		/* Should we use Nuke_VM instead ? */
+		__asm mov	eax, 10000
+		__asm mov	ebx, [SysVM]
+		__asm mov	ecx, 0
+		VMMCall(Close_VM);
+		break;
+
+	case ShutdownPowerOff:
+		break;
+	}
+
+    lpDIOCParms->lpvOutBuffer = 1;
+	lpDIOCParms->lpcbBytesReturned = sizeof(DWORD);
+	return(VXD_SUCCESS);
 }
 
 BOOL _stdcall VKernelEx_Dynamic_Exit(void)

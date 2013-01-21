@@ -31,5 +31,6 @@ DWORD _stdcall VKernelEx_IOCTL_Connect(DWORD, PDIOCPARAMETERS);
 BOOL _stdcall VKernelEx_Create_Process(DWORD pid);
 BOOL _stdcall VKernelEx_Destroy_Process(DWORD pid);
 BOOL _stdcall VKernelEx_Begin_PM_App(HVM hVM);
+DWORD _stdcall VKernelEx_ShutdownSystem(DWORD Action, PDIOCPARAMETERS);
 
 #endif
