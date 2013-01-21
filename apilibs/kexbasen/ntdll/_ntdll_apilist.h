@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef _WINSPOOL_APILIST_H
-#define _WINSPOOL_APILIST_H
+#ifndef _NTDLL_APILIST_H
+#define _NTDLL_APILIST_H
 
 #include "common.h"
 #include "kexcoresdk.h"
