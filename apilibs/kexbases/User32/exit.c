@@ -1,6 +1,6 @@
 /*
  *  KernelEx
- *  Copyright (C) 2009, Xeno86
+ *  Copyright (C) 2013, Ley0k
  *
  *  This file is part of KernelEx source code.
  *
@@ -20,13 +20,15 @@
  */
 
 #include <stdlib.h>
+#include <shlwapi.h>
 #include "desktop.h"
+#include "../ntdll/_ntdll_apilist.h"
 
 BOOL fShutdown = FALSE;
 DWORD dwShutdownThreadId = 0;
 
-DWORD WaitToKillAppTimeout = 0;
-DWORD HungAppTimeout = 0;
+int WaitToKillAppTimeout = 0;
+int HungAppTimeout = 0;
 
 typedef struct _SHUTDOWNDATA
 {
@@ -42,7 +44,11 @@ typedef struct _SHUTDOWNDATA
    which makes the process freeze, i.e the shutdown dialog box which cover
    the entire screen freeze during shutdown which is annoying
    - The shutdown process only look for existing windows and not for processes
-   - if the EWX_FORCE flag is specified, explorer.exe remains */
+   - if the EWX_FORCE flag is specified, explorer.exe remains
+   - Windows 9x team seemed too lazy to make a good working stable ExitWindowsEx,
+   instead of enumerating processes, threads and windows, they used the simple
+   BroadcastSystemMessage API...
+*/
 
 BOOL CALLBACK EnumThreadWndProc(HWND hwnd, LPARAM lParam)
 {
@@ -59,18 +65,22 @@ BOOL CALLBACK EnumThreadWndProc(HWND hwnd, LPARAM lParam)
 							WM_QUERYENDSESSION,
 							0,
 							ShutdownData->uFlags & EWX_LOGOFF ? ENDSESSION_LOGOFF : 0,
-							SMTO_ABORTIFHUNG,
+							SMTO_NORMAL,
 							fHung ? HungAppTimeout : WaitToKillAppTimeout,
 							&dwResult);
 
 	/* Abort if the message timeout or the thread doesn't want to quit
 	   and EWX_FORCE flag is not specified/the application is not hung */
-	if((!smt || !dwResult) && (!(ShutdownData->uFlags & EWX_FORCE) || !fHung))
+	if(!smt || !dwResult)
 	{
+		if((ShutdownData->uFlags & EWX_FORCE) || (ShutdownData->uFlags & EWX_FORCEIFHUNG))
+			goto _continue;
+
 		ShutdownData->Result = 0;
 		return FALSE;
 	}
 
+_continue:
 	PostMessage(hwnd, WM_ENDSESSION, TRUE, ShutdownData->uFlags & EWX_LOGOFF ? ENDSESSION_LOGOFF : 0);
 
 	ShutdownData->Result = 1;
@@ -79,16 +89,20 @@ BOOL CALLBACK EnumThreadWndProc(HWND hwnd, LPARAM lParam)
 
 BOOL CALLBACK EnumThreadsProc(DWORD dwThreadId, PSHUTDOWNDATA ShutdownData)
 {
-	/* Using result data to make sure it's not EnumThreadWindows that fail */
+	/* Using result data because EnumThreadWindows can fail if the thread has no windows */
 	ShutdownData->Result = 1;
 	ShutdownData->dwThreadId = dwThreadId;
 
+	SetLastError(0);
+
 	/* FIXME: Should we post a message to threads that doesn't have windows ? */
-	while(GetLastError() == 0 && ShutdownData->dwProcessId == dwKernelProcessId)
-		EnumThreadWindows_nothunk(dwThreadId, EnumThreadWndProc, (LPARAM)ShutdownData);
+	EnumThreadWindows_nothunk(dwThreadId, EnumThreadWndProc, (LPARAM)ShutdownData);
 
 	if(ShutdownData->Result == 0)
 		return FALSE;
+
+	if(GetLastError() != 0)
+		PostThreadMessage(dwThreadId, WM_ENDSESSION, TRUE, ShutdownData->uFlags & EWX_LOGOFF ? ENDSESSION_LOGOFF : 0);
 
 	return TRUE;
 }
@@ -180,27 +194,35 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 			LONG Result;
 			DWORD KeySize;
 
-			/* Look for WaitToKillAppTimeout */
-			Result = RegQueryValueEx(hKey,
-									"WaitToKillAppTimeout",
-									NULL, NULL,
-									(LPBYTE)KeyValue,
-									&KeySize);
+			__try
+			{
+				/* Look for WaitToKillAppTimeout */
+				Result = RegQueryValueEx(hKey,
+										"WaitToKillAppTimeout",
+										NULL, NULL,
+										(LPBYTE)KeyValue,
+										&KeySize);
 
-			if(Result) /* Found */
-				WaitToKillAppTimeout = atoi(KeyValue);
+				if(Result) /* Found */
+					WaitToKillAppTimeout = StrToInt(KeyValue);
 
-			/* Now look for HungAppTimeout */
-			Result = RegQueryValueEx(hKey,
-									"HungAppTimeout",
-									NULL, NULL,
-									(LPBYTE)KeyValue,
-									&KeySize);
+				/* Now look for HungAppTimeout */
+				Result = RegQueryValueEx(hKey,
+										"HungAppTimeout",
+										NULL, NULL,
+										(LPBYTE)KeyValue,
+										&KeySize);
 
-			if(Result)
-				HungAppTimeout = atoi(KeyValue);
+				if(Result)
+					HungAppTimeout = StrToInt(KeyValue);
 
-			CloseHandle(hKey);
+				CloseHandle(hKey);
+			}
+			__except(EXCEPTION_EXECUTE_HANDLER)
+			{
+				WaitToKillAppTimeout = 0;
+				HungAppTimeout = 0;
+			}
 		}
 
 		if(WaitToKillAppTimeout == 0)
@@ -250,8 +272,32 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 			}
 		}
 
+		RegFlushKey(HKEY_CLASSES_ROOT);
+		RegFlushKey(HKEY_CURRENT_CONFIG);
+		RegFlushKey(HKEY_CURRENT_USER);
+		RegFlushKey(HKEY_LOCAL_MACHINE);
+		RegFlushKey(HKEY_PERFORMANCE_DATA);
+		RegFlushKey(HKEY_USERS);
+		RegFlushKey(HKEY_DYN_DATA);
+
 		/* FIXME: Instead of calling ExitWindowsEx, send a logoff message to MPREXE */
-		ExitWindowsEx(sa.uFlags, 0);
+		ExitWindowsEx(EWX_LOGOFF, 0);
+
+		if(sa.uFlags & EWX_REBOOT)
+		{
+			ZwShutdownSystem(ShutdownReboot);
+			ExitWindowsEx(EWX_REBOOT | EWX_FORCE, 0);
+		}
+		else if(sa.uFlags & EWX_SHUTDOWN)
+		{
+			ZwShutdownSystem(ShutdownNoReboot);
+			ExitWindowsEx(EWX_SHUTDOWN | EWX_FORCE, 0);
+		}
+		else if(sa.uFlags & EWX_POWEROFF)
+		{
+			ZwShutdownSystem(ShutdownPowerOff);
+			ExitWindowsEx(EWX_POWEROFF | EWX_FORCE, 0);
+		}
 
 finished:
 		fAborted = FALSE;
@@ -273,24 +319,30 @@ BOOL WINAPI ExitWindowsEx_fix(UINT uFlags, DWORD dwReserved)
 	HWINSTA hWinSta = (HWINSTA)dwReserved;
 	PWINSTATION_OBJECT WindowStation = NULL;
 
+	if(fShutdown)
+		return TRUE;
+
+	/* Check if the flags does not exceed the maximum shutdown type */
+	if(uFlags & ~(EWX_LOGOFF | EWX_SHUTDOWN | EWX_REBOOT | EWX_FORCE | EWX_POWEROFF | EWX_FORCEIFHUNG))
+		return FALSE;
+
+	if(hWinSta != NULL && !IntValidateWindowStationHandle(hWinSta, &WindowStation))
+		return FALSE;
+
 	ppi = get_pdb()->Win32Process;
 
 	if(ppi != NULL)
 	{
 		/* Check for the WINSTA_EXITWINDOWS access right
-		   this also prevent KERNEL32/Services process from shutting down the system */
+		   this can also prevent services process from shutting down the system */
 		if(!(kexGetHandleAccess(ppi->hwinsta) & WINSTA_EXITWINDOWS))
 			return FALSE;
+
+		if(hWinSta == NULL)
+			WindowStation = ppi->rpwinsta;
 	}
-
-	if(fShutdown)
-		return TRUE;
-
-	if(hWinSta != NULL && !IntValidateWindowStationHandle(hWinSta, &WindowStation))
-		return FALSE;
-
-	if(hWinSta == NULL)
-		WindowStation = ppi->rpwinsta;
+	else if(ppi == NULL && WindowStation == NULL)
+		WindowStation = InputWindowStation;
 
 	return PostThreadMessage(dwShutdownThreadId, WM_QUERYENDSESSION, uFlags, (LPARAM)WindowStation);
 }
