@@ -34,17 +34,6 @@
 #include "common.h"
 #include "_advapi32_apilist.h"
 
-#ifdef _MSC_VER
-#pragma warning(disable:4002)
-#define FIXME() ((void)0)
-#define FIXMEW() ((void)0)
-#else
-#define FIXME(args...)
-#define FIXMEW(args...)
-#endif
-
-#define TRACE FIXME
-
 #ifndef SID_MAX_SUB_AUTHORITIES
 #define	SID_MAX_SUB_AUTHORITIES		(15)	/* current max subauths */
 #endif
@@ -695,7 +684,7 @@ GetSecurityDescriptorOwner_new( SECURITY_DESCRIPTOR *pDescr, PSID *Owner,
 {
 	SECURITY_DESCRIPTOR* lpsd=pDescr;
 	
-	TRACE("GetSecurityDescriptorOwner(%p,%p,%p)\n");
+	TRACE("GetSecurityDescriptorOwner(%p,%p,%p)\n", pDescr, Owner, OwnerDefaulted);
 
 	if ( !lpsd  || !Owner || !OwnerDefaulted )
 	{
@@ -762,7 +751,7 @@ BOOL WINAPI GetSecurityDescriptorGroup_new(
 {
 	SECURITY_DESCRIPTOR* lpsd=(SECURITY_DESCRIPTOR*)SecurityDescriptor;
 	
-	TRACE("GetSecurityDescriptorGroup(%p,%p,%p)\n");
+	TRACE("GetSecurityDescriptorGroup(%p,%p,%p)\n", SecurityDescriptor, Group, GroupDefaulted);
 
 	if ( !lpsd || !Group || !GroupDefaulted )
 	{
@@ -1433,7 +1422,7 @@ DWORD WINAPI GetNamedSecurityInfoW_new( LPWSTR name, SE_OBJECT_TYPE type,
     SECURITY_DESCRIPTOR_RELATIVE *relative = NULL;
     BYTE *buffer;
 
-    TRACE( "%s %d %d %p %p %p %p %p\n", debugstr_w(name), type, info, owner,
+    TRACE( "%s %d %d %p %p %p %p %p\n", name, type, info, owner,
            group, dacl, sacl, descriptor );
 
     /* A NULL descriptor is allowed if any one of the other pointers is not NULL */
@@ -1566,7 +1555,7 @@ LONG WINAPI RegGetKeySecurity_new(
 	IN OUT LPDWORD lpcbSecurityDescriptor
 )
 {
-	TRACE("(%x,%ld,%p,%ld)\n",hkey,SecurityInformation,pSecurityDescriptor,
+	TRACE("(%x,%ld,%p,%ld)\n",hKey,SecurityInformation,pSecurityDescriptor,
 			pSecurityDescriptor?*pSecurityDescriptor:0);
 
     if (!lpcbSecurityDescriptor)
@@ -1705,7 +1694,7 @@ LsaClose(IN LSA_HANDLE ObjectHandle)
 BOOL WINAPI
 RevertToSelf_new( void )
 {
-	FIXME("RevertToSelf(), stub\n");
+	FIXME_OUT("RevertToSelf(), stub\n");
 	return TRUE;
 }
 
