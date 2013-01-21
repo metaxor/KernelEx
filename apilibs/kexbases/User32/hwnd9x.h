@@ -29,7 +29,7 @@
 #ifndef _HWND32_H
 #define _HWND32_H
 
-#define IS_SYSTEM_HWND(hwnd) ((hwnd)>=(HWND)0x80 && (hwnd)<=(HWND)0x8C)
+#define IS_SYSTEM_HWND(hwnd) ((hwnd)>=(HWND)0x80 && (hwnd)<=(HWND)0x88)
 
 #pragma pack (1)
 typedef struct _RECTS
