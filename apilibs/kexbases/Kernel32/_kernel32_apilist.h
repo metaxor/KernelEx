@@ -181,6 +181,7 @@ BOOL WINAPI SetFileAttributesW_new(LPCWSTR lpFileNameW, DWORD dwFileAttributes);
 DWORD WINAPI VerLanguageNameW_new(DWORD wLang, LPWSTR szLangW, DWORD nSize);
 LPWSTR WINAPI lstrcpynW_new(LPWSTR dst, LPCWSTR src, INT n);
 BOOL WINAPI ReadConsoleInputW_new(HANDLE hConsoleInput, PINPUT_RECORD lpBuffer, DWORD nLength, LPDWORD lpNumberOfEventsRead);
+LPWSTR WINAPI StrChrW_new(LPCWSTR lpStart, WCHAR wMatch);
 ULONGLONG WINAPI VerSetConditionMask_new(ULONGLONG dwlConditionMask, DWORD dwTypeBitMask, BYTE dwConditionMask);
 DWORD WINAPI GetVersion_WIN95(void);
 DWORD WINAPI GetVersion_WIN98(void);

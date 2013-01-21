@@ -898,3 +898,15 @@ BOOL WINAPI ReadConsoleInputW_new( HANDLE hConsoleInput, PINPUT_RECORD lpBuffer,
 	}
 	return ret;
 }
+
+/* MAKE_EXPORT StrChrW_new=StrChrW */
+LPWSTR WINAPI StrChrW_new(LPCWSTR lpStart, WCHAR wMatch)
+{
+	do
+	{
+		if(*lpStart == wMatch)
+			return (WCHAR *)(ULONG_PTR)lpStart;
+	} while (*lpStart++);
+
+	return NULL;
+}

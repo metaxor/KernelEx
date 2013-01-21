@@ -218,6 +218,7 @@ static const apilib_named_api kernel32_named_apis[] =
 	DECL_API("SetFilePointerEx", SetFilePointerEx_new),
 	DECL_API("SetInformationJobObject", SetInformationJobObject_new),
 	DECL_API("SetThreadUILanguage", SetThreadUILanguage_new),
+	DECL_API("StrChrW", StrChrW_new),
 	DECL_API("SystemTimeToTzSpecificLocalTime", SystemTimeToTzSpecificLocalTime_new),
 	DECL_API("TerminateJobObject", TerminateJobObject_new),
 	DECL_API("TryEnterCriticalSection", TryEnterCriticalSection_new),
