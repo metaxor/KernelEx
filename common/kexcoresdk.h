@@ -184,17 +184,42 @@ _KEXCOREIMP unsigned long kexGetKEXVersion();
  */
 _KEXCOREIMP DWORD kexGetCoreCaps();
 
-
+#pragma warning (disable:4002)
 /** DBGPRINTF - convenience macro for including debug messages only in debugs. 
+ *	TRACE - Print debug message to debugger, includes file and line number
+ *	WARN - Same as TRACE, includes "WARN" at the begining of the string
+ *	ERR - Same as TRACE, includes "ERR" at the begining of the string
+ *	FIXME - Same as TRACE, includes "FIXME" at the begining of the string
  * 
  * Sample usage: DBGPRINTF(("This is a test %d %s\n", 1, "ttt"));
  */
 #ifndef KEXCORE_EXPORTS
 #ifndef _DEBUG
-#define DBGPRINTF(x) do { } while (0)
+#define DBGPRINTF(x)		do { } while(0)
+#define TRACE(fmt, args)	do { } while(0)
+#define TRACE_OUT(x)		do { } while(0)
+#define WARN(fmt, args)		do { } while(0)
+#define WARN_OUT(x)			do { } while(0)
+#define ERR(fmt, args)		do { } while(0)
+#define ERR_OUT(x)			do { } while(0)
+#define FIXME(fmt, args)	do { } while(0)
+#define FIXME_OUT(x)		do { } while(0)
 #else
-#define DBGPRINTF(x) kexDebugPrint x
+#define DBGPRINTF(x)		kexDebugPrint x
+#define TRACE(fmt, args)	kexDebugPrint("(%s:%d) " fmt , __FILE__ , __LINE__, args)
+#define TRACE_OUT(x)		kexDebugPrint("(%s:%d) " x , __FILE__ , __LINE__)
+#define WARN(fmt, args)		kexDebugPrint("(%s:%d) WARN: " fmt , __FILE__ , __LINE__, args)
+#define WARN_OUT(x)			kexDebugPrint("(%s:%d) WARN: " x , __FILE__ , __LINE__)
+#define ERR(fmt, args)		kexDebugPrint("(%s:%d) ERR: " fmt , __FILE__ , __LINE__, args)
+#define ERR_OUT(x)			kexDebugPrint("(%s:%d) ERR: " x , __FILE__ , __LINE__)
+#define FIXME(fmt, args)	kexDebugPrint("(%s:%d) FIXME: " fmt , __FILE__ , __LINE__, args)
+#define FIXME_OUT(x)		kexDebugPrint("(%s:%d) FIXME: " x , __FILE__ , __LINE__)
 #endif
+
+#define TRACEW TRACE
+#define WARNW WARN
+#define ERRW ERR
+#define FIXMEW FIXME
 #endif
 
 
@@ -369,6 +394,13 @@ _KEXCOREIMP int kexPsSetValue(int index, void* value);
  * @return Pointer to Kernel32 lock object.
  */
 _KEXCOREIMP void* kexGetK32Lock();
+
+/** kexGetKernelExDirectory - get the KernelEx installation directory
+ * @param lpBuffer - pointer to a buffer that will receive the directory
+ * @param uSize - size of the buffer in bytes
+ * @return Length of the string copied to the buffer
+ */
+_KEXCOREIMP UINT kexGetKernelExDirectory(LPSTR lpBuffer, UINT uSize);
 
 
 #ifdef __cplusplus
