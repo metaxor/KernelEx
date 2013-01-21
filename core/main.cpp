@@ -249,7 +249,6 @@ BOOL APIENTRY DllMain(HINSTANCE instance, DWORD reason, BOOL load_static)
 
 				return TRUE;
 			}
-		case DLL_THREAD_ATTACH:
 			break;
 		case DLL_PROCESS_DETACH:
 			//for additional safety - auto uninit on core unload
@@ -258,10 +257,7 @@ BOOL APIENTRY DllMain(HINSTANCE instance, DWORD reason, BOOL load_static)
 				init_count = 1;
 				kexUninit();
 			}
-		case DLL_THREAD_DETACH:
 			break;
-
-
 	}
 
 	return TRUE;
