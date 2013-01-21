@@ -73,7 +73,7 @@ static void CheckStubInfo(const MIDL_SERVER_INFO* pServerInfo, ULONG DispatchCou
 			WORD offset = PatchFormatString(pFormat);			
 			if (offset) //shift offsets in entry table
 			{
-				DBGPRINTF(("PatchFormatString: entry %d uses extensions, size %d",i,offset));
+				DBGPRINTF(("PatchFormatString: entry %d uses extensions, size %d\n",i,offset));
 				oldprot = PageProtect((PVOID)&pServerInfo->FmtStringOffset[i],PAGE_READWRITE);
 				*(WORD*)&pServerInfo->FmtStringOffset[i] += offset;
 				PageProtect((PVOID)&pServerInfo->FmtStringOffset[i],oldprot);
