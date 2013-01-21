@@ -97,7 +97,7 @@ BOOL CALLBACK EnumDesktopProc(LPTSTR lpszDesktop, LPARAM lParam)
     HDESK hDesktop;
     TCHAR Buffer[255];
     BOOL result;
-    hDesktop = OpenDesktop(lpszDesktop, 0, FALSE, DESKTOP_ENUMERATE);
+    hDesktop = OpenDesktop(lpszDesktop, 0, FALSE, DESKTOP_ENUMERATE | DESKTOP_SWITCHDESKTOP);
     if(!hDesktop)
     {
         wsprintf(Buffer, "OpenDesktop failed, GetLastError = 0x%X", GetLastError());
