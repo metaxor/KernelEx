@@ -39,7 +39,7 @@ PROC apihook::prepare(BOOL is_static)
 	PROC ah_reg;
 	init_once_t init_once;
 
-	DBGPRINTF(("Preparing API HOOK DLL"));
+	DBGPRINTF(("Preparing API HOOK DLL\n"));
 
 	_EnterSysLevel(krnl32lock);
 	mr = MRLoadTree("kexApiHook.dll");

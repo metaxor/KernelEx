@@ -118,7 +118,7 @@ bool ApiLibraryManager::load_apilib(const char* apilib_name)
 
 	ApiLibrary* apilib = NULL;
 
-	DBGPRINTF(("Loading api library: %s... ", apilib_name));
+	DBGPRINTF(("Loading api library: %s... \n", apilib_name));
 
 	char dllpath[MAX_PATH];
 	int size = sizeof(ApiLibrary) + strlen(apilib_name);
@@ -166,7 +166,7 @@ bool ApiLibraryManager::load_apilib(const char* apilib_name)
 		goto __error;
 	}
 
-	DBGPRINTF(("loaded @ 0x%08x... ", (DWORD) apilib->mod_handle));
+	DBGPRINTF(("loaded @ 0x%08x... \n", (DWORD) apilib->mod_handle));
 
 	//allocate space for new ApiLibraries
 	if (apilib_cnt % ALLOC_CAPACITY == 0)
