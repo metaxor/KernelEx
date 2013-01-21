@@ -23,22 +23,10 @@
 /*#include "windef.h"
 #include "winbase.h"*/
 #include "wtsapi32.h"
+#include "../../common/common.h"
 #include "../../common/listhead.h"
 //#include "wine/debug.h"
 #include <stdio.h>
-
-#ifdef _MSC_VER
-
-#pragma warning(disable:4002)
-#define TRACE()
-#define FIXME()
-
-#else
-
-#define TRACE(x,args...) debug_output(__func__,x,args)
-#define FIXME(x,args...) TRACE("FIXME: "x,args)
-
-#endif
 
 typedef struct _HWNDLIST
 {
@@ -109,7 +97,7 @@ BOOL WINAPI DllMain (HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 	}
 
 	return TRUE;
-	}
+}
 
 /************************************************************
  *                WTSCloseServer  (WTSAPI32.@)
