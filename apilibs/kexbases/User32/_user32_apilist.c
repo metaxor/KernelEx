@@ -43,7 +43,7 @@ BOOL init_user32()
 	HANDLE hThread = NULL;
 	HANDLE hThread2 = NULL;
 	DWORD dwThreadId = 0;
-	
+
 	IsHungThread_pfn = (IsHungThread_t)kexGetProcAddress(hUser32, "IsHungThread");
 	DrawCaptionTempA_pfn = (DrawCaptionTempA_t)kexGetProcAddress(hUser32, "DrawCaptionTempA");
 	GetMouseMovePoints_pfn = (GetMouseMovePoints_t)kexGetProcAddress(hUser32, "GetMouseMovePoints");
@@ -138,6 +138,8 @@ static const apilib_named_api user32_named_apis[] =
 	DECL_API("CallMsgFilterW", CallMsgFilterA),
 	DECL_API("CallWindowProcA", CallWindowProcA_fix),
 	DECL_API("CallWindowProcW", CallWindowProcW_new),
+	DECL_API("ChangeDisplaySettingsA", ChangeDisplaySettingsA_fix),
+	DECL_API("ChangeDisplaySettingsExA", ChangeDisplaySettingsExA_fix),
 	DECL_API("ChangeMenuW", ChangeMenuW_new),
 	DECL_API("CharLowerBuffW", CharLowerBuffW_new),
 	DECL_API("CharLowerW", CharLowerW_new),
@@ -161,7 +163,7 @@ static const apilib_named_api user32_named_apis[] =
 	DECL_API("CreateDialogParamW", CreateDialogParamW_NEW),
 	DECL_API("CreateMDIWindowA", CreateMDIWindowA_fix),
 	DECL_API("CreateMDIWindowW", CreateMDIWindowW_NEW),
-	DECL_API("CreateWindowEx", CreateWindowExA_fix),
+	DECL_API("CreateWindowExA", CreateWindowExA_fix),
 	DECL_API("CreateWindowExW", CreateWindowExW_NEW),
 	DECL_API("CreateWindowStationA", CreateWindowStationA_new),
 	DECL_API("CreateWindowStationW", CreateWindowStationW_new),
@@ -177,7 +179,7 @@ static const apilib_named_api user32_named_apis[] =
 	DECL_API("DisableProcessWindowsGhosting", DisableProcessWindowsGhosting_new),
 	DECL_API("DispatchMessageW", DispatchMessageA),
 	DECL_API("DrawCaptionTempW", DrawCaptionTempW_new),
-	DECL_API("EnableWindow", EnableWindow_new),
+	DECL_API("EnableWindow", EnableWindow_nothunk),
 	DECL_API("EnumChildWindows", EnumChildWindows_nothunk),
 	DECL_API("EnumDesktopWindows", EnumDesktopWindows_new),
 	DECL_API("EnumDesktopsA", EnumDesktopsA_new),

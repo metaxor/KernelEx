@@ -76,6 +76,8 @@ HDESK WINAPI OpenInputDesktop_new(DWORD dwFlags, BOOL fInherit, ACCESS_MASK dwDe
 BOOL WINAPI SetThreadDesktop_new(HDESK hDesktop);
 BOOL WINAPI SwitchDesktop_new(HDESK hDesktop);
 HWND WINAPI GetNextDlgTabItem_fix(HWND hDlg, HWND hCtl, BOOL bPrevious);
+LONG WINAPI ChangeDisplaySettingsExA_fix(LPCSTR lpszDeviceName, LPDEVMODE lpDevMode, HWND hwnd, DWORD dwflags, LPVOID lParam);
+LONG WINAPI ChangeDisplaySettingsA_fix(LPDEVMODE lpDevMode, DWORD dwflags);
 BOOL WINAPI ExitWindowsEx_fix(UINT uFlags, DWORD dwReserved);
 UINT WINAPI MapVirtualKeyA_new(UINT uCode, UINT uMapType);
 UINT WINAPI MapVirtualKeyExA_new(UINT uCode, UINT uMapType, HKL dwhkl);
@@ -169,7 +171,7 @@ BOOL WINAPI AnyPopup_nothunk(VOID);
 HWND WINAPI CreateMDIWindowA_fix(LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int X, int Y, int nWidth, int nHeight, HWND hWndParent, HINSTANCE hInstance, LPARAM lParam);
 HWND WINAPI CreateWindowExA_fix(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam);
 void __stdcall DisableProcessWindowsGhosting_new(void);
-BOOL WINAPI EnableWindow_new(HWND hWnd, BOOL bEnable);
+BOOL WINAPI EnableWindow_nothunk(HWND hWnd, BOOL bEnable);
 BOOL WINAPI EnumChildWindows_nothunk(HWND hWndParent, WNDENUMPROC lpEnumFunc, LPARAM lParam);
 BOOL WINAPI EnumThreadWindows_nothunk(DWORD dwThreadId, WNDENUMPROC lpfn, LPARAM lParam);
 BOOL WINAPI EnumWindows_nothunk(WNDENUMPROC lpEnumFunc, LPARAM lParam);
