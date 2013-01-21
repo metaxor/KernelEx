@@ -24,7 +24,7 @@
 #include <shellapi.h>
 #include "../kernel32/_kernel32_apilist.h"
 
-/*  ShellExecuteExA_fix=ShellExecuteExA */
+/* MAKE_EXPORT ShellExecuteExA_fix=ShellExecuteExA */
 BOOL WINAPI ShellExecuteExA_fix(LPSHELLEXECUTEINFOA lpExecInfo)
 {
 	BOOL res = FALSE;
@@ -32,27 +32,30 @@ BOOL WINAPI ShellExecuteExA_fix(LPSHELLEXECUTEINFOA lpExecInfo)
 	STARTUPINFOA si;
 	PROCESS_INFORMATION pi;
 
-	MessageBox(NULL, "4", NULL, 0);
-
-	if(IsBadWritePtr(lpExecInfo, sizeof(SHELLEXECUTEINFOA)))
+	if(lpExecInfo == NULL)
 		return FALSE;
 
-	MessageBox(NULL, "5", NULL, 0);
-	//if(lstrcmpi(lpExecInfo->lpVerb,  "open"))
-	//	return ShellExecuteExA(lpExecInfo);
+	if(IsBadReadPtr(lpExecInfo, sizeof(SHELLEXECUTEINFOA)))
+		return FALSE;
 
-	//MessageBox(NULL, "6", NULL, 0);
-	//memset(&si, 0, sizeof(STARTUPINFOA));
-	//memset(&pi, 0, sizeof(PROCESS_INFORMATION));
+	if(IsBadStringPtr(lpExecInfo->lpVerb, -1))
+		lpExecInfo->lpVerb = "open";
 
-	MessageBox(NULL, "7", NULL, 0);
+	if(strcmpi(lpExecInfo->lpVerb,  "open"))
+		return ShellExecuteExA(lpExecInfo);
+
+	if(strpbrk(lpExecInfo->lpFile, ".exe") == NULL)
+		return ShellExecuteExA(lpExecInfo);
+
+	memset(&si, 0, sizeof(STARTUPINFOA));
+	memset(&pi, 0, sizeof(PROCESS_INFORMATION));
+
 	si.dwFlags |= STARTF_USESHOWWINDOW;
 	si.wShowWindow = lpExecInfo->nShow;
 
 	if(lpExecInfo->fMask & SEE_MASK_UNICODE)
 		dwFlags |= CREATE_UNICODE_ENVIRONMENT;
 
-	MessageBox(NULL, "8", NULL, 0);
 	res = CreateProcessA_fix(lpExecInfo->lpFile,
 							(LPSTR)lpExecInfo->lpParameters,
 							NULL,
@@ -67,7 +70,6 @@ BOOL WINAPI ShellExecuteExA_fix(LPSHELLEXECUTEINFOA lpExecInfo)
 	if(!res)
 		return FALSE;
 
-	MessageBox(NULL, "9", NULL, 0);
 	CloseHandle(pi.hThread);
 
 	if(lpExecInfo->fMask & SEE_MASK_NOCLOSEPROCESS)
@@ -75,12 +77,11 @@ BOOL WINAPI ShellExecuteExA_fix(LPSHELLEXECUTEINFOA lpExecInfo)
 	else
 		CloseHandle(pi.hProcess);
 
-	MessageBox(NULL, "10", NULL, 0);
 	//lpExecInfo->hInstApp = GetModuleHandleA(lpExecInfo->lpFile);
 	return TRUE;
 }
 
-/*  ShellExecuteA_fix=ShellExecuteA */
+/* MAKE_EXPORT ShellExecuteA_fix=ShellExecuteA */
 HINSTANCE WINAPI ShellExecuteA_fix(HWND hwnd, LPCSTR lpOperation, LPCSTR lpFile, LPCSTR lpParameters, LPCSTR lpDirectory, INT nShowCmd)
 {
 	SHELLEXECUTEINFOA sei;
@@ -99,7 +100,6 @@ HINSTANCE WINAPI ShellExecuteA_fix(HWND hwnd, LPCSTR lpOperation, LPCSTR lpFile,
     sei.dwHotKey = 0;
     sei.hProcess = 0;
 
-	MessageBox(NULL, "3", NULL, 0);
 	ShellExecuteExA_fix(&sei);
 
 	return sei.hInstApp;
