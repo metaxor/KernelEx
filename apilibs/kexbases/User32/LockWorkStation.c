@@ -2,6 +2,7 @@
  *  KernelEx
  *  Copyright (C) 2008, Tihiy
  *  Copyright (C) 2013, Ley0k
+ *
  *  This file is part of KernelEx source code.
  *
  *  KernelEx is free software; you can redistribute it and/or modify
@@ -22,14 +23,21 @@
 #include <windows.h>
 #include "desktop.h"
 
-/* MAKE_EXPORT LockWorkStation_new=LockWorkStation */
-BOOL WINAPI LockWorkStation_new(void)
+#pragma warning (disable:4035)
+
+BOOL WINAPI LockWorkStation_RUNDLL(HWND hWnd, HINSTANCE hInstance, LPSTR lpArgs, int nCmdShow)
 {
 	BOOL Result;
 	PROCESS_INFORMATION pi;
 	STARTUPINFO si;
-	//FIXME: rundll32 likes to call it and crashes because stack would be incorrect
+
 	//return WinExec("conlock.mod -uSeR",SW_SHOWDEFAULT) > 31 ? TRUE : FALSE;
+
+	memset(&pi, 0, sizeof(PROCESS_INFORMATION));
+	memset(&si, 0, sizeof(STARTUPINFO));
+
+	si.dwFlags = STARTF_USESHOWWINDOW;
+	si.wShowWindow = SW_SHOWDEFAULT;
 
     Result = CreateProcess("conlock.mod",
                   "-uSeR",
@@ -43,10 +51,30 @@ BOOL WINAPI LockWorkStation_new(void)
                   &pi);
 
 	if(!Result)
-		return FALSE;
+		goto _ret;
 
 	CloseHandle(pi.hProcess);
 	CloseHandle(pi.hThread);
 
-	return TRUE;
+_ret:
+	if(!IsWindow(hWnd) || (DWORD)hInstance != 0x00400000 || IsBadStringPtr(lpArgs, -1))
+	{
+		__asm	mov eax, [Result]
+		__asm	pop edi
+		__asm	pop esi
+		__asm	pop ebx
+		__asm	leave
+		__asm	retn
+	}
+	else // RUNDLL called this
+		return Result;
 }
+
+/* MAKE_EXPORT LockWorkStation_new=LockWorkStation */
+__declspec(naked)
+BOOL WINAPI LockWorkStation_new(void)
+{
+	__asm jmp LockWorkStation_RUNDLL
+}
+
+#pragma warning (default:4035)
