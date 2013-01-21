@@ -62,18 +62,19 @@ STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 CAPTION "Shut down Windows"
 FONT 8, "MS Shell Dlg"
 BEGIN
-    RADIOBUTTON     "Shutdown",IDC_CSHUTDOWN,37,40,98,10,WS_GROUP
-    RADIOBUTTON     "Shutdown and &Restart",IDC_CRESTART,37,53,139,10,
-                    WS_GROUP
-    RADIOBUTTON     "Shutdown and &Power off",IDC_CPOWEROFF,37,66,137,10,
-                    WS_GROUP
+    CONTROL         "Shutdown",IDC_CSHUTDOWN,"Button",BS_AUTORADIOBUTTON,37,
+                    40,98,10
+    CONTROL         "Shutdown and &Restart",IDC_CRESTART,"Button",
+                    BS_AUTORADIOBUTTON,37,53,139,10
+    CONTROL         "Shutdown and &Power off",IDC_CPOWEROFF,"Button",
+                    BS_AUTORADIOBUTTON,37,66,137,10
     LTEXT           "Shutting down will end your Windows %s session and prepare your computer to be turned off.",
                     IDC_SHUTDOWNTEXT,37,10,135,26
     PUSHBUTTON      "OK",IDOK,49,75,40,14
     PUSHBUTTON      "Cancel",IDCANCEL,105,75,40,14
     DEFPUSHBUTTON   "OK",IDC_POK,49,80,40,14
     PUSHBUTTON      "Cancel",IDC_PCANCEL,105,80,40,14
-    ICON            32516,102,9,10,21,20
+    ICON            32516,102,9,10,20,20
 END
 
 
