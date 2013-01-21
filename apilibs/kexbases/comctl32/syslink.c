@@ -37,20 +37,6 @@
 #include "../kernel32/_kernel32_apilist.h"
 #include "../user32/_user32_apilist.h"
 
-/* PORTING STUFF */
-#ifdef _MSC_VER
-#pragma warning(disable:4002)
-#define TRACE() ((void)0)
-#define TRACE_() ((void)0)
-#define WARN() ((void)0)
-#define ERR() ((void)0)
-#else
-#define TRACE(...) do {} while(0)
-#define TRACE_(x) TRACE
-#define WARN(...) do {} while(0)
-#define ERR(...) do {} while(0)
-#endif
-
 //comctl32 has StrCmpNIW, good enough for tag matching
 typedef int (WINAPI* CC361) (LPCWSTR,LPCWSTR,int);
 int WINAPI StrCmpNIW(LPCWSTR lpStr1,LPCWSTR lpStr2,int nChar)
@@ -193,7 +179,7 @@ static PDOC_ITEM SYSLINK_AppendDocItem (SYSLINK_INFO *infoPtr, LPCWSTR Text, UIN
 	Item = (PDOC_ITEM)Alloc(FIELD_OFFSET(DOC_ITEM, Text[textlen + 1]));
 	if(Item == NULL)
 	{
-		ERR("Failed to alloc DOC_ITEM structure!\n");
+		ERR_OUT("Failed to alloc DOC_ITEM structure!\n");
 		return NULL;
 	}
 
@@ -372,7 +358,7 @@ CheckParameter:
 					Last = SYSLINK_AppendDocItem(infoPtr, textstart, firsttag - textstart, slText, Last);
 					if(Last == NULL)
 					{
-						ERR("Unable to create new document item!\n");
+						ERR_OUT("Unable to create new document item!\n");
 						return docitems;
 					}
 					docitems++;
@@ -387,7 +373,7 @@ CheckParameter:
 					Last = SYSLINK_AppendDocItem(infoPtr, linktext, linklen, slLink, Last);
 					if(Last == NULL)
 					{
-						ERR("Unable to create new document item!\n");
+						ERR_OUT("Unable to create new document item!\n");
 						return docitems;
 					}
 					docitems++;
@@ -466,7 +452,7 @@ CheckParameter:
 		Last = SYSLINK_AppendDocItem(infoPtr, textstart, textlen, CurrentType, Last);
 		if(Last == NULL)
 		{
-			ERR("Unable to create new document item!\n");
+			ERR_OUT("Unable to create new document item!\n");
 			return docitems;
 		}
 		if(CurrentType == slLink)
@@ -512,7 +498,7 @@ CheckParameter:
 		Last = SYSLINK_AppendDocItem(infoPtr, linktext, linklen, slText, Last);
 		if(Last == NULL)
 		{
-			ERR("Unable to create new document item!\n");
+			ERR_OUT("Unable to create new document item!\n");
 			return docitems;
 		}
 		docitems++;
@@ -532,7 +518,7 @@ static VOID SYSLINK_RepaintLink (const SYSLINK_INFO *infoPtr, const DOC_ITEM *Do
 
 	if(DocItem->Type != slLink)
 	{
-		ERR("DocItem not a link!\n");
+		ERR_OUT("DocItem not a link!\n");
 		return;
 	}
 
@@ -849,7 +835,7 @@ static VOID SYSLINK_Render (const SYSLINK_INFO *infoPtr, HDC hdc, PRECT pRect)
 					bl = NULL;
 					nBlocks = 0;
 
-					ERR("Failed to alloc DOC_TEXTBLOCK structure!\n");
+					ERR_OUT("Failed to alloc DOC_TEXTBLOCK structure!\n");
 					break;
 				}
 				n -= LineLen;
@@ -1014,7 +1000,7 @@ static HFONT SYSLINK_SetFont (SYSLINK_INFO *infoPtr, HFONT hFont, BOOL bRedraw)
 			}
 			else
 			{
-				ERR("Failed to create link font!\n");
+				ERR_OUT("Failed to create link font!\n");
 			}
 
 			SYSLINK_Render(infoPtr, hdc, &rcClient);
@@ -1113,7 +1099,7 @@ static LRESULT SYSLINK_SetItem (const SYSLINK_INFO *infoPtr, const LITEM *Item)
 
 	if(!(Item->mask & LIF_ITEMINDEX) || !(Item->mask & (LIF_FLAGSMASK)))
 	{
-		ERR("Invalid Flags!\n");
+		ERR_OUT("Invalid Flags!\n");
 		return FALSE;
 	}
 
@@ -1134,7 +1120,7 @@ static LRESULT SYSLINK_SetItem (const SYSLINK_INFO *infoPtr, const LITEM *Item)
 		}
 		else
 		{
-			ERR("Unable to allocate memory for link id\n");
+			ERR_OUT("Unable to allocate memory for link id\n");
 			return FALSE;
 		}
 	}
@@ -1151,7 +1137,7 @@ static LRESULT SYSLINK_SetItem (const SYSLINK_INFO *infoPtr, const LITEM *Item)
 		{
 			Free(szId);
 
-			ERR("Unable to allocate memory for link url\n");
+			ERR_OUT("Unable to allocate memory for link url\n");
 			return FALSE;
 		}
 	}
@@ -1199,7 +1185,7 @@ static LRESULT SYSLINK_GetItem (const SYSLINK_INFO *infoPtr, PLITEM Item)
 
 	if(!(Item->mask & LIF_ITEMINDEX) || !(Item->mask & (LIF_FLAGSMASK)))
 	{
-		ERR("Invalid Flags!\n");
+		ERR_OUT("Invalid Flags!\n");
 		return FALSE;
 	}
 
