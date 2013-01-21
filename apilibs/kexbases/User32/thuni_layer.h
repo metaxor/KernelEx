@@ -44,6 +44,8 @@ void UpdateLRKeyState(LPMSG msg);
 WNDPROC WINAPI GetWindowProc32(PWND pwnd);
 PMSGQUEUE GetWindowQueue(PWND pwnd);
 
+BOOL __fastcall EnumWindowsEx(DWORD dwThreadId, WNDENUMPROC lpEnumFunc, LPARAM lParam, BOOL fEnumThread, HDESK hDesktop, BOOL fEnumDesktop);
+
 //conv
 WPARAM wparam_AtoW( HWND hwnd, UINT message, WPARAM wParam, BOOL messDBCS );
 WPARAM wparam_WtoA( UINT message, WPARAM wParam );
