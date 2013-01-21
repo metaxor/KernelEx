@@ -339,7 +339,7 @@ LPVOID WINAPI MapViewOfFileEx_new(
 			mem64K = FindSharedMem64K(mem64K + 0x10000);
 			if (!mem64K)
 			{
-				DBGPRINTF(("KEX: Failed to find memory for mapping handle %p!",
+				DBGPRINTF(("KEX: Failed to find memory for mapping handle %p!\n",
 						hFileMappingObject));
 				SetLastError(ERROR_NOT_ENOUGH_MEMORY);
 				return NULL;

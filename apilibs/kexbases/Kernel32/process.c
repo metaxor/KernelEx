@@ -25,15 +25,12 @@
 #include "..\user32\desktop.h"
 #include "kstructs.h"
 
-/* FIXME: CreateProcessA_fix doesn't really work, because of shell32 already hooked, almost every CreateProcess calls are made
-   inside shell32, which directly call the real kernel32 API */
-
 /* MAKE_EXPORT CreateProcessA_fix=CreateProcessA */
 BOOL WINAPI CreateProcessA_fix(LPCSTR lpApplicationName, LPSTR lpCommandLine, LPSECURITY_ATTRIBUTES lpProcessAttributes, LPSECURITY_ATTRIBUTES lpThreadAttributes, BOOL bInheritHandles, DWORD dwCreationFlags, LPVOID lpEnvironment, LPCSTR lpCurrentDirectory, LPSTARTUPINFOA lpStartupInfo, LPPROCESS_INFORMATION lpProcessInformation)
 {
     PTDB98 Thread = get_tdb();
 	PPDB98 Process = get_pdb();
-	PCHAR pszDesktop;
+	PCHAR pszDesktop = NULL;
 
     if(IsBadWritePtr(lpStartupInfo, sizeof(STARTUPINFO)) || IsBadWritePtr(lpProcessInformation, sizeof(PROCESS_INFORMATION)))
         return FALSE;
@@ -58,7 +55,7 @@ BOOL WINAPI CreateProcessA_fix(LPCSTR lpApplicationName, LPSTR lpCommandLine, LP
         dwCreationFlags &= ~CREATE_UNICODE_ENVIRONMENT;
 
 
-	if(lpStartupInfo->lpDesktop == NULL || IsBadStringPtr(lpStartupInfo->lpDesktop, -1))
+	if(lpStartupInfo->lpDesktop == NULL)
 	{
 		lpStartupInfo->lpDesktop = Process->Win32Process->rpdeskStartup->lpName;
 	}
