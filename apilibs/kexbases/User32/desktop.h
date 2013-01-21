@@ -76,7 +76,7 @@ typedef struct _DESKTOP
 
     PVOID BlockInputThread;
 
-	HDC ScreenContext;
+	PDEVMODE pdev;
 } DESKTOP, *PDESKTOP;
 
 #define DESKTOP_READ       STANDARD_RIGHTS_READ      | \
