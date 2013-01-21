@@ -17,6 +17,9 @@ all :
 	cd userenv
 	@$(MAKE) /nologo /f makefile.msv $@
 	cd ..
+    cd netapi32
+    @$(MAKE) /nologo /f makefile.msv $@
+    cd ..
 
 clean :
 	cd msimg32
@@ -37,6 +40,9 @@ clean :
 	cd userenv
 	@$(MAKE) /nologo /f makefile.msv $@
 	cd ..
+    cd netapi32
+    @$(MAKE) /nologo /f makefile.msv $@
+    cd ..
 
 ide : all clean
 	-@if exist Release\NUL rd Release

@@ -4,6 +4,7 @@ all :
 	@$(MAKE) -C wtsapi32 $@
 	@$(MAKE) -C uxtheme $@
 	@$(MAKE) -C psapi $@
+    @$(MAKE) -C netapi32 $@
 
 clean :
 	@$(MAKE) -C msimg32 $@
@@ -11,6 +12,7 @@ clean :
 	@$(MAKE) -C wtsapi32 $@
 	@$(MAKE) -C uxtheme $@
 	@$(MAKE) -C psapi $@
+    @$(MAKE) -C netapi32 $@
 
 realclean :
 	@$(MAKE) -C msimg32 $@
@@ -18,3 +20,4 @@ realclean :
 	@$(MAKE) -C wtsapi32 $@
 	@$(MAKE) -C uxtheme $@
 	@$(MAKE) -C psapi $@
+    @$(MAKE) -C netapi32 $@

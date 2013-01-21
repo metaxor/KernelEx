@@ -113,6 +113,18 @@ SOURCE=.\wtsapi32\wtsapi32.c
 SOURCE=.\wtsapi32\wtsapi32.h
 # End Source File
 # End Group
+# Begin Group "netapi32"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\netapi32\netapi32.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\netapi32\netapi32.h
+# End Source File
+# End Group
 # End Group
 # Begin Group "Header Files"
 
@@ -144,6 +156,10 @@ SOURCE=.\pdh\kord.def
 # Begin Source File
 
 SOURCE=.\msimg32\msimg32.def
+# End Source File
+# Begin Source File
+
+SOURCE=.\netapi32\netapi32.def
 # End Source File
 # Begin Source File
 
