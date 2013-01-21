@@ -109,6 +109,9 @@ void WriteToComm(LPCSTR lpBuffer, DWORD dwBufferSize)
 	if(!fCommInitialized)
 		InitComm();
 
+	if(IsBadStringPtr(lpBuffer, dwBufferSize))
+		return;
+
 	if(!dwBufferSize)
 		dwBufferSize = strlen(lpBuffer);
 
@@ -133,19 +136,28 @@ void dbgvprintf(const char* format, void* _argp)
 	HANDLE hFile = NULL;
 	char msg[DEBUGMSG_MAXLEN];
 	char msg2[DEBUGMSG_MAXLEN];
-	//char buff[255];
 	DWORD dwBytes = 0;
 	BOOL fCarriageReturn = FALSE;
+	int cnt = 0;
 	va_list argp = (va_list) _argp;
 
-	memset(&msg, 0, sizeof(msg));
-	memset(&msg2, 0, sizeof(msg2));
-	int cnt = vsnprintf(msg, sizeof(msg), format, argp);
+	memset(&msg, '\0', sizeof(msg));
+	memset(&msg2, '\0', sizeof(msg2));
+
+	__try
+	{
+		cnt = vsnprintf(msg, sizeof(msg), format, argp);
+	}
+	__except(EXCEPTION_EXECUTE_HANDLER)
+	{
+		return;
+	}
 
 	if(strpbrk(msg, "\n") != NULL)
 	{
 		fCarriageReturn = TRUE;
-		cnt = sprintf(msg2, "%s\r", msg);
+		sprintf(msg2, "%s\r", msg);
+		cnt++;
 	}
 
 	WriteToComm(fCarriageReturn ? msg2 : msg, cnt);
