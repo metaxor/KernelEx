@@ -19,10 +19,43 @@
  *
  */
 
-#include "common.h"
-#include "kexcoresdk.h"
 #include "_ntdll_apilist.h"
-#include "../kernel32/_kernel32_apilist.h"
+#include <strsafe.h>
+#include "kexcoresdk.h"
+
+DWORD __fastcall VKernelExCall(DWORD command, DWORD param1)
+{
+	BOOL result;
+	DWORD retlen;
+    HANDLE VKernelEx;
+	CHAR lpkexDir[MAX_PATH];
+	DWORD ret = 0 ;
+
+	char vxdpath[MAX_PATH];
+
+	kexGetKernelExDirectory(lpkexDir, sizeof(lpkexDir));
+
+	StringCbPrintfA(vxdpath, sizeof(vxdpath), "\\\\.\\%sVKRNLEX.VXD", 
+		(const char*) lpkexDir);
+
+	VKernelEx = CreateFile(vxdpath, 0, 0, 0, 0, FILE_FLAG_DELETE_ON_CLOSE, 0);
+
+	if (VKernelEx == INVALID_HANDLE_VALUE)
+	{
+		DBGPRINTF(("Failed to connect to VKernelEx!\n"));
+		return false;
+	}
+
+	result = DeviceIoControl(VKernelEx, command, &param1, sizeof(DWORD), 
+		&ret, sizeof(DWORD), &retlen, NULL);
+
+	CloseHandle(VKernelEx);
+
+	if (retlen > sizeof(DWORD))
+		return false;
+
+	return true;
+}
 
 BOOL init_ntdll()
 {
@@ -37,11 +70,11 @@ static const apilib_named_api ntdll_named_apis[] =
 	DECL_API("NtGetContextThread", ZwGetContextThread),
 	DECL_API("NtOpenProcess", ZwOpenProcess),
 	DECL_API("NtOpenThread", ZwOpenThread),
-	DECL_API("NtQuerySystemInformation", NtQuerySystemInformation_stub),
+	DECL_API("NtQuerySystemInformation", ZwQuerySystemInformation),
 	DECL_API("NtResumeProcess", ZwResumeProcess),
 	DECL_API("NtResumeThread", ZwResumeThread),
 	DECL_API("NtSetContextThread", ZwSetContextThread),
-	DECL_API("NtShutdownSystem", NtShutdownSystem_stub),
+	DECL_API("NtShutdownSystem", ZwShutdownSystem),
 	DECL_API("NtSuspendProcess", ZwSuspendProcess),
 	DECL_API("NtSuspendThread", ZwSuspendThread),
 	DECL_API("NtTerminateProcess", ZwTerminateProcess),
@@ -51,11 +84,11 @@ static const apilib_named_api ntdll_named_apis[] =
 	DECL_API("ZwGetContextThread", ZwGetContextThread),
 	DECL_API("ZwOpenProcess", ZwOpenProcess),
 	DECL_API("ZwOpenThread", ZwOpenThread),
-	DECL_API("ZwQuerySystemInformation", ZwQuerySystemInformation_stub),
+	DECL_API("ZwQuerySystemInformation", ZwQuerySystemInformation),
 	DECL_API("ZwResumeProcess", ZwResumeProcess),
 	DECL_API("ZwResumeThread", ZwResumeThread),
 	DECL_API("ZwSetContextThread", ZwSetContextThread),
-	DECL_API("ZwShutdownSystem", ZwShutdownSystem_stub),
+	DECL_API("ZwShutdownSystem", ZwShutdownSystem),
 	DECL_API("ZwSuspendProcess", ZwSuspendProcess),
 	DECL_API("ZwSuspendThread", ZwSuspendThread),
 	DECL_API("ZwTerminateProcess", ZwTerminateProcess),
