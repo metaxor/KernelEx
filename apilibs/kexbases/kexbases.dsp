@@ -497,6 +497,10 @@ SOURCE=.\shell32\IsUserAnAdmin.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\shell32\shexec.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\shell32\shexit.c
 # End Source File
 # End Group
