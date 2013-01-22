@@ -493,7 +493,7 @@ static OpenObjectByName_t find_OpenObjectByName()
 
 	ret = (OpenObjectByName_t)decode_calljmp(res);
 
-	DBGPRINTF(("%s @ 0x%08x\n", pat_name, ret));
+	DBGPRINTF(("%s @ 0x%08x\n", pat2_name, ret));
 	return ret;
 }
 
@@ -525,7 +525,7 @@ static AllocObjectName_t find_AllocObjectName()
 
 	ret = (AllocObjectName_t)decode_calljmp(res);
 
-	DBGPRINTF(("%s @ 0x%08x\n", pat_name, ret));
+	DBGPRINTF(("%s @ 0x%08x\n", pat2_name, ret));
 	return ret;
 }
 
