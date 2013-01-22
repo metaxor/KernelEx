@@ -24,9 +24,15 @@
 HDESK hSecurity = NULL;
 HDESK hDefault = NULL;
 BOOL fWinME;
-const char *InvalidVersion = TEXT("This application must be run in Windows 98/Millenium with KernelEx !");
-const char *InvalidPassword = TEXT("The password you entered is incorrect. Reenter your password in case-sensitive. Letters in passwords must be typed using the correct case.");
-const char *ComputerLocked = TEXT("Computer Locked");
+const TCHAR *InvalidVersion = TEXT("This application must be run in Windows 98/Millenium with KernelEx !");
+const TCHAR *InvalidPassword = TEXT("The password you entered is incorrect. Reenter your password in case-sensitive. Letters in passwords must be typed using the correct case.");
+const TCHAR *MustLogged = TEXT("You must be logged on in order to lock your computer.");
+const TCHAR *MustLoggedP = TEXT("You must be logged on in order to change your password.");
+const TCHAR *CannotLockWorkStation = TEXT("Windows cannot lock your computer. Error %d: %s");
+const TCHAR *CannotChangePassword = TEXT("Windows cannot change your password. Error %d: %s");
+const TCHAR *ComputerLocked = TEXT("Computer Locked");
+const TCHAR *SecurityTitle = TEXT("Windows Security");
+const TCHAR *NotLoggedOn = TEXT("You are not logged on.");
 
 BOOL WINAPI LockWorkStation(void);
 
@@ -59,24 +65,49 @@ INT_PTR CALLBACK LockProc(HWND hwndDlg,
     LPARAM lParam
 )
 {
-	TCHAR UserName[MAX_PATH];
-	TCHAR Password[MAX_PATH];
-	DWORD Length = 0;
+	TCHAR UserName[UNLEN+1];
+	TCHAR Password[UNLEN+1];
 	BOOL fMatch = FALSE;
 	HANDLE hToken = NULL;
 	TCHAR Text[MAX_PATH];
 	TCHAR NewText[MAX_PATH];
-	TCHAR ComputerName[MAX_PATH];
-	DWORD nSize = sizeof(ComputerName);
+	TCHAR ComputerName[MAX_COMPUTERNAME_LENGTH+1];
+	DWORD nSize = 0;
+	DWORD result = 0;
 
 	switch(uMsg)
 	{
 	case WM_INITDIALOG:
 		CenterWindow(hwndDlg);
-		Length = sizeof(UserName);
 
-		GetComputerName(ComputerName, &nSize);
-		WNetGetUser(NULL, UserName, &Length);
+		nSize = sizeof(ComputerName);
+		if(!GetComputerName(ComputerName, &nSize))
+			StrCpy(ComputerName, TEXT("Unknown"));
+
+		nSize = sizeof(UserName);
+		if((result = WNetGetUser(NULL, UserName, &nSize)) != NO_ERROR)
+		{
+			if(result == ERROR_NOT_LOGGED_ON)
+				MessageBox(hwndDlg, MustLogged, ComputerLocked, MB_ICONERROR);
+			else
+			{
+				LPVOID Buffer = NULL;
+
+				FormatMessage(
+					FORMAT_MESSAGE_ALLOCATE_BUFFER | 
+					FORMAT_MESSAGE_FROM_SYSTEM,
+					NULL,
+					result,
+					MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+					(LPTSTR) &Buffer,
+					0, NULL );
+
+				wsprintf(Text, CannotLockWorkStation, result, Buffer);
+				MessageBox(hwndDlg, Text, ComputerLocked, MB_ICONERROR);
+			}
+			EndDialog(hwndDlg, 1);
+			return 0;
+		}
 
 		GetDlgItemText(hwndDlg, IDC_TEXT2, Text, sizeof(Text));
 		wsprintf(NewText, Text, ComputerName, UserName);
@@ -236,13 +267,21 @@ INT_PTR CALLBACK SecurityProc(HWND hwndDlg,
     LPARAM lParam
 )
 {
+#ifdef UNICODE
+	typedef int (WINAPI *PWDCHANGEPASSWORDW)(int,int,HWND,DWORD);
+#else
 	typedef int (WINAPI *PWDCHANGEPASSWORDA)(int,int,HWND,DWORD);
+#endif
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
 	FILE *file = NULL;
 	HMODULE hLib = NULL;
+#ifdef UNICODE
+	PWDCHANGEPASSWORDW PwdChangePasswordW = NULL;
+#else
 	PWDCHANGEPASSWORDA PwdChangePasswordA = NULL;
-	int result;
+#endif
+	DWORD result;
 	TCHAR Text[255];
 	TCHAR NewText[255];
 	TCHAR UserName[UNLEN+1];
@@ -257,17 +296,33 @@ INT_PTR CALLBACK SecurityProc(HWND hwndDlg,
 		CenterWindow(hwndDlg);
 
 		nSize = sizeof(UserName);
-		GetUserName(UserName, &nSize);
-		nSize = sizeof(ComputerName);
-		GetComputerName(ComputerName, &nSize);
+		memset(&UserName, 0, nSize);
+		if((result = WNetGetUser(NULL, UserName, &nSize)) != NO_ERROR)
+		{
+			if(result != ERROR_NOT_LOGGED_ON)
+				StrCpy(UserName, TEXT("Unknown"));
+		}
 
+		nSize = sizeof(ComputerName);
+		memset(&ComputerName, 0, nSize);
+		if(!GetComputerName(ComputerName, &nSize))
+			StrCpy(ComputerName, TEXT("Unknown"));
+
+		memset(&Text, 0, sizeof(Text));
+		GetDlgItemText(hwndDlg, IDC_LOGONDATE, Text, sizeof(Text));
+		wsprintf(NewText, Text, TEXT("Unknown"));
+		SetDlgItemText(hwndDlg, IDC_LOGONDATE, NewText);
+
+		if(result == ERROR_NOT_LOGGED_ON)
+		{
+			SetDlgItemText(hwndDlg, IDC_LOGONNAME, NotLoggedOn);
+			break;
+		}
+
+		memset(&Text, 0, sizeof(Text));
 		GetDlgItemText(hwndDlg, IDC_LOGONNAME, Text, sizeof(Text));
 		wsprintf(NewText, Text, ComputerName, UserName);
 		SetDlgItemText(hwndDlg, IDC_LOGONNAME, NewText);
-
-		GetDlgItemText(hwndDlg, IDC_LOGONDATE, Text, sizeof(Text));
-		wsprintf(NewText, Text, "Unknown");
-		SetDlgItemText(hwndDlg, IDC_LOGONDATE, NewText);
 
 		break;
 
@@ -311,6 +366,29 @@ INT_PTR CALLBACK SecurityProc(HWND hwndDlg,
 
 		case IDC_CHANGEPASSWORD:
 
+			nSize = sizeof(UserName);
+			if((result = WNetGetUser(NULL, UserName, &nSize)) != NO_ERROR)
+			{
+				if(result == ERROR_NOT_LOGGED_ON)
+					MessageBox(hwndDlg, MustLoggedP, SecurityTitle, MB_ICONERROR);
+				else
+				{
+					LPVOID Buffer = NULL;
+
+					FormatMessage(
+						FORMAT_MESSAGE_ALLOCATE_BUFFER | 
+						FORMAT_MESSAGE_FROM_SYSTEM,
+						NULL,
+						result,
+						MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+						(LPTSTR) &Buffer,
+						0, NULL );
+
+					wsprintf(Text, CannotChangePassword, result, Buffer);
+					MessageBox(hwndDlg, Text, SecurityTitle, MB_ICONERROR);
+				}
+				break;
+			}
 			hLib = LoadLibrary(TEXT("MPR.DLL"));
 
 			if(!hLib)
@@ -318,15 +396,27 @@ INT_PTR CALLBACK SecurityProc(HWND hwndDlg,
 
 			/* Have to switch desktop because MPREXE resides in the default desktop */
 			SwitchDesktop(hDefault);
-			PwdChangePasswordA = (PWDCHANGEPASSWORDA)GetProcAddress(hLib, TEXT("PwdChangePasswordA"));
+#ifdef UNICODE
+			PwdChangePasswordW = (PWDCHANGEPASSWORDW)GetProcAddress(hLib, "PwdChangePasswordW");
+#else
+			PwdChangePasswordA = (PWDCHANGEPASSWORDA)GetProcAddress(hLib, "PwdChangePasswordA");
+#endif
 
+#ifdef UNICODE
+			if(!PwdChangePasswordW)
+#else
 			if(!PwdChangePasswordA)
+#endif
 			{
 				FreeLibrary(hLib);
 				return 0;
 			}
 
+#ifdef UNICODE
+			PwdChangePasswordW(0, 0, hwndDlg, 0);
+#else
 			PwdChangePasswordA(0, 0, hwndDlg, 0);
+#endif
 			FreeLibrary(hLib);
 			SwitchDesktop(hSecurity);
 
@@ -339,7 +429,7 @@ INT_PTR CALLBACK SecurityProc(HWND hwndDlg,
 			memset(&si, 0, sizeof(STARTUPINFO));
 			memset(&pi, 0, sizeof(PROCESS_INFORMATION));
 
-			// ;-)
+			//            *wink ;-)
 			file = fopen("Taskmgr.exe", "r");
 
 			if(file)
@@ -391,9 +481,9 @@ INT_PTR CALLBACK SecurityProc(HWND hwndDlg,
 	return 0;
 }
 
-DWORD __fastcall CreateSecurityWindow(LPSTR lpCmdLine)
+DWORD __fastcall CreateSecurityWindow(LPTSTR lpCmdLine)
 {
-	if(strcmpi(lpCmdLine, "-lock"))
+	if(StrCmpI(lpCmdLine, TEXT("-lock")))
 		return DialogBox(GetModuleHandle(0), MAKEINTRESOURCE(IDD_DLGSECURITY), NULL, SecurityProc);
 	else
 		return DialogBox(GetModuleHandle(0), MAKEINTRESOURCE(IDD_DLGLOCK), NULL, LockProc);
@@ -407,6 +497,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 {
 	OSVERSIONINFO ovi;
 	DWORD result;
+	LPTSTR CmdLine = NULL;
 
 	if(hPrevInstance != NULL)
 		goto _ret;
@@ -439,7 +530,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 
 	hDefault = GetThreadDesktop(GetCurrentThreadId());
 
-	hSecurity = CreateDesktop("Security", NULL, NULL, 0, GENERIC_ALL, NULL);
+	hSecurity = CreateDesktop(TEXT("Security"), NULL, NULL, 0, GENERIC_ALL, NULL);
 
 	if(hSecurity == NULL)
 		goto _ret;
@@ -447,13 +538,21 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	SetThreadDesktop(hSecurity);
 	SwitchDesktop(hSecurity);
 
-	lpCmdLine = GetCommandLine();
-	result = CreateSecurityWindow(lpCmdLine);
+	CmdLine = GetCommandLine();
+_showsecurity:
+	result = CreateSecurityWindow(CmdLine);
 
 	if(result == 2)
 	{
-		lpCmdLine = "-lock";
-		result = CreateSecurityWindow(lpCmdLine);
+		CmdLine = TEXT("-lock");
+		result = CreateSecurityWindow(CmdLine);
+
+		if(result == 1)
+		{
+			CmdLine = TEXT("");
+			result = 0;
+			goto _showsecurity;
+		}
 	}
 
 	SwitchDesktop(hDefault);
