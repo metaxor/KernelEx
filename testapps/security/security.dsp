@@ -134,6 +134,10 @@ SOURCE=.\Lock_32.ico
 
 SOURCE=.\Lock_64.ico
 # End Source File
+# Begin Source File
+
+SOURCE=.\Unlock.ico
+# End Source File
 # End Group
 # End Target
 # End Project
