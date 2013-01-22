@@ -55,6 +55,11 @@ BOOL IntValidateWindowStationHandle(HWINSTA hWindowStation, PWINSTATION_OBJECT *
 
 	if(!IsBadWritePtr(WindowStationObject, sizeof(DWORD)))
 		*WindowStationObject = Object;
+	else
+	{
+		kexDereferenceObject(Object);
+		return FALSE;
+	}
 
 	return TRUE;
 }
@@ -74,6 +79,7 @@ BOOL WINAPI CloseWindowStation_new(HWINSTA hWinSta)
 
 	if(ppi == NULL)
 	{
+		kexDereferenceObject(WindowStationObject);
 		SetLastError(ERROR_ACCESS_DENIED);
 		return FALSE;
 	}
@@ -81,16 +87,23 @@ BOOL WINAPI CloseWindowStation_new(HWINSTA hWinSta)
 	/* Fail if the process is using the window station */
 	if(ppi->rpwinsta == WindowStationObject)
 	{
+		kexDereferenceObject(WindowStationObject);
 		SetLastError(ERROR_ACCESS_DENIED);
 		return FALSE;
 	}
 
-    result = CloseHandle(hWinSta);
+	kexDereferenceObject(WindowStationObject);
+    result = kexDereferenceObject(WindowStationObject);
 
 	if(WindowStationObject->cReferences < 1)
 	{
+		TRACE("Removing object 0x%X from the system\n", WindowStationObject);
 		if(RemoveEntryList(&WindowStationObject->ListEntry))
+		{
+			kexFreeObject(WindowStationObject->lpName);
+			kexFreeObject(WindowStationObject->pName);
 			kexFreeObject(WindowStationObject);
+		}
 	}
 
 	return result;
@@ -153,6 +166,7 @@ HWINSTA WINAPI CreateWindowStationA_new(LPCSTR lpwinsta, DWORD dwFlags, ACCESS_M
 	InsertTailList(&WindowStationList, &WindowStationObject->ListEntry);
 
     WindowStationObject->Type = K32OBJ_WINSTATION;
+	WindowStationObject->cReferences = 0;
 
     WindowStationObject->SystemMenuTemplate = (HANDLE)0;
     WindowStationObject->pName = kexAllocObjectName(WindowStationObject, WindowStationPath);
@@ -210,6 +224,8 @@ HWINSTA WINAPI GetProcessWindowStation_new(void)
 	{
 		return NULL;
 	}
+
+	return NULL;
 }
 
 /* MAKE_EXPORT GetUserObjectInformationA_new=GetUserObjectInformationA */
@@ -315,6 +331,10 @@ Cont:
 	if(!IsBadReadPtr(lpnLengthNeeded, sizeof(DWORD)))
 		*lpnLengthNeeded = nSize;
 
+	if(WindowStation != NULL)
+		kexDereferenceObject(WindowStation);
+	if(Desktop != NULL)
+		kexDereferenceObject(Desktop);
 	return result;
 }
 
@@ -381,6 +401,7 @@ BOOL WINAPI SetProcessWindowStation_new(HWINSTA hWinSta)
     Process->Win32Process->rpwinsta = WindowStationObject;
     Process->Win32Process->hwinsta = hWinSta;
 
+	kexDereferenceObject(WindowStationObject);
 	return TRUE;
 }
 
