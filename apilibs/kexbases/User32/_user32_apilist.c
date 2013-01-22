@@ -76,16 +76,20 @@ BOOL init_user32()
 
 BOOL thread_user32_init(PTDB98 Thread)
 {
-	return InitDesktops();//InitThreadDesktop();
+	return InitDesktops();
 }
 
 BOOL process_user32_init(PPDB98 Process)
 {
-	return TRUE;//InitProcessWindowStation();
+	return TRUE;
 }
 
 VOID thread_user_uninit(PTDB98 Thread)
 {
+	TRACE_OUT("Dereferencing thread's desktop\n");
+	kexDereferenceObject(Thread->Win32Thread->rpdesk);
+	Thread->Win32Thread->rpdesk = NULL;
+	Thread->Win32Thread->hdesk = NULL;
 	return;
 }
 
@@ -95,6 +99,14 @@ VOID process_user_uninit(PPDB98 Process)
 	PK32OBJHEAD Object;
 	UINT index;
 
+	Process->Win32Process->rpdeskStartup = NULL;
+	Process->Win32Process->hdeskStartup = NULL;
+
+	kexDereferenceObject(Process->Win32Process->rpwinsta);
+	Process->Win32Process->rpwinsta = NULL;
+	Process->Win32Process->hwinsta = NULL;
+
+	TRACE_OUT("Trying to free some desktops\n");
 	for(index=1;index<=pHandleTable->cEntries;index++)
 	{
 		Object = (PK32OBJHEAD)pHandleTable->array[index].pObject;
@@ -159,7 +171,9 @@ static const apilib_named_api user32_named_apis[] =
 	DECL_API("CreateDesktopExA*/", CreateDesktopExA_new),
 	DECL_API("CreateDesktopExW*/", CreateDesktopExW_new),
 	DECL_API("CreateDesktopW", CreateDesktopW_new),
+	DECL_API("CreateDialogIndirectParamA", CreateDialogIndirectParamA_fix),
 	DECL_API("CreateDialogIndirectParamW", CreateDialogIndirectParamW_NEW),
+	DECL_API("CreateDialogParamA", CreateDialogParamA_fix),
 	DECL_API("CreateDialogParamW", CreateDialogParamW_NEW),
 	DECL_API("CreateMDIWindowA", CreateMDIWindowA_fix),
 	DECL_API("CreateMDIWindowW", CreateMDIWindowW_NEW),
@@ -184,6 +198,8 @@ static const apilib_named_api user32_named_apis[] =
 	DECL_API("EnumDesktopWindows", EnumDesktopWindows_new),
 	DECL_API("EnumDesktopsA", EnumDesktopsA_new),
 	DECL_API("EnumDesktopsW", EnumDesktopsW_new),
+	DECL_API("EnumDisplaySettingsA", EnumDisplaySettingsA_fix),
+	DECL_API("EnumDisplaySettingsExA", EnumDisplaySettingsExA_fix),
 	DECL_API("EnumThreadWindows", EnumThreadWindows_nothunk),
 	DECL_API("EnumWindowStationsA", EnumWindowStationsA_new),
 	DECL_API("EnumWindowStationsW", EnumWindowStationsW_new),
@@ -228,6 +244,7 @@ static const apilib_named_api user32_named_apis[] =
 	DECL_API("IsDialogMessageW", IsDialogMessageA),
 	DECL_API("IsHungAppWindow", IsHungAppWindow_new),
 	DECL_API("IsWindowUnicode", IsWindowUnicode_NEW),
+	DECL_API("IsWindowVisible", IsWindowVisible_fix),
 	DECL_API("LoadMenuA", LoadMenuA_fix),
 	DECL_API("LoadMenuIndirectW", LoadMenuIndirectA),
 	DECL_API("LoadMenuW", LoadMenuW_new),
@@ -268,7 +285,6 @@ static const apilib_named_api user32_named_apis[] =
 	DECL_API("SetForegroundWindow", SetForegroundWindow_fix),
 	DECL_API("SetLayeredWindowAttributes", SetLayeredWindowAttributes_stub),
 	DECL_API("SetParent", SetParent_fix),
-	DECL_API("SetParent", SetParent_nothunk),
 	DECL_API("SetProcessWindowStation", SetProcessWindowStation_new),
 	DECL_API("SetThreadDesktop", SetThreadDesktop_new),
 	DECL_API("SetUserObjectInformationA", SetUserObjectInformationA_new),
