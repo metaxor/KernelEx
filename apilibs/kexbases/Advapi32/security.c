@@ -4,6 +4,7 @@
  * Copyright 2003 CodeWeavers Inc. (Ulrich Czekalla)
  * Copyright 2007 Xeno86
  * Copyright 2009 Tihiy
+ * Copyright 2013 Ley0k
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -28,15 +29,7 @@
  * The code has been borrowed from Wine project.
  */
 
-#include <windows.h>
-#include <ntsecapi.h>
-#include <accctrl.h>
-#include "common.h"
-#include "_advapi32_apilist.h"
-
-#ifndef SID_MAX_SUB_AUTHORITIES
-#define	SID_MAX_SUB_AUTHORITIES		(15)	/* current max subauths */
-#endif
+#include "security.h"
 
 static void dumpLsaAttributes( PLSA_OBJECT_ATTRIBUTES oa )
 {
@@ -1864,4 +1857,77 @@ BOOL WINAPI CreateWellKnownSid_new( DWORD WellKnownSidType, PSID DomainSid, PSID
 	//BUGBUG what to do with cbSid? out sid size there?
     SID_IDENTIFIER_AUTHORITY localSidAuthority = {SECURITY_NT_AUTHORITY};
 	return InitializeSid_new(pSid, &localSidAuthority, 1);
+}
+
+/* MAKE_EXPORT LogonUser_new=LogonUser */
+BOOL WINAPI LogonUser_new(LPSTR lpszUsername,
+	LPSTR lpszDomain,
+	LPSTR lpszPassword,
+	DWORD dwLogonType,
+	DWORD dwLogonProvider,
+	PHANDLE phToken)
+{
+	CHAR lpszCurrentUser[MAX_PATH];
+	BOOL fMatch = FALSE;
+	ULONG nLength = sizeof(lpszCurrentUser);
+	DWORD result = 0;
+
+	/* dwLogonProvider and dwLogonType must be supported */
+	if(dwLogonProvider == LOGON32_PROVIDER_WINNT50 || dwLogonType == LOGON32_LOGON_NEW_CREDENTIALS
+		|| dwLogonType == LOGON32_LOGON_NETWORK_CLEARTEXT)
+	{
+		SetLastError(ERROR_NOT_SUPPORTED);
+		return FALSE;
+	}
+
+	if(dwLogonProvider > LOGON32_PROVIDER_WINNT50)
+	{
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return FALSE;
+	}
+
+	if(dwLogonType > LOGON32_LOGON_UNLOCK)
+	{
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return FALSE;
+	}
+
+	/* if the domain is not null, it must be a "." in Win9x (compatibility reason) */
+	if(!IsBadStringPtr(lpszDomain, -1) && strcmpi(lpszDomain, "."))
+	{
+		SetLastError(ERROR_NOT_SUPPORTED);
+		return FALSE;
+	}
+
+	if(IsBadWritePtr(phToken, sizeof(DWORD)))
+	{
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return FALSE;
+	}
+
+	/* Get the current user */
+	result = WNetGetUser(NULL, lpszCurrentUser, &nLength);
+
+	if(result != NO_ERROR)
+	{
+		SetLastError(result);
+		return FALSE;
+	}
+
+	/* lpszUsername must be current user in Windows 98 */
+	if(strcmpi(lpszCurrentUser, lpszUsername))
+	{
+		SetLastError(ERROR_CANNOT_OPEN_PROFILE);
+		return FALSE;
+	}
+
+	/* Now check if the password match*/
+	result = WNetVerifyPassword(lpszPassword, &fMatch);
+
+	if(!fMatch)
+		return FALSE;
+
+	*(int*)phToken = 0xCAFE;
+
+	return TRUE;
 }
