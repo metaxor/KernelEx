@@ -273,7 +273,7 @@ INT_PTR CALLBACK SecurityProc(HWND hwndDlg,
 
 	case WM_CLOSE:
 
-		EndDialog(hwndDlg, 0);
+		EndDialog(hwndDlg, wParam);
 		return 0;
 		break;
 
@@ -290,8 +290,7 @@ INT_PTR CALLBACK SecurityProc(HWND hwndDlg,
 
 		case IDC_LOCKWORKSTATION:
 
-			LockWorkStation();
-			SendMessage(hwndDlg, WM_CLOSE, 0, 0);
+			SendMessage(hwndDlg, WM_CLOSE, 2, 0);
 			break;
 
 		case IDC_LOGOFF:
@@ -448,6 +447,12 @@ int WINAPI WinMain(HINSTANCE hInstance,
 
 	lpCmdLine = GetCommandLine();
 	result = CreateSecurityWindow(lpCmdLine);
+
+	if(result == 2)
+	{
+		lpCmdLine = "-lock";
+		result = CreateSecurityWindow(lpCmdLine);
+	}
 
 	SwitchDesktop(hDefault);
 	SetThreadDesktop(hDefault);
