@@ -77,6 +77,27 @@ BEGIN
     ICON            32516,102,9,10,20,20
 END
 
+IDD_DLGLOCK DIALOG DISCARDABLE  6, 18, 247, 127
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "Unlock computer"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT           "This computer is in use and has been locked.",1852,52,4,
+                    181,18
+    LTEXT           "Only %s can unlock this computer.",1853,52,25,182,29
+    LTEXT           "&User name:",IDC_TUSER,52,59,51,8
+    EDITTEXT        IDC_USER,109,58,117,12,ES_AUTOHSCROLL
+    LTEXT           "&Password:",IDC_TPASSWORD,52,74,51,8
+    EDITTEXT        IDC_PASSWORD,109,73,117,12,ES_PASSWORD | ES_AUTOHSCROLL
+    LTEXT           "&Domain :",IDC_TDOMAIN,52,90,51,8
+    COMBOBOX        IDC_DOMAIN,109,89,117,68,CBS_DROPDOWNLIST | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,50,111,47,14,WS_GROUP
+    PUSHBUTTON      "Cancel",IDCANCEL,101,111,47,14
+    ICON            "",1851,10,9,20,20
+    GROUPBOX        "KernelEx",IDC_STATIC,196,115,51,12
+END
+
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////

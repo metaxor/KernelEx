@@ -11,6 +11,7 @@
 #define IDI_ICON32                      109
 #define IDD_LOGOFF                      110
 #define IDD_SHUTDOWN                    111
+#define IDD_DLGLOCK                     112
 #define IDC_LOCKWORKSTATION             1551
 #define IDC_LOGOFF                      1552
 #define IDC_SHUTDOWN                    1553
@@ -27,12 +28,18 @@
 #define IDC_SHUTDOWNTEXT                1564
 #define IDC_POK                         1565
 #define IDC_PCANCEL                     1566
+#define IDC_USER                        1854
+#define IDC_PASSWORD                    1855
+#define IDC_DOMAIN                      1856
+#define IDC_TUSER                       1858
+#define IDC_TPASSWORD                   1859
+#define IDC_TDOMAIN                     1860
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        112
+#define _APS_NEXT_RESOURCE_VALUE        113
 #define _APS_NEXT_COMMAND_VALUE         40001
 #define _APS_NEXT_CONTROL_VALUE         1003
 #define _APS_NEXT_SYMED_VALUE           101
