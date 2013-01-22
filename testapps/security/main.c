@@ -408,8 +408,8 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	OSVERSIONINFO ovi;
 	DWORD result;
 
-	if(hPrevInstance != NULL && strcmpi(lpCmdLine, "-lock"))
-		return 0;
+	if(hPrevInstance != NULL)
+		goto _ret;
 
 	memset(&ovi, 0, sizeof(OSVERSIONINFO));
 
@@ -421,14 +421,16 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	if(ovi.dwPlatformId != VER_PLATFORM_WIN32_WINDOWS)
 	{
 		MessageBox(NULL, InvalidVersion, NULL, MB_ICONERROR);
-		return 0;
+		goto _ret;
 	}
 
 	if(ovi.dwMajorVersion == 4 && ovi.dwMinorVersion == 0)
 	{
 		MessageBox(NULL, InvalidVersion, NULL, MB_ICONERROR);
-		return 0;
+		goto _ret;
 	}
+
+	SystemParametersInfo(SPI_SETSCREENSAVERRUNNING, TRUE, NULL, 0);
 
 	if(ovi.dwMinorVersion == 90)
 		fWinME = TRUE;
@@ -440,7 +442,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	hSecurity = CreateDesktop("Security", NULL, NULL, 0, GENERIC_ALL, NULL);
 
 	if(hSecurity == NULL)
-		return 0;
+		goto _ret;
 
 	SetThreadDesktop(hSecurity);
 	SwitchDesktop(hSecurity);
@@ -462,5 +464,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	if(LOWORD(result) == WM_ENDSESSION)
 		ExitWindowsEx(HIWORD(result), 0);
 
+_ret:
+	SystemParametersInfo(SPI_SETSCREENSAVERRUNNING, FALSE, NULL, 0);
 	return 0;
 }
