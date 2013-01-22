@@ -44,8 +44,15 @@ BOOL WINAPI ShellExecuteExA_fix(LPSHELLEXECUTEINFOA lpExecInfo)
 	if(strcmpi(lpExecInfo->lpVerb,  "open"))
 		return ShellExecuteExA(lpExecInfo);
 
-	if(strpbrk(lpExecInfo->lpFile, ".exe") == NULL)
+	__try
+	{
+		if(strpbrk(lpExecInfo->lpFile, ".exe") == NULL)
+			return ShellExecuteExA(lpExecInfo);
+	}
+	__except(EXCEPTION_EXECUTE_HANDLER)
+	{
 		return ShellExecuteExA(lpExecInfo);
+	}
 
 	memset(&si, 0, sizeof(STARTUPINFOA));
 	memset(&pi, 0, sizeof(PROCESS_INFORMATION));
