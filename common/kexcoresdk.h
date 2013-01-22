@@ -136,6 +136,12 @@ _KEXCOREIMP HANDLE kexAllocHandle(PVOID TargetProcess, PVOID Object, DWORD dwDes
  */
 _KEXCOREIMP PTDB98 kexCreateRemoteThread(PPDB98 Process, SIZE_T dwStackSize, LPTHREAD_START_ROUTINE lpStartAddress, LPVOID lpParameter, DWORD dwCreationFlags);
 
+/** kexDereferenceObject - Dereference an object that as been referenced by any handle opening/allocation functions
+ * @param Object - Pointer to a valid object to dereference
+ * @return TRUE if successful, FALSE otherwise
+ */
+_KEXCOREIMP BOOL kexDereferenceObject(PVOID Object);
+
 /** kexFindObjectHandle - find an handle associated to the object
  * @param Process - process from which resides the object
  * @param Object - pointer to a valid K32Object
