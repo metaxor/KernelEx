@@ -74,7 +74,10 @@ BOOL ppi_init(PPDB98 Process)
 	Process->Win32Process = (PPROCESSINFO)kexAllocObject(sizeof(PROCESSINFO));
 
 	if(Process->Win32Process == NULL)
+	{
+		TRACE("Couldn't allocate Win32Process for Process 0x%X !\n", Process);
 		return FALSE;
+	}
 
 	ppi = Process->Win32Process;
 
@@ -92,7 +95,10 @@ BOOL pti_init(PTDB98 Thread)
 	Thread->Win32Thread = (PTHREADINFO)kexAllocObject(sizeof(THREADINFO));
 
 	if(Thread->Win32Thread == NULL)
+	{
+		TRACE("Couldn't allocate Win32Thread for Thread 0x%X !\n", Thread);
 		return FALSE;
+	}
 
 	return TRUE;
 }
