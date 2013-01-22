@@ -1009,6 +1009,8 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
 	HANDLE hEvent = NULL;
 	BOOL fFirstSwitch = (gpdeskInputDesktop == NULL);
 	BOOL fParent = FALSE;
+	PDEVMODE pdev = NULL;
+	PDEVMODE polddev = NULL;
 
     GrabWin16Lock();
 
@@ -1065,6 +1067,7 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
 		InputWindowStation->ActiveDesktop = NULL;
     }
 
+	TRACE("Switching to desktop object 0x%X\n", DesktopObject);
 	fParent = (DesktopObject->rpwinstaParent == InputWindowStation);
 
 	if(fParent == FALSE)
@@ -1073,14 +1076,26 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
 		DisableOEMLayer();
 	}
 
+	pdev = DesktopObject->pdev;
+	polddev = gpdeskInputDesktop == NULL ? DesktopObject->pdev : gpdeskInputDesktop->pdev;
+
 	gpdeskInputDesktop = DesktopObject;
 
 	InputWindowStation = gpdeskInputDesktop->rpwinstaParent;
 
 	InputWindowStation->ActiveDesktop = gpdeskInputDesktop;
 
-	ChangeDisplaySettings(DesktopObject->pdev, CDS_UPDATEREGISTRY);
+	if(pdev->dmBitsPerPel != polddev->dmBitsPerPel || pdev->dmPelsWidth != polddev->dmPelsWidth
+		|| pdev->dmPelsHeight != polddev->dmPelsHeight || pdev->dmDisplayFlags != polddev->dmDisplayFlags
+		|| pdev->dmDisplayFrequency != polddev->dmDisplayFrequency || pdev->dmPosition.x != polddev->dmPosition.x
+		|| pdev->dmPosition.y != polddev->dmPosition.y)
+	{
+		TRACE("DesktopObject 0x%X has different display setting than the input desktop, changing display settings...\n", DesktopObject);
+		ChangeDisplaySettings(DesktopObject->pdev, CDS_UPDATEREGISTRY);
+	}
+	TRACE_OUT("Repainting screen...\n");
 	RepaintScreen();
+	TRACE_OUT("success\n");
 
 	if(fParent == FALSE)
 	{
