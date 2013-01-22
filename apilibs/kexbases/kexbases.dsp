@@ -413,15 +413,7 @@ SOURCE=.\Advapi32\OpenSCManager_stub.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Advapi32\RegDisablePredefinedCache.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\Advapi32\RegOpenCurrentUser.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\Advapi32\RegSetValueExA_fix.c
+SOURCE=.\Advapi32\reg.c
 # End Source File
 # Begin Source File
 
@@ -430,6 +422,10 @@ SOURCE=.\Advapi32\RtlGenRandom.c
 # Begin Source File
 
 SOURCE=.\Advapi32\security.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\Advapi32\security.h
 # End Source File
 # Begin Source File
 
