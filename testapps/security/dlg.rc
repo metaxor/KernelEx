@@ -82,9 +82,10 @@ STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 CAPTION "Unlock computer"
 FONT 8, "MS Shell Dlg"
 BEGIN
-    LTEXT           "This computer is in use and has been locked.",1852,52,4,
-                    181,18
-    LTEXT           "Only %s can unlock this computer.",1853,52,25,182,29
+    LTEXT           "This computer is in use and has been locked.",IDC_TEXT1,
+                    52,4,181,18
+    LTEXT           "Only %s\\%s can unlock this computer.",IDC_TEXT2,52,25,
+                    182,29
     LTEXT           "&User name:",IDC_TUSER,52,59,51,8
     EDITTEXT        IDC_USER,109,58,117,12,ES_AUTOHSCROLL
     LTEXT           "&Password:",IDC_TPASSWORD,52,74,51,8
@@ -92,10 +93,9 @@ BEGIN
     LTEXT           "&Domain :",IDC_TDOMAIN,52,90,51,8
     COMBOBOX        IDC_DOMAIN,109,89,117,68,CBS_DROPDOWNLIST | CBS_SORT | 
                     WS_VSCROLL | WS_TABSTOP
-    DEFPUSHBUTTON   "OK",IDOK,50,111,47,14,WS_GROUP
-    PUSHBUTTON      "Cancel",IDCANCEL,101,111,47,14
-    ICON            "",1851,10,9,20,20
-    GROUPBOX        "KernelEx",IDC_STATIC,196,115,51,12
+    DEFPUSHBUTTON   "OK",IDOK,76,111,47,14,WS_GROUP
+    PUSHBUTTON      "Cancel",IDCANCEL,127,111,47,14
+    ICON            IDI_UNLOCK,IDI_UNLOCKICON,10,9,20,20,SS_REALSIZEIMAGE
 END
 
 
@@ -178,11 +178,12 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_ICON256             ICON    DISCARDABLE     "Lock_256.ico"
-IDI_ICON128             ICON    DISCARDABLE     "Lock_128.ico"
-IDI_ICON64              ICON    DISCARDABLE     "Lock_64.ico"
-IDI_ICON16              ICON    DISCARDABLE     "Lock_16.ico"
-IDI_ICON32              ICON    DISCARDABLE     "Lock_32.ico"
+IDI_LOCK256             ICON    DISCARDABLE     "Lock_256.ico"
+IDI_LOCK128             ICON    DISCARDABLE     "Lock_128.ico"
+IDI_LOCK64              ICON    DISCARDABLE     "Lock_64.ico"
+IDI_LOCK16              ICON    DISCARDABLE     "Lock_16.ico"
+IDI_LOCK32              ICON    DISCARDABLE     "Lock_32.ico"
+IDI_UNLOCK              ICON    DISCARDABLE     "Unlock.ico"
 #endif    // French (France) resources
 /////////////////////////////////////////////////////////////////////////////
 
