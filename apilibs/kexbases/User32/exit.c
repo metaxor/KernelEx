@@ -166,7 +166,7 @@ BOOL CALLBACK EnumProcessesProc(DWORD dwProcessId, PSHUTDOWNDATA ShutdownData)
 DWORD WINAPI ShutdownThread(PVOID lParam)
 {
 	MSG msg;
-	DWORD pProcess[1024];
+	DWORD pProcess[2048];
 	DWORD Processes = 0;
 	BOOL fAborted = FALSE;
 	ULONG i = 0;
