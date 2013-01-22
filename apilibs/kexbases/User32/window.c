@@ -27,6 +27,189 @@
 #include "_user32_apilist.h"
 #include "thuni_layer.h"
 
+/* returns TRUE if hwnd is a parent of hwndNewParent */
+static BOOL WINAPI TestChild(HWND hwnd, HWND hwndNewParent)
+{
+	BOOL ret = FALSE;
+	PWND pwnd, pwndT;
+	GrabWin16Lock();
+	pwnd = HWNDtoPWND(hwnd);
+	pwndT = HWNDtoPWND(hwndNewParent);
+	if ( pwnd && pwndT )
+	{
+		for ( ; pwndT != NULL; pwndT = (PWND)REBASEUSER(pwndT->spwndParent))
+		{
+			if (pwnd == pwndT)
+			{
+				ret = TRUE;
+				break;
+			}
+		}
+	}
+	ReleaseWin16Lock();	
+	return ret;
+}
+
+BOOL __fastcall GetWndList(PWND *pWndList, DWORD dwSize, LPDWORD dwReturnedSize)
+{
+	PWND pWnd = NULL;
+	PWND pWndParent = NULL;
+	DWORD dwRetSize = 0;
+
+	GrabWin16Lock();
+
+	pWndParent = HWNDtoPWND(GetDesktopWindow());
+
+	if(pWndParent == NULL)
+	{
+		ReleaseWin16Lock();
+		return FALSE;
+	}
+
+	pWnd = (PWND)REBASEUSER(pWndParent->spwndChild);
+
+	if(pWnd == NULL)
+	{
+		SetLastError(ERROR_INVALID_PARAMETER);
+		ReleaseWin16Lock();
+		return FALSE;
+	}
+
+	while(TRUE)
+	{
+		if(pWndList != NULL && dwRetSize*4 <= dwSize)
+			pWndList[dwRetSize] = pWnd;
+
+		dwRetSize++;
+
+		if(REBASEUSER(pWnd->spwndNext) != NULL)
+		{
+			pWnd = (PWND)REBASEUSER(pWnd->spwndNext);
+			continue;
+		}
+
+		if(REBASEUSER(pWnd->spwndParent) != NULL)
+			pWnd = (PWND)REBASEUSER(pWnd->spwndParent);
+		else
+			pWnd = pWndParent;
+
+		if (pWnd == pWndParent)
+			goto finished;
+	}
+
+finished:
+	if(dwReturnedSize != NULL)
+		*dwReturnedSize = dwRetSize * sizeof(DWORD);
+
+	ReleaseWin16Lock();
+	return TRUE;
+}
+
+BOOL __fastcall EnumWindowsEx(DWORD dwThreadId, WNDENUMPROC lpEnumFunc, LPARAM lParam, BOOL fEnumThread, HDESK hDesktop, BOOL fEnumDesktop)
+{
+	BOOL fFirst = TRUE;
+	PDESKTOP Desktop = NULL;
+	BOOL fBadWnd = FALSE;
+	PWND *pWndList = NULL;
+	PWND pWnd = NULL;
+	DWORD cbWnd = 0;
+	BOOL result = FALSE;
+	ULONG index = 0;
+
+	if(IsBadCodePtr((FARPROC)lpEnumFunc))
+	{
+		ERR_OUT("Invalid lpEnumFunc !\n");
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return FALSE;
+	}
+
+	if(fEnumThread && !kexGetThread(dwThreadId))
+	{
+		ERR_OUT("fEnumThread specified, but dwThreadId is invalid !\n");
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return FALSE;
+	}
+
+	if(fEnumDesktop && !IntValidateDesktopHandle(hDesktop, &Desktop))
+	{
+		ERR_OUT("fEnumDesktop specified, but hDesktop is invalid!\n");
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return FALSE;
+	}
+
+	if(Desktop != NULL)
+		kexDereferenceObject(Desktop);
+
+	/* Get the wnd list
+	   this is important because if we directly get next window and so on
+	   we could refer to a destroyed window which would make the current app crash */
+
+
+	result = GetWndList(NULL, 0, &cbWnd);
+
+	if(!result)
+		return FALSE;
+
+	pWndList = (PWND*)malloc(cbWnd);
+
+	result = GetWndList(pWndList, cbWnd, &cbWnd);
+
+	if(!result)
+		return FALSE;
+
+	for(index=0;index<=cbWnd/4;index++)
+	{
+		pWnd = pWndList[index];
+
+		if(fEnumThread)
+		{
+			PMSGQUEUE pQueue = GetWindowQueue(pWnd);
+
+			if(pQueue == NULL)
+				continue;
+
+			if(pQueue->threadId != dwThreadId)
+				continue;
+		}
+
+		if(fEnumDesktop)
+		{
+			PMSGQUEUE pQueue = GetWindowQueue(pWnd);
+			PTDB98 Thread = NULL;
+			PTHREADINFO pti = NULL;
+
+			if(pQueue == NULL)
+				continue;
+
+			Thread = (PTDB98)kexGetThread(pQueue->threadId);
+
+			if(Thread == NULL)
+				continue;
+
+			pti = Thread->Win32Thread;
+
+			if(pti == NULL)
+				continue;
+
+			if(pti->rpdesk != Desktop)
+				continue;
+		}
+
+		//DBGPRINTF(("pWnd = 0x%X\n"), pWnd);
+		if(IsBadReadPtr(pWnd, sizeof(DWORD)))
+			continue;
+
+		if(!(*lpEnumFunc)((HWND)pWnd->hWnd16, lParam))
+		{
+			free(pWndList);
+			return FALSE;
+		}
+	}
+
+	free(pWndList);
+	return TRUE;
+}
+
 DWORD ConfirmShowCommand(HWND hWnd, int nCmdShow)
 {
 	PTHREADINFO pti = get_tdb()->Win32Thread;
@@ -73,9 +256,9 @@ BOOL WINAPI AnyPopup_nothunk(VOID)
 	GrabWin16Lock();
 
 	/* Enumerates child window in the desktop window */
-	for(; pwndChild != NULL; pwndChild = (PWND)REBASEUSER(pwnd->spwndNext))
+	for(; pwndChild != NULL; pwndChild = (PWND)REBASEUSER(pwndChild->spwndChild))
 	{
-		for(; pwnd != NULL; pwnd = (PWND)REBASEUSER(pwnd->spwndNext))
+		for(pwnd = pwndChild; pwnd != NULL; pwnd = (PWND)REBASEUSER(pwnd->spwndNext))
 		{
 			/* Skip if not visible */
 			if(!(pwnd->style & WS_VISIBLE))
@@ -94,6 +277,84 @@ _ret:
 
 	ReleaseWin16Lock();
 	return fFound;
+}
+
+/* MAKE_EXPORT CreateDialogIndirectParamA_fix=CreateDialogIndirectParamA */
+HWND WINAPI CreateDialogIndirectParamA_fix(HINSTANCE hInstance,
+    LPCDLGTEMPLATE lpTemplate,
+    HWND hWndParent,
+    DLGPROC lpDialogFunc,
+    LPARAM lParamInit
+)
+{
+	PTHREADINFO pti = get_tdb()->Win32Thread;
+	HWND hWnd = NULL;
+	PWND pWnd = NULL;
+
+	hWnd = CreateDialogIndirectParamA(hInstance,
+								lpTemplate,
+								hWndParent,
+								lpDialogFunc,
+								lParamInit);
+
+	GrabWin16Lock();
+
+	if(hWnd == NULL)
+		goto _ret;
+
+	pWnd = HWNDtoPWND(hWnd);
+
+	if(pWnd == NULL)
+		goto _ret;
+
+	if(pti->rpdesk != gpdeskInputDesktop)
+	{
+		pWnd->style |= WS_INTERNAL_WASVISIBLE;
+		ShowWindowAsync(hWnd, SW_HIDE);
+	}
+
+_ret:
+	ReleaseWin16Lock();
+	return hWnd;
+}
+
+/* MAKE_EXPORT CreateDialogParamA_fix=CreateDialogParamA */
+HWND WINAPI CreateDialogParamA_fix(HINSTANCE hInstance,
+	LPCTSTR lpTemplateName,
+	HWND hWndParent,
+	DLGPROC lpDialogFunc,
+	LPARAM dwInitParam
+)
+{
+	PTHREADINFO pti = get_tdb()->Win32Thread;
+	HWND hWnd = NULL;
+	PWND pWnd = NULL;
+
+	hWnd = CreateDialogParamA(hInstance,
+							lpTemplateName,
+							hWndParent,
+							lpDialogFunc,
+							dwInitParam);
+
+	GrabWin16Lock();
+
+	if(hWnd == NULL)
+		goto _ret;
+
+	pWnd = HWNDtoPWND(hWnd);
+
+	if(pWnd == NULL)
+		goto _ret;
+
+	if(pti->rpdesk != gpdeskInputDesktop)
+	{
+		pWnd->style |= WS_INTERNAL_WASVISIBLE;
+		ShowWindowAsync(hWnd, SW_HIDE);
+	}
+
+_ret:
+	ReleaseWin16Lock();
+	return hWnd;
 }
 
 /* MAKE_EXPORT CreateMDIWindowA_fix=CreateMDIWindowA */
@@ -130,14 +391,37 @@ HWND WINAPI CreateMDIWindowA_fix(LPCSTR lpClassName, LPCSTR lpWindowName, DWORD 
 
 	pwnd = HWNDtoPWND(hwnd);
 
-	if(fWasVisible)
-		pwnd->style |= WS_INTERNAL_WASVISIBLE;
+	if(pti != NULL && pti->rpdesk != gpdeskInputDesktop)
+	{
+		if(!(pwnd->style & WS_CHILD))
+		{
+			pwnd->style |= WS_INTERNAL_WASVISIBLE;
+			ShowWindowAsync(hwnd, SW_HIDE);
+		}
+		else
+		{
+			if(dwStyle & WS_VISIBLE)
+				ShowWindowAsync(hwnd, SW_SHOW);
+		}
+	}
 
 	return hwnd;
 }
 
-/* MAKE_EXPORT CreateWindowExA_fix=CreateWindowEx */
-HWND WINAPI CreateWindowExA_fix(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam)
+/* MAKE_EXPORT CreateWindowExA_fix=CreateWindowExA */
+HWND WINAPI CreateWindowExA_fix(DWORD dwExStyle,
+	LPCSTR lpClassName,
+	LPCSTR lpWindowName,
+	DWORD dwStyle,
+	int x,
+	int y,
+	int nWidth,
+	int nHeight,
+	HWND hWndParent,
+	HMENU hMenu,
+	HINSTANCE hInstance,
+	LPVOID lpParam
+)
 {
 	DWORD newStyle = dwStyle;
 	BOOL fWasVisible = FALSE;
@@ -145,18 +429,25 @@ HWND WINAPI CreateWindowExA_fix(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWi
 	HWND hwnd = NULL;
 	PWND pwnd = NULL;
 
-	/* If the style contains the visible bit and there isn't any predefined class/scrollbars, remove the bit */
-	if((newStyle & WS_VISIBLE) && (!(newStyle & WS_HSCROLL) || !(newStyle & WS_VSCROLL))
-		&& strcmpi("button", lpClassName) && strcmpi("combobox", lpClassName) && strcmpi("edit", lpClassName)
-		&& strcmpi("listbox", lpClassName) && strcmpi("mdiclient", lpClassName) && strcmpi("richedit", lpClassName)
-		&& strcmpi("richedit_class", lpClassName) && strcmpi("scrollbar", lpClassName) && strcmpi("static", lpClassName))
+	/* If the style contains the visible bit and there isn't any predefined class, remove the style */
+	/*__try
 	{
-		if(pti->rpdesk != gpdeskInputDesktop)
+		if((newStyle & WS_VISIBLE)
+			&& strcmpi("button", lpClassName) && strcmpi("combobox", lpClassName) && strcmpi("edit", lpClassName)
+			&& strcmpi("listbox", lpClassName) && strcmpi("mdiclient", lpClassName) && strcmpi("richedit", lpClassName)
+			&& strcmpi("richedit_class", lpClassName) && strcmpi("scrollbar", lpClassName) && strcmpi("static", lpClassName))
 		{
-			//newStyle &= ~WS_VISIBLE;
-			fWasVisible = TRUE;
+			if(pti->rpdesk != gpdeskInputDesktop)
+			{
+				newStyle &= ~WS_VISIBLE;
+				fWasVisible = TRUE;
+			}
 		}
 	}
+	__except(EXCEPTION_EXECUTE_HANDLER)
+	{
+		fWasVisible = FALSE;
+	}*/
 
 	hwnd = CreateWindowExA(dwExStyle,
 						lpClassName,
@@ -176,10 +467,19 @@ HWND WINAPI CreateWindowExA_fix(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWi
 
 	pwnd = HWNDtoPWND(hwnd);
 
-	if(fWasVisible)
+	TRACE("Window hwnd 0x%X object 0x%X created\n", hwnd, pwnd);
+	if(pti != NULL && pti->rpdesk != gpdeskInputDesktop)
 	{
-		pwnd->style |= WS_INTERNAL_WASVISIBLE;
-		ShowWindow(hwnd, SW_HIDE);
+		if(!(pwnd->style & WS_CHILD))
+		{
+			pwnd->style |= WS_INTERNAL_WASVISIBLE;
+			ShowWindowAsync(hwnd, SW_HIDE);
+		}
+		else
+		{
+			if(dwStyle & WS_VISIBLE)
+				ShowWindowAsync(hwnd, SW_SHOW);
+		}
 	}
 
 	return hwnd;
@@ -198,10 +498,34 @@ void __stdcall DisableProcessWindowsGhosting_new(void)
  * a multiple of 64K 
  */
 
-/* MAKE_EXPORT EnableWindow_new=EnableWindow */
-BOOL WINAPI EnableWindow_new(HWND hWnd, BOOL bEnable)
+/* MAKE_EXPORT EnableWindow_nothunk=EnableWindow */
+BOOL WINAPI EnableWindow_nothunk(HWND hWnd, BOOL bEnable)
 {
-	return EnableWindow(hWnd, bEnable ? TRUE : FALSE);
+	PWND pWnd = HWNDtoPWND(hWnd);
+	BOOL fDisabled = FALSE;
+
+	if(pWnd == NULL)
+	{
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return FALSE;
+	}
+
+	fDisabled = (pWnd->style & WS_DISABLED);
+
+	if(fDisabled && !bEnable)
+		return TRUE;
+
+	if(!fDisabled && bEnable)
+		return FALSE;
+
+	if(bEnable)
+		pWnd->style &= ~WS_DISABLED;
+	else
+		pWnd->style |= WS_DISABLED;
+
+	RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);
+
+	return fDisabled;
 }
 
 /* MAKE_EXPORT EnumChildWindows_nothunk=EnumChildWindows */
@@ -210,8 +534,13 @@ BOOL WINAPI EnumChildWindows_nothunk(HWND hWndParent,
     LPARAM lParam
 )
 {
+	return EnumChildWindows(hWndParent,lpEnumFunc,lParam);
+
+	/* This code below make some apps enter an infinite loop... */
+#if 0
 	PWND pwndParent = NULL;
 	PWND pwndChild = NULL;
+	PWND pwndNext = NULL;
 
 	if(hWndParent == NULL)
 		return EnumWindows(lpEnumFunc, lParam);
@@ -226,19 +555,35 @@ BOOL WINAPI EnumChildWindows_nothunk(HWND hWndParent,
 
 	if(pwndParent == NULL)
 	{
+		ERR_OUT("Invalid parent !\n");
 		SetLastError(ERROR_INVALID_PARAMETER);
 		return FALSE;
 	}
 
-	for(pwndChild = pwndParent->spwndChild; pwndChild != NULL; pwndChild = pwndParent->spwndChild)
-	{
-		pwndChild = (PWND)REBASEUSER(pwndChild);
+	pwndChild = (PWND)REBASEUSER(pwndParent->spwndChild);
 
-		if(!(*lpEnumFunc)((HWND)pwndChild->hWnd16, lParam))
-			return FALSE;
+	if(pwndChild == NULL)
+	{
+		ERR("Parent 0x%X has no child windows !\n", pwndParent);
+		return FALSE;
 	}
 
+	TRACE("Enumerating child windows from parent 0x%X...\n", pwndParent);
+	for(; pwndChild != NULL; pwndChild = (PWND)REBASEUSER(pwndChild->spwndChild))
+	{
+		for(pwndNext = pwndChild; pwndNext != NULL; pwndNext = (PWND)REBASEUSER(pwndNext->spwndNext))
+		{
+			if(!(*lpEnumFunc)((HWND)pwndChild->hWnd16, lParam))
+			{
+				TRACE("Enumerating child windows from parent 0x%X canceled !\n", pwndParent);
+				return FALSE;
+			}
+		}
+	}
+	TRACE("Enumerating child windows from parent 0x%X succeeded !\n", pwndParent);
+
 	return TRUE;
+#endif
 }
 
 /* MAKE_EXPORT EnumThreadWindows_nothunk=EnumThreadWindows */
@@ -247,46 +592,9 @@ BOOL WINAPI EnumThreadWindows_nothunk(DWORD dwThreadId,
     LPARAM lParam
 )
 {
-	PTDB98 Thread = NULL;
-	PWND pwnd = NULL;
-	PMSGQUEUE msgQueue = NULL;
+	BOOL fEnumThread = (dwThreadId != 0);
 
-	if(IsBadCodePtr((FARPROC)lpfn))
-	{
-		SetLastError(ERROR_INVALID_PARAMETER);
-		return FALSE;
-	}
-
-	Thread = (PTDB98)kexGetThread(dwThreadId);
-
-	if(Thread == NULL)
-	{
-		SetLastError(ERROR_INVALID_PARAMETER);
-		return FALSE;
-	}
-
-	pwnd = HWNDtoPWND(GetDesktopWindow());
-
-	if(pwnd == NULL)
-		return FALSE;
-
-	for(; pwnd != NULL; pwnd = pwnd->spwndNext)
-	{
-		pwnd = (PWND)REBASEUSER(pwnd);
-
-		msgQueue = GetWindowQueue(pwnd);
-
-		if(msgQueue == NULL)
-			continue;
-
-		if(msgQueue->threadId == dwThreadId)
-		{
-			if(!(*lpfn)((HWND)pwnd->hWnd16, lParam))
-				return FALSE;
-		}
-	}
-
-	return TRUE;
+	return EnumWindowsEx(dwThreadId, lpfn, lParam, fEnumThread, NULL, FALSE);
 }
 
 /* MAKE_EXPORT EnumWindows_nothunk=EnumWindows */
@@ -294,49 +602,7 @@ BOOL WINAPI EnumWindows_nothunk(WNDENUMPROC lpEnumFunc,
     LPARAM lParam
 )
 {
-	BOOL fFirst = TRUE;
-	PWND pWnd = NULL;
-	PWND pWndParent = NULL;
-
-	if(IsBadCodePtr((FARPROC)lpEnumFunc))
-	{
-		SetLastError(ERROR_INVALID_PARAMETER);
-		return FALSE;
-	}
-
-	pWndParent = HWNDtoPWND(GetDesktopWindow());
-
-	if(pWndParent == NULL)
-		return FALSE;
-
-	pWnd = pWndParent->spwndChild;
-
-	if(pWnd == NULL)
-	{
-		SetLastError(ERROR_INVALID_PARAMETER);
-		return FALSE;
-	}
-
-	pWnd = (PWND)REBASEUSER(pWnd);
-
-	while(TRUE)
-	{
-		if(!(*lpEnumFunc)((HWND)pWnd->hWnd16, lParam))
-			return FALSE;
-
-		if (pWnd->spwndNext != NULL)
-		{
-			pWnd = (PWND)REBASEUSER(pWnd->spwndNext);
-			continue;
-		}
-
-		pWnd = (PWND)REBASEUSER(pWnd->spwndParent);
-
-		if (pWnd == pWndParent)
-			break;
-	}
-
-	return TRUE;
+	return EnumWindowsEx(0, lpEnumFunc, lParam, FALSE, NULL, FALSE);
 }
 
 /* MAKE_EXPORT GetParent_nothunk=GetParent */
@@ -414,7 +680,7 @@ BOOL WINAPI IsHungAppWindow_new(HWND hWnd)
 	return IsHungThread_pfn(GetWindowThreadProcessId(hWnd, NULL));
 }
 
-/* IsWindowVisible_fix=IsWindowVisible */
+/* MAKE_EXPORT IsWindowVisible_fix=IsWindowVisible */
 BOOL WINAPI IsWindowVisible_fix(HWND hWnd)
 {
 	PWND pwnd = NULL;
@@ -429,13 +695,9 @@ BOOL WINAPI IsWindowVisible_fix(HWND hWnd)
 		return FALSE;
 	}
 
-	/* Also check for the WS_INTERNAL_WASVISIBLE flag */
-
-	for(; pwnd != NULL; pwnd = pwnd->spwndParent)
+	for(; pwnd != NULL; pwnd = (PWND)REBASEUSER(pwnd->spwndParent))
 	{
-		pwnd = (PWND)REBASEUSER(pwnd->spwndParent);
-
-		if(!(pwnd->style & WS_VISIBLE) && !(pwnd->style & WS_INTERNAL_WASVISIBLE))
+		if(!(pwnd->style & WS_VISIBLE))
 		{
 			ReleaseWin16Lock();
 			return FALSE;
@@ -536,27 +798,58 @@ BOOL WINAPI ShowWindowAsync_fix(HWND hWnd, int nCmdShow)
 	return FALSE;
 }
 
-/* returns TRUE if hwnd is a parent of hwndNewParent */
-static BOOL WINAPI TestChild(HWND hwnd, HWND hwndNewParent)
+HWND WINAPI SetParent_nothunk(HWND hWndChild, HWND hWndNewParent)
 {
-	BOOL ret = FALSE;
-	PWND pwnd, pwndT;
+	PWND pwnd = NULL;
+	PWND pwndNewParent = NULL;
+	PWND pwndPrevParent = NULL;
+	HWND hwndPrevParent = NULL;
+	PMSGQUEUE pQueue = NULL;
+	PMSGQUEUE pQueueParent = NULL;
+
 	GrabWin16Lock();
-	pwnd = HWNDtoPWND(hwnd);
-	pwndT = HWNDtoPWND(hwndNewParent);
-	if ( pwnd && pwndT )
+
+	pwnd = HWNDtoPWND(hWndChild);
+	pwndNewParent = HWNDtoPWND(hWndNewParent);
+
+	if(pwnd == NULL || pwndNewParent == NULL)
 	{
-		for ( ; pwndT != NULL; pwndT = (PWND)REBASEUSER(pwndT->spwndParent))
-		{
-			if (pwnd == pwndT)
-			{
-				ret = TRUE;
-				break;
-			}
-		}
+		SetLastError(ERROR_INVALID_PARAMETER);
+		TRACE_OUT("pwnd or pwndNewParent is invalid !\n");
+		goto _ret;
 	}
-	ReleaseWin16Lock();	
-	return ret;
+
+	pQueue = (PMSGQUEUE)GetWindowQueue(pwnd);
+	pQueueParent = (PMSGQUEUE)GetWindowQueue(pwndNewParent);
+
+	if(pQueue == NULL || pQueueParent == NULL)
+		goto _ret;
+
+	/* Child and parent must belong to the same application */
+	if(pQueue->threadId != pQueueParent->threadId) // FIXME: Process or thread ?
+	{
+		SetLastError(ERROR_ACCESS_DENIED);
+		TRACE("pwnd 0x%X does NOT belong to pwndNewParent's thread[ID:[0x%X]] !\n", pwnd, pwndNewParent, pQueueParent->threadId);
+		goto _ret;
+	}
+
+	pwndPrevParent = (PWND)REBASEUSER(pwnd->spwndParent);
+
+	if(pwndPrevParent != NULL)
+		hwndPrevParent = (HWND)pwndPrevParent->hWnd16;
+
+	/* Set the new parent */
+	pwnd->spwndParent = (PWND)USER32FAR16(pwndNewParent);
+
+	/* Set the new child */
+	pwndNewParent->spwndChild = (PWND)USER32FAR16(pwnd);
+
+	TRACE("pwnd 0x%X set to new parent 0x%X", pwnd, pwndNewParent);
+
+_ret:
+	ReleaseWin16Lock();
+
+	return hwndPrevParent;
 }
 
 /* MAKE_EXPORT SetParent_fix=SetParent */
@@ -585,8 +878,8 @@ __hwndok:
 	test    eax, eax
 	jnz     __childfail
 
-	/* return control to SetParent (nothunk version this time) */
-	jmp     dword ptr [SetParent_nothunk]
+	/* return control to SetParent (nothunk version) */
+	jmp     dword ptr [SetParent]
 
 __childfail:
 	/* circular reference detected - stop! */
@@ -599,54 +892,6 @@ __error:
 	retn    8
 
 	}
-}
-
-/* MAKE_EXPORT SetParent_nothunk=SetParent */
-HWND WINAPI SetParent_nothunk(HWND hWndChild, HWND hWndNewParent)
-{
-	PWND pwnd = NULL;
-	PWND pwndNewParent = NULL;
-	HWND hwndPrevParent = NULL;
-	PMSGQUEUE pQueue = NULL;
-	PMSGQUEUE pQueueParent = NULL;
-
-	GrabWin16Lock();
-
-	pwnd = HWNDtoPWND(hWndChild);
-	pwndNewParent = HWNDtoPWND(hWndNewParent);
-
-	if(pwnd == NULL || pwndNewParent == NULL)
-	{
-		SetLastError(ERROR_INVALID_PARAMETER);
-		goto _ret;
-	}
-
-	pQueue = (PMSGQUEUE)GetWindowQueue(pwnd);
-	pQueueParent = (PMSGQUEUE)GetWindowQueue(pwndNewParent);
-
-	if(pQueue == NULL || pQueueParent == NULL)
-		goto _ret;
-
-	/* Child and parent must belong to the same application */
-	if(pQueue->threadId != pQueueParent->threadId) // FIXME: Process or thread ?
-	{
-		SetLastError(ERROR_ACCESS_DENIED);
-		goto _ret;
-	}
-
-	if(pwnd->spwndParent != NULL)
-		hwndPrevParent = (HWND)REBASEUSER(pwnd->spwndParent);
-
-	/* Set the new parent */
-	pwnd->spwndParent = (PWND)USER32FAR16(pwndNewParent);
-
-	/* Set the new child */
-	pwndNewParent->spwndChild = (PWND)USER32FAR16(pwnd);
-
-_ret:
-	ReleaseWin16Lock();
-
-	return hwndPrevParent;
 }
 
 /* MAKE_EXPORT UpdateLayeredWindow_new=UpdateLayeredWindow */
