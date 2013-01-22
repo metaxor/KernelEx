@@ -68,6 +68,68 @@ VOID RepaintScreen(VOID)
 	return;
 }
 
+VOID DisableOEMLayer()
+{
+	HINSTANCE hModule;
+	DWORD _DisableOEMLayer;
+
+	hModule = (HINSTANCE)LoadLibrary16("USER.EXE");
+
+	if((DWORD)hModule < 32)
+		return;
+
+	_DisableOEMLayer = GetProcAddress16(hModule, "DISABLEOEMLAYER");
+
+	if(_DisableOEMLayer == NULL)
+	{
+		FreeLibrary16(hModule);
+		return;
+	}
+
+	__asm	push 0
+	__asm	push 0
+	__asm	push 0
+	__asm	push 0
+	__asm	mov edx, [_DisableOEMLayer]
+	__asm	call ds:QT_Thunk
+	__asm	add esp, 10h
+
+	FreeLibrary16(hModule);
+
+	return;
+}
+
+VOID EnableOEMLayer()
+{
+	HINSTANCE hModule;
+	DWORD _EnableOEMLayer;
+
+	hModule = (HINSTANCE)LoadLibrary16("USER.EXE");
+
+	if((DWORD)hModule < 32)
+		return;
+
+	_EnableOEMLayer = GetProcAddress16(hModule, "ENABLEOEMLAYER");
+
+	if(_EnableOEMLayer == NULL)
+	{
+		FreeLibrary16(hModule);
+		return;
+	}
+
+	__asm	push 0
+	__asm	push 0
+	__asm	push 0
+	__asm	push 0
+	__asm	mov edx, [_EnableOEMLayer]
+	__asm	call ds:QT_Thunk
+	__asm	add esp, 10h
+
+	FreeLibrary16(hModule);
+
+	return;
+}
+
 BOOL WINAPI CreateWindowStationAndDesktops()
 {
 	SECURITY_ATTRIBUTES sa;
@@ -118,30 +180,23 @@ BOOL InitDesktops()
 	PWINSTATION_OBJECT WindowStationObject = NULL;
 	BOOL fNewPath = FALSE;
 
-    //kexGrabLocks();
-
 	Process = get_pdb();
 
 	ppi = Process->Win32Process;
 	pti = get_tdb()->Win32Thread;
 
-	//MessageBox(NULL, "1", NULL, 0);
-
 	/* Don't assign desktops and window stations to process/threads
 	   if there is not input desktop set yet */
     if(gpdeskInputDesktop == NULL)
 	{
-		//kexReleaseLocks();
+		TRACE_OUT("InputDesktop is NULL, don't allocate desktop handles yet\n");
         return TRUE;
 	}
-
-	//MessageBox(NULL, "2", NULL, 0);
 
 	/* Found a startup desktop, assign the current thread to it */
 	if(ppi->hdeskStartup != NULL)
 	{
 		SetThreadDesktop_new(ppi->hdeskStartup);
-		//kexReleaseLocks();
 		return TRUE;
 	}
 
@@ -190,9 +245,6 @@ BOOL InitDesktops()
 			pch++;
 			pszDesktop = pch;
 			pszWinSta = DesktopPath;
-			//pszWinSta = pch;
-			//pch = strtok(NULL, "\\");
-			//pszDesktop = pch;
 		}
 		else
 		{
@@ -202,7 +254,6 @@ BOOL InitDesktops()
 		}
 	}
 
-	//MessageBox(NULL, "4", NULL, 0);
 	if(!kexFindObjectHandle(Process,
 							NULL,
 							K32OBJ_WINSTATION,
@@ -212,7 +263,6 @@ BOOL InitDesktops()
 			pszWinSta = "WinSta0";
 	}
 
-	//MessageBox(NULL, "5", NULL, 0);
 	if(!kexFindObjectHandle(Process,
 							NULL,
 							K32OBJ_DESKTOP,
@@ -224,15 +274,19 @@ BOOL InitDesktops()
 
 	if(hWindowStation == NULL)
 	{
-		//sprintf(Path, "%s\\%s", WINSTA_ROOT_NAME, pszWinSta);
-		hWindowStation = OpenWindowStationA_new(pszWinSta, FALSE, WINSTA_ALL_ACCESS); //(HWINSTA)kexOpenObjectByName(Path, K32OBJ_WINSTATION, WINSTA_ALL_ACCESS);
-		//MessageBox(NULL, pszWinSta, NULL, 0);
+		hWindowStation = OpenWindowStationA_new(pszWinSta, FALSE, WINSTA_ALL_ACCESS);
 
 		if(hWindowStation == NULL)
+		{
+			TRACE("Failed to open window station %s\n", pszWinSta);
 			goto error;
+		}
 
 		if(!IntValidateWindowStationHandle(hWindowStation, &WindowStationObject))
+		{
+			TRACE("Failed to validate window station %s\n", pszWinSta);
 			goto error;
+		}
 
 		/* Each process runing on Windows NT always have 2 window station handles refering
 		   to the same window station */
@@ -240,45 +294,47 @@ BOOL InitDesktops()
 	}
 
 	if(!SetProcessWindowStation_new(hWindowStation))
+	{
+		TRACE("Failed to set process to window station 0x%X\n", hWindowStation);
 		goto error;
+	}
 
 	if(hDesktop == NULL)
 	{
-		//sprintf(Path, "\\%s", pszDesktop);
-		hDesktop = OpenDesktopA_new(pszDesktop, 0, FALSE, DESKTOP_ALL_ACCESS); //(HDESK)kexOpenObjectByName(Path, K32OBJ_DESKTOP, DESKTOP_ALL_ACCESS);
-		//MessageBox(NULL, pszDesktop, NULL, 0);
+		hDesktop = OpenDesktopA_new(pszDesktop, 0, FALSE, DESKTOP_ALL_ACCESS);
 
 		if(hDesktop == NULL)
+		{
+			TRACE("Failed to open desktop %s\n", pszDesktop);
 			goto error;
+		}
 
 	}
 
-	//MessageBox(NULL, "8", NULL, 0);
 	if(!IntValidateDesktopHandle(hDesktop, &DesktopObject))
+	{
+		TRACE("Failed to validate desktop 0x%X\n", hDesktop);
 		goto error;
+	}
 
-	//MessageBox(NULL, "9", NULL, 0);
-
-	//MessageBox(NULL, "10", NULL, 0);
 	if(!SetThreadDesktop_new(hDesktop))
+	{
+		TRACE("Failed to set thread to desktop 0x%X\n", hDesktop);
 		goto error;
+	}
 
 	ppi->rpdeskStartup = DesktopObject;
 	ppi->hdeskStartup = hDesktop;
 
 	free((PVOID)DesktopPath);
-	//MessageBox(NULL, "11", NULL, 0);
-    //kexReleaseLocks();
     return TRUE;
 error:
-	//MessageBox(NULL, "ERR", NULL, 0);
 	if(hDesktop != NULL)
 		CloseHandle(hDesktop);
 	if(hWindowStation != NULL)
 		CloseHandle(hWindowStation);
 	if(DesktopPath != NULL)
 		free((PVOID)DesktopPath);
-	//kexReleaseLocks();
 	return FALSE;
 }
 
@@ -294,8 +350,11 @@ BOOL IntValidateDesktopHandle(HDESK hDesktop, PDESKTOP *DesktopObject)
 
 	if(!IsBadWritePtr(DesktopObject, sizeof(DWORD)))
 		*DesktopObject = Object;
-
-	/* FIXME: Should we dereference the object's count after finished using it ? */
+	else
+	{
+		kexDereferenceObject(Object);
+		return FALSE;
+	}
 
 	return TRUE;
 }
@@ -338,6 +397,7 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
 		PWINSTATION_OBJECT WindowStationObject = NULL;
 		PDESKTOP DesktopObject = NULL;
 
+		TRACE_OUT("ppi is NULL ! Creating a new one... \n");
 		__try
 		{
 			WindowStationObject = Process->ParentPDB->Win32Process->rpwinsta;
@@ -371,15 +431,19 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
 		ppi->hwinsta = hWindowStation;
 		ppi->rpdeskStartup = DesktopObject;
 		ppi->hdeskStartup = hDesktop;
+
+		TRACE("ppi 0x%X created !\n", ppi);
 	}
 
 	if(pti == NULL)
 	{
+		TRACE_OUT("pti is NULL ! About to allocate a new one... \n");
 		pti_init(Thread);
 		/* Set the thread's desktop to the process's startup desktop */
 		pti = Thread->Win32Thread;
 		pti->rpdesk = ppi->rpdeskStartup;
 		pti->hdesk = ppi->hdeskStartup;
+		TRACE_OUT("pti 0x%X created !\n", pti);
 	}
 
 	if(IsBadReadPtr(pti, sizeof(THREADINFO)) || IsBadReadPtr(ppi, sizeof(PROCESSINFO)))
@@ -489,6 +553,7 @@ BOOL WINAPI CloseDesktop_new(HDESK hDesktop)
 	// Make sure the object type is K32OBJ_DESKTOP
 	if(!IntValidateDesktopHandle(hDesktop, &DesktopObject))
 	{
+		TRACE_OUT("hDesktop is invalid!\n");
 		SetLastError(ERROR_ACCESS_DENIED);
 		return FALSE;
 	}
@@ -502,6 +567,8 @@ BOOL WINAPI CloseDesktop_new(HDESK hDesktop)
 	/* Fail if the desktop is the startup desktop */
 	if(ppi->rpdeskStartup == DesktopObject)
 	{
+		TRACE_OUT("Can't close the startup desktop ! \n");
+		kexDereferenceObject(DesktopObject);
 		SetLastError(ERROR_ACCESS_DENIED);
 		return FALSE;
 	}
@@ -510,7 +577,7 @@ BOOL WINAPI CloseDesktop_new(HDESK hDesktop)
 
 	cbThreads /= sizeof(DWORD);
 
-	/* Now check if any threads is using the specified desktop handle */
+	/* Now check if any threads from the current process is using the specified desktop handle */
 	for(index=0;index<=cbThreads;index++)
 	{
 		Thread = (PTDB98)kexGetThread(pThread[index]);
@@ -520,19 +587,32 @@ BOOL WINAPI CloseDesktop_new(HDESK hDesktop)
 
 		pti = Thread->Win32Thread;
 
+		/* Found one using the desktop object */
 		if(pti->rpdesk == DesktopObject)
 		{
+			TRACE("Can't close desktop 0x%X because thread 0x%X is using it !!!\n", DesktopObject, Thread);
+			kexDereferenceObject(DesktopObject);
 			SetLastError(ERROR_ACCESS_DENIED);
 			return FALSE;
 		}
 	}
 
-	result = CloseHandle(hDesktop);
+	/* Dereference the desktop 2 times
+	   one because we used IntValidateDesktopHandle and
+	   another for decrementing the reference count */
+	kexDereferenceObject(DesktopObject);
+	result = kexDereferenceObject(DesktopObject);
 
 	if(DesktopObject->cReferences < 1)
 	{
+		TRACE("Removing object 0x%X from the system\n", DesktopObject);
 		if(RemoveEntryList(&DesktopObject->ListEntry))
+		{
+			kexFreeObject(DesktopObject->lpName);
+			kexFreeObject(DesktopObject->pName);
+			kexFreeObject(DesktopObject->pdev);
 			kexFreeObject(DesktopObject);
+		}
 	}
 
 	return result;
@@ -642,6 +722,7 @@ HDESK WINAPI CreateDesktopA_new(LPCSTR lpszDesktop, LPCSTR lpszDevice, LPDEVMODE
 	InsertTailList(&WindowStationObject->DesktopListHead, &DesktopObject->ListEntry);
 
 	DesktopObject->Type = K32OBJ_DESKTOP;
+	DesktopObject->cReferences = 0;
 	DesktopObject->pName = kexAllocObjectName(DesktopObject, DesktopPath);
 	DesktopObject->lpName = (PCHAR)DesktopName;
 	DesktopObject->rpwinstaParent = Process->Win32Process->rpwinsta;
@@ -682,6 +763,7 @@ BOOL WINAPI EnumDesktopsA_new(HWINSTA hwinsta, DESKTOPENUMPROCA lpEnumFunc, LPAR
 	if(!(kexGetHandleAccess(hwinsta) & WINSTA_ENUMDESKTOPS))
 	{
 		SetLastError(ERROR_ACCESS_DENIED);
+		kexDereferenceObject(WindowStationObject);
 		return FALSE;
 	}
 
@@ -691,9 +773,13 @@ BOOL WINAPI EnumDesktopsA_new(HWINSTA hwinsta, DESKTOPENUMPROCA lpEnumFunc, LPAR
 		DesktopObject = CONTAINING_RECORD(DesktopList, DESKTOP, ListEntry);
 
 		if(!(*lpEnumFunc)(DesktopObject->lpName, lParam))
+		{
+			kexDereferenceObject(WindowStationObject);
 			return FALSE;
+		}
 	}
 
+	kexDereferenceObject(WindowStationObject);
     return TRUE;
 }
 
@@ -701,6 +787,7 @@ BOOL WINAPI EnumDesktopsA_new(HWINSTA hwinsta, DESKTOPENUMPROCA lpEnumFunc, LPAR
 BOOL WINAPI EnumDesktopWindows_new(HDESK hDesktop, WNDENUMPROC lpfn, LPARAM lParam)
 {
 	PDESKTOP DesktopObject;
+	BOOL result;
 
 	if(IsBadCodePtr((FARPROC)lpfn))
 		return FALSE;
@@ -708,7 +795,11 @@ BOOL WINAPI EnumDesktopWindows_new(HDESK hDesktop, WNDENUMPROC lpfn, LPARAM lPar
 	if(!IntValidateDesktopHandle(hDesktop, &DesktopObject))
 		return FALSE;
 
-	return EnumWindowsEx(0, lpfn, lParam, FALSE, hDesktop, TRUE);
+	result = EnumWindowsEx(0, lpfn, lParam, FALSE, hDesktop, TRUE);
+
+	kexDereferenceObject(DesktopObject);
+
+	return result;
 
 #if 0
 	__try
@@ -881,6 +972,12 @@ BOOL WINAPI SetThreadDesktop_new(HDESK hDesktop)
 		return FALSE;
 	}
 
+	if(pti->rpdesk == DesktopObject)
+	{
+		kexDereferenceObject(DesktopObject);
+		return TRUE;
+	}
+
 	pti->rpdesk = DesktopObject;
 	pti->hdesk = hDesktop;
 
@@ -890,6 +987,7 @@ BOOL WINAPI SetThreadDesktop_new(HDESK hDesktop)
 		ppi->hdeskStartup = hDesktop;
 	}
 
+	kexDereferenceObject(DesktopObject);
 	return TRUE;
 }
 
@@ -910,11 +1008,15 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
 	BOOL FirstSwitch = (gpdeskInputDesktop == NULL);
 	HANDLE hEvent = NULL;
 	BOOL fFirstSwitch = (gpdeskInputDesktop == NULL);
+	BOOL fParent = FALSE;
 
     GrabWin16Lock();
 
+	TRACE_OUT("About to switch desktop\n");
+
     if(!IntValidateDesktopHandle(hDesktop, &DesktopObject))
     {
+		TRACE_OUT("hDesktop is INVALID !\n");
 		SetLastError(ERROR_INVALID_HANDLE);
         ReleaseWin16Lock();
         return FALSE;
@@ -923,12 +1025,15 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
 	if(DesktopObject == gpdeskInputDesktop)
 	{
 		/* Nothing to do */
+		kexDereferenceObject(DesktopObject);
 		ReleaseWin16Lock();
 		return TRUE;
 	}
 
 	if(!(kexGetHandleAccess(hDesktop) & DESKTOP_SWITCHDESKTOP))
 	{
+		TRACE("hDesktop 0x%X doesn't have the DESKTOP_SWITCHDESKTOP access right !\n", hDesktop);
+		kexDereferenceObject(DesktopObject);
 		SetLastError(ERROR_ACCESS_DENIED);
 		ReleaseWin16Lock();
 		return FALSE;
@@ -936,7 +1041,9 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
 
     if(!IntValidateWindowStationHandle(hWinSta, &WindowStationObject))
     {
+		TRACE_OUT("Window station is invalid ! Maybe the process doesn't have one ?\n");
 		SetLastError(ERROR_INVALID_HANDLE);
+		kexDereferenceObject(DesktopObject);
         ReleaseWin16Lock();
         return FALSE;
     }
@@ -948,12 +1055,23 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
         if(InputWindowStation->Flags & WSS_LOCKED)
         {
 			SetLastError(ERROR_ACCESS_DENIED);
+			TRACE("Switching to desktop 0x%X denied because the current window station is locked !\n", hDesktop);
+			kexDereferenceObject(DesktopObject);
+			kexDereferenceObject(WindowStationObject);
             ReleaseWin16Lock();
             return FALSE;
         }
 
 		InputWindowStation->ActiveDesktop = NULL;
     }
+
+	fParent = (DesktopObject->rpwinstaParent == InputWindowStation);
+
+	if(fParent == FALSE)
+	{
+		TRACE_OUT("new desktop's parent window station is different than the current one, Disabling OEM layer...\n");
+		DisableOEMLayer();
+	}
 
 	gpdeskInputDesktop = DesktopObject;
 
@@ -963,6 +1081,17 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
 
 	ChangeDisplaySettings(DesktopObject->pdev, CDS_UPDATEREGISTRY);
 	RepaintScreen();
+
+	if(fParent == FALSE)
+	{
+		TRACE_OUT("Re-enabling OEM layer...\n");
+		EnableOEMLayer();
+	}
+
+	TRACE("Switching to desktop 0x%X successful\n", hDesktop);
+
+	kexDereferenceObject(DesktopObject);
+	kexDereferenceObject(WindowStationObject);
 
 	ReleaseWin16Lock();
 
