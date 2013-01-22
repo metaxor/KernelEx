@@ -40,8 +40,8 @@ typedef struct _SHUTDOWNDATA
 	DWORD dwThreadId;
 } SHUTDOWNDATA, *PSHUTDOWNDATA;
 
-/* - In Win9x, the shutdown is processed by the process that call ExitWindowsEx
-   which makes the process freeze, i.e the shutdown dialog box which cover
+/* - In Win9x, the shutdown is processed in the context of the caller
+   which makes the caller freeze, i.e the shutdown dialog box which cover
    the entire screen freeze during shutdown which is annoying
    - The shutdown process only look for existing windows and not for processes
    - if the EWX_FORCE flag is specified, explorer.exe remains
@@ -96,8 +96,7 @@ BOOL CALLBACK EnumThreadsProc(DWORD dwThreadId, PSHUTDOWNDATA ShutdownData)
 	SetLastError(0);
 
 	/* FIXME: Should we post a message to threads that doesn't have windows ? */
-	if(dwThreadId != 0)
-		EnumThreadWindows_nothunk(dwThreadId, EnumThreadWndProc, (LPARAM)ShutdownData);
+	EnumThreadWindows_nothunk(dwThreadId, EnumThreadWndProc, (LPARAM)ShutdownData);
 
 	if(ShutdownData->Result == 0)
 		return FALSE;
