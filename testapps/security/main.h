@@ -23,4 +23,5 @@
 #include <Lmcons.h>
 #include <stdio.h>
 #include <Winnetwk.h>
+#include <shlwapi.h>
 #include "resource.h"
