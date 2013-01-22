@@ -1859,34 +1859,31 @@ BOOL WINAPI CreateWellKnownSid_new( DWORD WellKnownSidType, PSID DomainSid, PSID
 	return InitializeSid_new(pSid, &localSidAuthority, 1);
 }
 
-/* MAKE_EXPORT LogonUser_new=LogonUser */
-BOOL WINAPI LogonUser_new(LPSTR lpszUsername,
+/* MAKE_EXPORT LogonUserA_new=LogonUserA */
+BOOL WINAPI LogonUserA_new(LPSTR lpszUsername,
 	LPSTR lpszDomain,
 	LPSTR lpszPassword,
 	DWORD dwLogonType,
 	DWORD dwLogonProvider,
 	PHANDLE phToken)
 {
-	CHAR lpszCurrentUser[MAX_PATH];
+	CHAR lpszCurrentUser[50];
 	BOOL fMatch = FALSE;
-	ULONG nLength = sizeof(lpszCurrentUser);
+	ULONG nLength = 50;
 	DWORD result = 0;
 
 	/* dwLogonProvider and dwLogonType must be supported */
 	if(dwLogonProvider == LOGON32_PROVIDER_WINNT50 || dwLogonType == LOGON32_LOGON_NEW_CREDENTIALS
 		|| dwLogonType == LOGON32_LOGON_NETWORK_CLEARTEXT)
 	{
+		TRACE("%s %s %s %d %d %p not supported\n", lpszUsername, lpszDomain, dwLogonType,
+						dwLogonProvider, phToken);
 		SetLastError(ERROR_NOT_SUPPORTED);
 		return FALSE;
 	}
 
-	if(dwLogonProvider > LOGON32_PROVIDER_WINNT50)
-	{
-		SetLastError(ERROR_INVALID_PARAMETER);
-		return FALSE;
-	}
-
-	if(dwLogonType > LOGON32_LOGON_UNLOCK)
+	if(dwLogonProvider > LOGON32_PROVIDER_WINNT50 || dwLogonType > LOGON32_LOGON_UNLOCK
+		|| dwLogonType < LOGON32_LOGON_INTERACTIVE)
 	{
 		SetLastError(ERROR_INVALID_PARAMETER);
 		return FALSE;
@@ -1895,21 +1892,25 @@ BOOL WINAPI LogonUser_new(LPSTR lpszUsername,
 	/* if the domain is not null, it must be a "." in Win9x (compatibility reason) */
 	if(!IsBadStringPtr(lpszDomain, -1) && strcmpi(lpszDomain, "."))
 	{
+		TRACE("%s %s %s %d %d %p not supported\n", lpszUsername, lpszDomain, dwLogonType,
+						dwLogonProvider, phToken);
 		SetLastError(ERROR_NOT_SUPPORTED);
 		return FALSE;
 	}
 
 	if(IsBadWritePtr(phToken, sizeof(DWORD)))
 	{
+		TRACE_OUT("phToken is NULL !\n");
 		SetLastError(ERROR_INVALID_PARAMETER);
 		return FALSE;
 	}
 
 	/* Get the current user */
-	result = WNetGetUser(NULL, lpszCurrentUser, &nLength);
+	result = GetUserName(lpszCurrentUser, &nLength);
 
-	if(result != NO_ERROR)
+	if(!result)
 	{
+		TRACE("retrieving current user failed with error %d\n", GetLastError());
 		SetLastError(result);
 		return FALSE;
 	}
@@ -1917,6 +1918,7 @@ BOOL WINAPI LogonUser_new(LPSTR lpszUsername,
 	/* lpszUsername must be current user in Windows 98 */
 	if(strcmpi(lpszCurrentUser, lpszUsername))
 	{
+		TRACE("lpszCurrentUser %s does not match lpszUsername %s\n", lpszCurrentUser, lpszUsername);
 		SetLastError(ERROR_CANNOT_OPEN_PROFILE);
 		return FALSE;
 	}
@@ -1924,8 +1926,17 @@ BOOL WINAPI LogonUser_new(LPSTR lpszUsername,
 	/* Now check if the password match*/
 	result = WNetVerifyPassword(lpszPassword, &fMatch);
 
-	if(!fMatch)
+	if(result != NO_ERROR)
+	{
+		TRACE("WNetVerifyPassword failed with error %d\n", GetLastError());
 		return FALSE;
+	}
+
+	if(fMatch == FALSE)
+	{
+		TRACE_OUT("lpszPassword does not match !\n");
+		return FALSE;
+	}
 
 	*(int*)phToken = 0xCAFE;
 

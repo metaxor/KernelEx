@@ -129,7 +129,7 @@ BOOL WINAPI GetAce_new(PACL pAcl,DWORD dwAceIndex,LPVOID *pAce);
 BOOL WINAPI DeleteAce_new(PACL pAcl, DWORD dwAceIndex);
 BOOL WINAPI CreateRestrictedToken_new(HANDLE baseToken, DWORD flags, DWORD nDisableSids, PSID_AND_ATTRIBUTES disableSids, DWORD nDeletePrivs, PLUID_AND_ATTRIBUTES deletePrivs, DWORD nRestrictSids, PSID_AND_ATTRIBUTES restrictSids, PHANDLE newToken);
 BOOL WINAPI CreateWellKnownSid_new(DWORD WellKnownSidType, PSID DomainSid, PSID pSid, DWORD* cbSid);
-BOOL WINAPI LogonUser_new(LPSTR lpszUsername, LPSTR lpszDomain, LPSTR lpszPassword, DWORD dwLogonType, DWORD dwLogonProvider, PHANDLE phToken);
+BOOL WINAPI LogonUserA_new(LPSTR lpszUsername, LPSTR lpszDomain, LPSTR lpszPassword, DWORD dwLogonType, DWORD dwLogonProvider, PHANDLE phToken);
 LONG WINAPI RegCreateKeyW_new(HKEY hKey, LPCWSTR lpSubKeyW, PHKEY phkResult);
 LONG WINAPI RegCreateKeyExW_new(HKEY hKey, LPCWSTR lpSubKeyW, DWORD Reserved, LPWSTR lpClassW, DWORD dwOptions, REGSAM samDesired, LPSECURITY_ATTRIBUTES lpSecurityAttributes, PHKEY phkResult, LPDWORD lpdwDisposition);
 LONG WINAPI RegDeleteKeyW_new(HKEY hKey, LPCWSTR lpSubKeyW);

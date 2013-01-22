@@ -96,7 +96,7 @@ static const apilib_named_api advapi32_named_apis[] =
 	DECL_API("IsValidSecurityDescriptor", IsValidSecurityDescriptor_new),
 	DECL_API("IsValidSid", IsValidSid_new),
 	DECL_API("IsWellKnownSid", IsWellKnownSid_stub),
-	DECL_API("LogonUser", LogonUser_new),
+	DECL_API("LogonUserA", LogonUserA_new),
 	DECL_API("LookupAccountSidA", LookupAccountSidA_new),
 	DECL_API("LookupAccountSidW", LookupAccountSidW_new),
 	DECL_API("LookupPrivilegeValueA", LookupPrivilegeValueA_new),

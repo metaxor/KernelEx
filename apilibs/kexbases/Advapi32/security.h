@@ -99,8 +99,8 @@ WNetVerifyPasswordA(
 		return FALSE;
 	}
 
-	__asm	push lpszPassword
-	__asm	push pfMatch
+	__asm	push [pfMatch]
+	__asm	push [lpszPassword]
 	__asm	call Address
 	__asm	mov [Result], eax
 
@@ -131,8 +131,8 @@ WNetVerifyPasswordW(
 		return FALSE;
 	}
 
-	__asm	push lpszPassword
-	__asm	push pfMatch
+	__asm	push [pfMatch]
+	__asm	push [lpszPassword]
 	__asm	call Address
 	__asm	mov [Result], eax
 
