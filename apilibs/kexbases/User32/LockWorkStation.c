@@ -51,7 +51,21 @@ BOOL WINAPI LockWorkStation_RUNDLL(HWND hWnd, HINSTANCE hInstance, LPSTR lpArgs,
                   &pi);
 
 	if(!Result)
-		goto _ret;
+	{
+		Result = CreateProcess("security.exe",
+					  "-lock",
+					  NULL,
+					  NULL,
+					  FALSE,
+					  0,
+					  NULL,
+					  NULL,
+					  &si,
+					  &pi);
+
+		if(!Result)
+			goto _ret;
+	}
 
 	CloseHandle(pi.hProcess);
 	CloseHandle(pi.hThread);
