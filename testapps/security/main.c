@@ -1,6 +1,6 @@
 /*
  *  KernelEx
- *  Copyright (C) 2009, Xeno86
+ *  Copyright (C) 2013, Ley0k
  *
  *  This file is part of KernelEx source code.
  *
@@ -19,15 +19,14 @@
  *
  */
 
-#include <windows.h>
-#include <Lmcons.h>
-#include <stdio.h>
-#include "resource.h"
+#include "main.h"
 
 HDESK hSecurity = NULL;
 HDESK hDefault = NULL;
 BOOL fWinME;
 const char *InvalidVersion = TEXT("This application must be run in Windows 98/Millenium with KernelEx !");
+const char *InvalidPassword = TEXT("The password you entered is incorrect. Reenter your password in case-sensitive. Letters in passwords must be typed using the correct case.");
+const char *ComputerLocked = TEXT("Computer Locked");
 
 BOOL WINAPI LockWorkStation(void);
 
@@ -52,6 +51,69 @@ BOOL CenterWindow(HWND hWnd)
                         NULL,
                         x, y, 0, 0,
                         SWP_NOSIZE | SWP_NOZORDER);
+}
+
+INT_PTR CALLBACK LockProc(HWND hwndDlg,
+    UINT uMsg,
+    WPARAM wParam,
+    LPARAM lParam
+)
+{
+	TCHAR UserName[MAX_PATH];
+	TCHAR Password[MAX_PATH];
+	DWORD Length = 0;
+	BOOL fMatch = FALSE;
+	HANDLE hToken = NULL;
+	TCHAR Text[MAX_PATH];
+	TCHAR NewText[MAX_PATH];
+	TCHAR ComputerName[MAX_PATH];
+	DWORD nSize = sizeof(ComputerName);
+
+	switch(uMsg)
+	{
+	case WM_INITDIALOG:
+		CenterWindow(hwndDlg);
+		Length = sizeof(UserName);
+
+		GetComputerName(ComputerName, &nSize);
+		WNetGetUser(NULL, UserName, &Length);
+
+		GetDlgItemText(hwndDlg, IDC_TEXT2, Text, sizeof(Text));
+		wsprintf(NewText, Text, ComputerName, UserName);
+		SetDlgItemText(hwndDlg, IDC_TEXT2, NewText);
+
+		SetDlgItemText(hwndDlg, IDC_USER, UserName);
+		EnableWindow(GetDlgItem(hwndDlg, IDCANCEL), FALSE);
+		ShowWindow(GetDlgItem(hwndDlg, IDC_DOMAIN), SW_HIDE);
+		ShowWindow(GetDlgItem(hwndDlg, IDC_TDOMAIN), SW_HIDE);
+		SetFocus(GetDlgItem(hwndDlg, IDC_PASSWORD));
+		break;
+
+	case WM_COMMAND:
+		switch(LOWORD(wParam))
+		{
+		case IDOK:
+			GetDlgItemText(hwndDlg, IDC_USER, UserName, sizeof(UserName));
+			GetDlgItemText(hwndDlg, IDC_PASSWORD, Password, sizeof(Password));
+			if(!LogonUser(UserName, NULL, Password, LOGON32_LOGON_INTERACTIVE, 0, &hToken))
+				MessageBox(hwndDlg, InvalidPassword, ComputerLocked, MB_ICONERROR);
+			else
+			{
+				CloseHandle(hToken);
+				EndDialog(hwndDlg, 0);
+				return 0;
+			}
+			SetFocus(GetDlgItem(hwndDlg, IDC_PASSWORD));
+			SetDlgItemText(hwndDlg, IDC_PASSWORD, TEXT(""));
+			break;
+
+		case IDCANCEL:
+			break;
+		}
+		break;
+	}
+
+	return 0;
 }
 
 INT_PTR CALLBACK ShutdownProc(HWND hwndDlg,
@@ -330,9 +392,12 @@ INT_PTR CALLBACK SecurityProc(HWND hwndDlg,
 	return 0;
 }
 
-DWORD __fastcall CreateSecurityWindow(void)
+DWORD __fastcall CreateSecurityWindow(LPSTR lpCmdLine)
 {
-	return DialogBox(GetModuleHandle(0), MAKEINTRESOURCE(IDD_DLGSECURITY), NULL, SecurityProc);
+	if(strcmpi(lpCmdLine, "-lock"))
+		return DialogBox(GetModuleHandle(0), MAKEINTRESOURCE(IDD_DLGSECURITY), NULL, SecurityProc);
+	else
+		return DialogBox(GetModuleHandle(0), MAKEINTRESOURCE(IDD_DLGLOCK), NULL, LockProc);
 }
 
 int WINAPI WinMain(HINSTANCE hInstance,
@@ -343,6 +408,9 @@ int WINAPI WinMain(HINSTANCE hInstance,
 {
 	OSVERSIONINFO ovi;
 	DWORD result;
+
+	if(hPrevInstance != NULL && strcmpi(lpCmdLine, "-lock"))
+		return 0;
 
 	memset(&ovi, 0, sizeof(OSVERSIONINFO));
 
@@ -378,7 +446,8 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	SetThreadDesktop(hSecurity);
 	SwitchDesktop(hSecurity);
 
-	result = CreateSecurityWindow();
+	lpCmdLine = GetCommandLine();
+	result = CreateSecurityWindow(lpCmdLine);
 
 	SwitchDesktop(hDefault);
 	SetThreadDesktop(hDefault);
