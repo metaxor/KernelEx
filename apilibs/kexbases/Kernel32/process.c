@@ -55,14 +55,21 @@ BOOL WINAPI CreateProcessA_fix(LPCSTR lpApplicationName, LPSTR lpCommandLine, LP
         dwCreationFlags &= ~CREATE_UNICODE_ENVIRONMENT;
 
 
-	if(lpStartupInfo->lpDesktop == NULL)
+	__try
 	{
-		lpStartupInfo->lpDesktop = Process->Win32Process->rpdeskStartup->lpName;
-	}
+		if(lpStartupInfo->lpDesktop == NULL)
+		{
+			lpStartupInfo->lpDesktop = Process->Win32Process->rpdeskStartup->lpName;
+		}
 
-	/* Make the desktop name a shared string */
-	pszDesktop = (PCHAR)kexAllocObject(strlen(lpStartupInfo->lpDesktop));
-	strcpy(pszDesktop, lpStartupInfo->lpDesktop);
+		/* Make the desktop name a shared string */
+		pszDesktop = (PCHAR)kexAllocObject(strlen(lpStartupInfo->lpDesktop));
+		strcpy(pszDesktop, lpStartupInfo->lpDesktop);
+	}
+	__except(EXCEPTION_EXECUTE_HANDLER)
+	{
+		pszDesktop = NULL;
+	}
 
 	lpStartupInfo->lpDesktop = pszDesktop;
 
