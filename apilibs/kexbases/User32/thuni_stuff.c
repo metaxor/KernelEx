@@ -50,6 +50,7 @@ BOOL InitUniThunkLayerStuff()
 
 	FreeLibrary16(hUser16);
 
+	TRACE("ThunkLayer initialized: g_UserBase = 0x%X, g_SharedInfo = 0x%X\n", g_UserBase, g_SharedInfo);
 	return (g_UserBase && g_hUser32 && g_SharedInfo);
 }
 
