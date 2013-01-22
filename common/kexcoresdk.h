@@ -368,10 +368,23 @@ _KEXCOREIMP void kexSetModuleSettings(const char* module,
  */
 _KEXCOREIMP void kexResetModuleSettings(const char* module);
 
+/** kexInit - Initialize KernelEx*/
+_KEXCOREIMP int kexInit(void);
+
+/** kexDbgDumpConfigurations - Dump KernelEx configuration */
+_KEXCOREIMP void kexDbgDumpConfigurations(void);
+
+/** kexDbgDumpImtes - Dump KernelEx imtes */
+_KEXCOREIMP void kexDbgDumpImtes(void);
+
+/** kexDbgDumpAppSettings - Dump module settings*/
+_KEXCOREIMP void kexDbgDumpAppSettings(void);
 
 /** kexFlushAppSettings - Reloads all module settings from registy. */
 _KEXCOREIMP void kexFlushAppSettings(void);
 
+/** kexUninit - Unload KernelEx*/
+_KEXCOREIMP int kexUninit(void);
 
 /** kexPsAllocIndex - Reserve process storage entry. 
  *
