@@ -95,6 +95,20 @@ PTDB98 kexCreateRemoteThread(PPDB98 Process,
 	return _CreateRemoteThread(Process, dwStackSize, lpStartAddress, lpParameter, dwCreationFlags);
 }
 
+BOOL kexDereferenceObject(PVOID Object)
+{
+	PK32OBJHEAD K32Object = NULL;
+
+	if(IsBadWritePtr(Object, sizeof(K32OBJHEAD)))
+		return FALSE;
+
+	K32Object = (PK32OBJHEAD)Object;
+
+	K32Object->cReferences--;
+
+	return TRUE;
+}
+
 BOOL kexEnumProcesses(DWORD *pProcessIds, DWORD cb, DWORD *pBytesReturned)
 {
 	HANDLE hSnapshot = NULL;
