@@ -427,7 +427,7 @@ HWND WINAPI CreateMDIWindowW_NEW( LPCWSTR lpClassName, LPCWSTR lpWindowName, DWO
 	STACK_WtoA(lpClassName, lpClassNameA);
 	STACK_WtoA(lpWindowName, lpWindowNameA);	
 	uniEvent = SetWinCreateEvent(UnicodeEvent);
-	ret = CreateMDIWindowA(lpClassNameA,lpWindowNameA,dwStyle,X,Y,nWidth,nHeight,hWndParent,hInstance,lParam);
+	ret = CreateMDIWindowA_fix(lpClassNameA,lpWindowNameA,dwStyle,X,Y,nWidth,nHeight,hWndParent,hInstance,lParam);
 	UnhookWinEvent(uniEvent);
 	return ret;
 }
@@ -441,7 +441,7 @@ HWND WINAPI CreateDialogParamW_NEW( HINSTANCE hInstance, LPCTSTR lpTemplateName,
 	
 	STACK_WtoA(lpTemplateName, lpTemplateNameA);
 	uniEvent = SetWinCreateEvent(UnicodeEvent);
-	ret = CreateDialogParamA( hInstance, lpTemplateNameA, hWndParent, lpDialogFunc, dwInitParam );
+	ret = CreateDialogParamA_fix( hInstance, lpTemplateNameA, hWndParent, lpDialogFunc, dwInitParam );
 	UnhookWinEvent(uniEvent);
 	return ret;		
 }
@@ -453,7 +453,7 @@ HWND WINAPI CreateDialogIndirectParamW_NEW( HINSTANCE hInstance, LPCDLGTEMPLATE 
 	HWND ret;
 	
 	uniEvent = SetWinCreateEvent(UnicodeEvent);
-	ret = CreateDialogIndirectParamA( hInstance, lpTemplate, hWndParent, lpDialogFunc, lParamInit );
+	ret = CreateDialogIndirectParamA_fix( hInstance, lpTemplate, hWndParent, lpDialogFunc, lParamInit );
 	UnhookWinEvent(uniEvent);
 	return ret;	
 }
