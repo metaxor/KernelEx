@@ -87,7 +87,6 @@ LONG WINAPI ChangeDisplaySettingsExA_fix(
 	if(DevMode.dmFields & DM_POSITION)
 		Desktop->pdev->dmPosition = DevMode.dmPosition;
 
-	//MessageBox(NULL, "3", NULL, 0);
 	ReleaseWin16Lock();
 
 	return result;
@@ -99,4 +98,39 @@ LONG WINAPI ChangeDisplaySettingsA_fix(LPDEVMODE lpDevMode,
 )
 {
 	return ChangeDisplaySettingsExA_fix(NULL, lpDevMode, NULL, dwflags, NULL);
+}
+
+/* MAKE_EXPORT EnumDisplaySettingsA_fix=EnumDisplaySettingsA */
+BOOL WINAPI EnumDisplaySettingsA_fix(LPCSTR lpszDeviceName,
+	DWORD iModeNum,
+	LPDEVMODE lpDevMode)
+{
+	return EnumDisplaySettingsExA_fix(lpszDeviceName, iModeNum, lpDevMode, 0);
+}
+
+/* MAKE_EXPORT EnumDisplaySettingsExA_fix=EnumDisplaySettingsExA */
+BOOL WINAPI EnumDisplaySettingsExA_fix(LPCSTR lpszDeviceName,
+	DWORD iModeNum,
+	LPDEVMODE lpDevMode,
+	DWORD dwFlags)
+{
+	LPDEVMODE pcurdev = NULL;
+	PTHREADINFO pti = NULL;
+
+	if(IsBadWritePtr(lpDevMode, sizeof(DEVMODE)))
+	{
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return FALSE;
+	}
+
+	if(iModeNum == ENUM_REGISTRY_SETTINGS || lpszDeviceName != NULL)
+		return EnumDisplaySettingsEx(lpszDeviceName, iModeNum, lpDevMode, dwFlags);
+
+	if(pti == NULL || pti->rpdesk == NULL)
+		return FALSE;
+
+	if(iModeNum == ENUM_CURRENT_SETTINGS)
+		memcpy(lpDevMode, pti->rpdesk->pdev, sizeof(*lpDevMode));
+
+	return TRUE;
 }
