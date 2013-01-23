@@ -39,8 +39,8 @@ BOOL WINAPI LockWorkStation_RUNDLL(HWND hWnd, HINSTANCE hInstance, LPSTR lpArgs,
 	si.dwFlags = STARTF_USESHOWWINDOW;
 	si.wShowWindow = SW_SHOWDEFAULT;
 
-    Result = CreateProcess("conlock.mod",
-                  "-uSeR",
+    Result = CreateProcess(NULL,
+                  "conlock.mod -uSeR",
                   NULL,
                   NULL,
                   FALSE,
@@ -52,8 +52,8 @@ BOOL WINAPI LockWorkStation_RUNDLL(HWND hWnd, HINSTANCE hInstance, LPSTR lpArgs,
 
 	if(!Result)
 	{
-		Result = CreateProcess("security.exe",
-					  "-lock",
+		Result = CreateProcess(NULL,
+					  "security.exe -lock",
 					  NULL,
 					  NULL,
 					  FALSE,
