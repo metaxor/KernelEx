@@ -146,10 +146,12 @@ typedef struct _QUEUEKEYBUFFER
 
 #pragma pack()
 
-/* New way to get the relative 32-bit window */
+/* New way to get a relative 32-bit window */
 PWND inline GetWindowObject(HWND hWnd)
 {
     PWND pWnd;
+
+	/* This function doesn't work */
 
     GrabWin16Lock();
 
@@ -165,11 +167,11 @@ PWND inline GetWindowObject(HWND hWnd)
         goto _ret;
 
     /* if hWnd is above the max HWND value */
-    if((DWORD)hWnd > *(PDWORD)(g_SharedInfo + 0x10070) )
+    if((DWORD)hWnd > *(PDWORD)(g_UserBase + 0x10070) )
         goto _ret;
 
     /* Grab the pointer from gSharedInfo (USER's DGROUP) */
-    pWnd = (PWND)*(PDWORD)(hWnd + 0x10000 + g_SharedInfo);
+    pWnd = (PWND)*(PDWORD)(hWnd + 0x10000 + g_UserBase);
 
     /* HWND structures must be above 0x20000 */
     if((DWORD)pWnd < 0x20000)
@@ -179,7 +181,7 @@ PWND inline GetWindowObject(HWND hWnd)
     }
 
     /* Now get the flat PTR from the PWND structure */
-    pWnd = (PWND)((DWORD)pWnd + g_SharedInfo);
+    pWnd = (PWND)REBASEUSER(pWnd);
 
 _ret:
     ReleaseWin16Lock();
