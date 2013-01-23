@@ -509,16 +509,3 @@ UINT kexGetKernelExDirectory(LPSTR lpBuffer, UINT uSize)
 	}
 }
 
-/** STUBS for kexcontrol **/
-
-void kexDbgDumpConfigurations(void)
-{
-}
-
-void kexDbgDumpImtes(void)
-{
-}
-
-void kexDbgDumpAppSettings(void)
-{
-}
