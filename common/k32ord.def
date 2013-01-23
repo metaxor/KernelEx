@@ -10,7 +10,13 @@ EXPORTS
     VxDCall6 @6 NONAME
     VxDCall7 @7 NONAME
     VxDCall8 @8 NONAME
+	_ReleaseThunkLock @48 NONAME
+	_RestoreThunkLock @49 NONAME
+	_LeaveSysLevel_NoThk @86 NONAME
     _GetpWin16Lock @93 NONAME
+	_CheckNotSysLevel @94 NONAME
+	_ConfirmSysLevel @95 NONAME
+	_ConfirmWin16Lock @96 NONAME
     _EnterSysLevel @97 NONAME
     _LeaveSysLevel @98 NONAME
     MakeCriticalSectionGlobal

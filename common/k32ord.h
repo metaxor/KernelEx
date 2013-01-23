@@ -43,9 +43,15 @@
 extern "C" {
 #endif
 
+MAKE_HEADER(void __stdcall _CheckNotSysLevel(CRITICAL_SECTION* cs))
+MAKE_HEADER(DWORD __stdcall _ConfirmSysLevel(CRITICAL_SECTION* cs))
+MAKE_HEADER(DWORD __stdcall _ConfirmWin16Lock(void))
 MAKE_HEADER(void __stdcall _GetpWin16Lock(CRITICAL_SECTION** cs))
 MAKE_HEADER(void __stdcall _EnterSysLevel(CRITICAL_SECTION* cs))
+MAKE_HEADER(void __stdcall _ReleaseThunkLock(DWORD *pMutexCount))
+MAKE_HEADER(void __stdcall _RestoreThunkLock(DWORD MutexCount))
 MAKE_HEADER(void __stdcall _LeaveSysLevel(CRITICAL_SECTION* cs))
+MAKE_HEADER(void __stdcall _LeaveSysLevel_NoThk(CRITICAL_SECTION* cs))
 
 MAKE_HEADER(ULONG __stdcall VxDCall1(ULONG p1))
 MAKE_HEADER(ULONG __stdcall VxDCall2(ULONG p1, ULONG p2))
