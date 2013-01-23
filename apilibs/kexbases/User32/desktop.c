@@ -284,7 +284,7 @@ BOOL InitDesktops()
 
 		if(!IntValidateWindowStationHandle(hWindowStation, &WindowStationObject))
 		{
-			TRACE("Failed to validate window station %s\n", pszWinSta);
+			TRACE("Failed to validate window station %s (error %d)\n", pszWinSta, GetLastError());
 			goto error;
 		}
 
@@ -305,7 +305,7 @@ BOOL InitDesktops()
 
 		if(hDesktop == NULL)
 		{
-			TRACE("Failed to open desktop %s\n", pszDesktop);
+			TRACE("Failed to open desktop %s (error %d)\n", pszDesktop, GetLastError());
 			goto error;
 		}
 
@@ -361,13 +361,14 @@ BOOL IntValidateDesktopHandle(HDESK hDesktop, PDESKTOP *DesktopObject)
 
 BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
 {
-	PWND pwnd;
-	DWORD dwThreadId;
-	DWORD dwProcessId;
-	PTDB98 Thread;
-	PPDB98 Process;
-	PTHREADINFO pti;
-	PPROCESSINFO ppi;
+	PWND pwnd = NULL;
+	DWORD dwThreadId = 0;
+	DWORD dwProcessId = 0;
+	PTDB98 Thread = NULL;
+	PPDB98 Process = NULL;
+	PTHREADINFO pti = NULL;
+	PPROCESSINFO ppi = NULL;
+	BOOL fHung = FALSE;
 
 	dwThreadId = GetWindowThreadProcessId(hwnd, &dwProcessId);
 
@@ -463,12 +464,14 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
 		/* Window's thread isn't in the input desktop, hide it */
 		if(pwnd->style & WS_VISIBLE)
 		{
+			fHung = IsHungThread_pfn(dwThreadId);
 			if(!(pwnd->style & WS_INTERNAL_WASVISIBLE))
 				pwnd->style |= WS_INTERNAL_WASVISIBLE;
-			SetWindowPos(hwnd, NULL, 0, 0, 0, 0, SWP_ASYNCWINDOWPOS | SWP_HIDEWINDOW | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER);
 
 			/* In case the thread is hung, manually remove the WS_VISIBLE flag */
-			if(IsHungThread_pfn(dwThreadId))
+			SetWindowPos(hwnd, NULL, 0, 0, 0, 0, SWP_ASYNCWINDOWPOS | SWP_HIDEWINDOW | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER);
+
+			if(fHung)
 				pwnd->style &= ~WS_VISIBLE;
 		}
 	}
@@ -477,10 +480,12 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
 		/* Window's thread is in the input desktop, show it and update it if necessary */
 		if(pwnd->style & WS_INTERNAL_WASVISIBLE)
 		{
+			fHung = IsHungThread_pfn(dwThreadId);
 			pwnd->style &= ~WS_INTERNAL_WASVISIBLE;
+
 			SetWindowPos(hwnd, NULL, 0, 0, 0, 0, SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER);
 
-			if(IsHungThread_pfn(dwThreadId))
+			if(fHung)
 				pwnd->style |= WS_VISIBLE;
 		}
 	}
@@ -502,27 +507,35 @@ DWORD WINAPI DesktopThread(PVOID lParam)
 
 	while(1)
 	{
+		Sleep(1);
 		PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE);
-		//GetMessage(&msg, NULL, 0, 0);
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 
-		kexGrabLocks(); // Don't get interrupted while we are switching desktop/hiding some windows
+		GrabWin16Lock(); // Don't get interrupted while we are switching desktop/hiding some windows
 
 		/* We don't want our desktop thread crash, so we safely use
 		exception handling, crash happen when there is no free memory */
 		__try
 		{
-			/* By using the nothunk version of EnumWindows, it saves the CPU consumption up to 10% */
 			EnumWindows_nothunk(EnumWindowsProc, 0);
+			EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, gpdeskInputDesktop->pdev);
 		}
 		__except(EXCEPTION_EXECUTE_HANDLER)
 		{
 		}
 
-		kexReleaseLocks();
+		ReleaseWin16Lock();
 
-		Sleep(1);
+		/* FIXME: Wait for Win16Lock to be grabbed/released without wasting system resources */
+		/*while(pWin16Mutex == NULL || pWin16Mutex->LockCount >= 0)
+		{
+			PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE);
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+			Sleep(1);
+			continue;
+		}*/
 	}
 
 	return 0;
@@ -727,6 +740,7 @@ HDESK WINAPI CreateDesktopA_new(LPCSTR lpszDesktop, LPCSTR lpszDevice, LPDEVMODE
 	DesktopObject->lpName = (PCHAR)DesktopName;
 	DesktopObject->rpwinstaParent = Process->Win32Process->rpwinsta;
 	DesktopObject->pdev = pdev;
+	DesktopObject->DesktopWindow = GetDesktopWindow();
 
 	hDesktop = (HDESK)kexAllocHandle(Process, DesktopObject, dwDesiredAccess | flags);
 
@@ -783,64 +797,67 @@ BOOL WINAPI EnumDesktopsA_new(HWINSTA hwinsta, DESKTOPENUMPROCA lpEnumFunc, LPAR
     return TRUE;
 }
 
+BOOL CALLBACK EnumDesktopWindowsProc(HWND hWnd, LPARAM lParam)
+{
+	DWORD *ParamArray = (DWORD*)lParam;
+	PTDB98 Thread = NULL;
+	PTHREADINFO pti = NULL;
+	PDESKTOP DesktopObject = (PDESKTOP)ParamArray[0];
+	WNDENUMPROC lpfn = (WNDENUMPROC)ParamArray[1];
+	LPARAM lpParam = ParamArray[2];
+	PWND pWnd = HWNDtoPWND(hWnd);
+	PMSGQUEUE pQueue = GetWindowQueue(pWnd);
+	DWORD dwThreadId = 0;
+
+	if(pQueue == NULL)
+		return TRUE;
+
+	dwThreadId = pQueue->threadId;
+
+	Thread = (PTDB98)kexGetThread(dwThreadId);
+
+	if(Thread == NULL)
+		return TRUE;
+
+	pti = Thread->Win32Thread;
+
+	if(pti == NULL)
+		return TRUE;
+
+	if(pti->rpdesk == DesktopObject)
+		return (*lpfn)(hWnd, lpParam);
+
+	return TRUE;
+}
+
 /* MAKE_EXPORT EnumDesktopWindows_new=EnumDesktopWindows */
 BOOL WINAPI EnumDesktopWindows_new(HDESK hDesktop, WNDENUMPROC lpfn, LPARAM lParam)
 {
-	PDESKTOP DesktopObject;
-	BOOL result;
+	PDESKTOP DesktopObject = NULL;
+	BOOL result = FALSE;
+	DWORD ParamArray[2];
 
 	if(IsBadCodePtr((FARPROC)lpfn))
 		return FALSE;
 
+	ParamArray[0] = (DWORD)DesktopObject;
+	ParamArray[1] = (DWORD)lpfn;
+	ParamArray[2] = lParam;
+
 	if(!IntValidateDesktopHandle(hDesktop, &DesktopObject))
 		return FALSE;
 
-	result = EnumWindowsEx(0, lpfn, lParam, FALSE, hDesktop, TRUE);
-
-	kexDereferenceObject(DesktopObject);
-
-	return result;
-
-#if 0
 	__try
 	{
-		for(; pWnd != NULL; pWnd = (PWND)REBASEUSER(pWnd->spwndNext))
-		{
-			pQueue = GetWindowQueue(pWnd);
-
-			if(pQueue == NULL)
-				continue;
-
-			Thread = (PTDB98)kexGetThread(pQueue->threadId);
-			Process = (PPDB98)kexGetProcess(pQueue->npProcess);
-
-
-			if(Thread == NULL || Process == NULL)
-				continue;
-
-			/* Skip the kernel process because the application can maliciously terminate it */
-			if(Process == pKernelProcess)
-				continue;
-
-			pti = Thread->Win32Thread;
-
-			if(pti == NULL)
-				continue;
-
-			if(pti->rpdesk != DesktopObject)
-				continue;
-
-			if(!(*lpfn)((HWND)pWnd->hWnd16, lParam))
-				return FALSE;
-		}
+		result = EnumWindows(EnumDesktopWindowsProc, (LPARAM)ParamArray);
 	}
 	__except(EXCEPTION_EXECUTE_HANDLER)
 	{
-		return FALSE;
+		result = FALSE;
 	}
 
-	return TRUE;
-#endif
+	kexDereferenceObject(DesktopObject);
+	return result;
 }
 
 /* MAKE_EXPORT GetInputDesktop_new=GetInputDesktop */
@@ -884,7 +901,10 @@ HDESK WINAPI OpenDesktopA_new(LPSTR lpszDesktop, DWORD dwFlags, BOOL fInherit, A
 	PLIST_ENTRY DesktopList;
 
 	if(IsBadStringPtr(lpszDesktop, -1))
+	{
+		SetLastError(ERROR_INVALID_PARAMETER);
 		return NULL;
+	}
 
 	if(fInherit)
 		flags |= HF_INHERIT;
