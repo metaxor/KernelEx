@@ -96,7 +96,6 @@ BOOL CreateMultiSessionWindow()
 		if(DialogBox((HINSTANCE)GetModuleHandle(0), MAKEINTRESOURCE(IDD_MULTISESSION), NULL, DialogProc) == -1)
 			return FALSE;
 		DialogWnd = NULL;
-        //DEBUG("#8");
 		if(bSwitchToSession1)
 		{
 			bSwitchToSession1 = FALSE;

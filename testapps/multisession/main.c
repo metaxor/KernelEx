@@ -140,40 +140,22 @@ int WINAPI WinMain(HINSTANCE hInstance,
 )
 {
 	int ret;
-	TCHAR buffer[255];
 	TCHAR *ExplorerString = "C:\\WINDOWS\\TASKMAN.EXE";
 	DWORD ThreadId;
 
-    DEBUG("#1");
-
     WindowStation1 = GetProcessWindowStation();
-
-	DEBUG("#2");
 
 	// Create personnals spaces
 	ThreadId = GetCurrentThreadId();
 
     Desktop0 = GetThreadDesktop(ThreadId);//OpenDesktop("Default", 0, FALSE, GENERIC_ALL);
-	DEBUG("#3");
     Desktop1 = CreateDesktop("Session1", NULL, NULL, 0, GENERIC_ALL, NULL);
 
-    wsprintf(buffer, "Desktop1 = 0x%X", Desktop1);
-	DEBUG(buffer);
-	if(Desktop1 == NULL)
-	{
-		DEBUG("#5");
-		wsprintf(buffer, "Error while creating the desktop: (error %d)", GetLastError());
-		MessageBox(NULL, buffer, "Error", MB_ICONWARNING);
-		return 0;
-	}
-
-	DEBUG("#6");
 	memset(&si, 0, sizeof(STARTUPINFO));
 	memset(&pi, 0, sizeof(PROCESS_INFORMATION));
 	si.lpDesktop = "Session1";
 	si.cb = sizeof(STARTUPINFO);
 
-    DEBUG("#7");
 	ret = CreateProcess(ExplorerString, NULL, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi); // Let's put the shell inside
 	//if(!ret)
 	//{
@@ -182,7 +164,6 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	//}
 	CloseHandle(pi.hThread);
 
-    DEBUG("#8");
 	if(!CreateMultiSessionWindow())
 	{
 		UnloadEverything(TRUE);
