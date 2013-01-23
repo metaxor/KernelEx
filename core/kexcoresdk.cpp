@@ -111,40 +111,42 @@ BOOL kexDereferenceObject(PVOID Object)
 
 BOOL kexEnumProcesses(DWORD *pProcessIds, DWORD cb, DWORD *pBytesReturned)
 {
-	HANDLE hSnapshot = NULL;
 	PROCESSENTRY32 pe32;
-	DWORD count = 0;
-	DWORD BytesReturned = 0;
+	HANDLE hSnapshot;
 
-	if(IsBadReadPtr(pProcessIds, cb) && IsBadReadPtr(pBytesReturned, sizeof(DWORD)))
+	if (cb < sizeof(DWORD))
 		return FALSE;
 
-	hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+	cb = cb & ~sizeof(DWORD);
 
-	if(hSnapshot == NULL)
-		return FALSE;
-
-	memset(&pe32, 0, sizeof(PROCESSENTRY32));
-
-	pe32.dwSize = sizeof(PROCESSENTRY32);
-
-	if(!Process32First(hSnapshot, &pe32))
+	if (IsBadWritePtr(pProcessIds,sizeof(DWORD)) || IsBadWritePtr(pBytesReturned,sizeof(DWORD)))
 	{
-		CloseHandle(hSnapshot);
+		SetLastError(ERROR_NOACCESS);
 		return FALSE;
 	}
 
-	do
+	hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+
+	if (hSnapshot == INVALID_HANDLE_VALUE)
+		return FALSE;
+
+	pe32.dwSize = sizeof(PROCESSENTRY32);
+
+	if ( Process32First(hSnapshot, &pe32) )
 	{
-		pProcessIds[count] = pe32.th32ProcessID;
-		BytesReturned += sizeof(DWORD);
-		count++;
-	} while(Process32Next(hSnapshot, &pe32) && BytesReturned <= cb);
+		*pProcessIds = pe32.th32ProcessID;
+		pProcessIds++;
+		*pBytesReturned = sizeof(DWORD);
+
+		while ( Process32Next(hSnapshot, &pe32) && *pBytesReturned < cb )
+		{
+			*pProcessIds = pe32.th32ProcessID;
+			pProcessIds++;
+			*pBytesReturned += sizeof(DWORD);			
+		}
+	}
 
 	CloseHandle(hSnapshot);
-
-	if(!IsBadReadPtr(pBytesReturned, sizeof(DWORD)))
-		*pBytesReturned = BytesReturned;
 
 	return TRUE;
 }
