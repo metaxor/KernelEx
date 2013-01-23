@@ -1,3 +1,26 @@
+/*
+ *  KernelEx
+ *
+ *  Copyright (C) 2010, Tihiy
+ *  Copyright (C) 2013, Ley0k
+ *
+ *  This file is part of KernelEx source code.
+ *
+ *  KernelEx is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published
+ *  by the Free Software Foundation; version 2 of the License.
+ *
+ *  KernelEx is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with GNU Make; see the file COPYING.  If not, write to
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
+ */
+
 #pragma once
 
 #include "k32ord.h"
@@ -24,9 +47,13 @@ static const char c_szDBCSProp[]="kexDBCS";
 #define SetWinCreateEvent(proc) SetWinEventHook(EVENT_OBJECT_CREATE, EVENT_OBJECT_CREATE, g_hUser32, \
 				(WINEVENTPROC)(proc), GetCurrentProcessId(), GetCurrentThreadId(), WINEVENT_INCONTEXT)
 
+#define GFSR_SYSTEMRESOURCES   0x0000
+#define GFSR_GDIRESOURCES      0x0001
+#define GFSR_USERRESOURCES     0x0002
+
 //stuff
+extern LPCRITICAL_SECTION pWin16Mutex;
 extern DWORD g_UserBase;
-extern DWORD g_SharedInfo;
 extern HMODULE g_hUser32;
 BOOL InitUniThunkLayerStuff();
 void GrabWin16Lock();
@@ -64,6 +91,9 @@ BOOL InitUniThunkLayer();
 
 //sendmessage_fix
 LRESULT WINAPI SendMessageA_fix(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
+
+//resources
+UINT __fastcall GetFreeSystemResources(UINT uFlags);
 
 #ifdef __cplusplus
 extern "C"
