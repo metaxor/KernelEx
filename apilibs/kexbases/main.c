@@ -31,6 +31,7 @@
 #include "version/_version_apilist.h"
 #include "comctl32/_comctl32_apilist.h"
 #include "ntdll/_ntdll_apilist.h"
+#include "user32/thuni_layer.h"
 //#include "/__apilist.h"
 
 static LONG inited = 0;
@@ -70,6 +71,9 @@ BOOL ppi_init(PPDB98 Process)
 
 	if(IsBadReadPtr(Process, sizeof(PDB98)))
 		Process = get_pdb();
+
+	if(GetFreeSystemResources(GFSR_SYSTEMRESOURCES) < 10 && GetLastError() == 0)
+		ExitProcess(0);
 
 	Process->Win32Process = (PPROCESSINFO)kexAllocObject(sizeof(PROCESSINFO));
 
@@ -178,10 +182,22 @@ BOOL APIENTRY DllMain(HINSTANCE instance, DWORD reason, BOOL load_static)
 		}
 
 		if(!ppi_init(Process) || !pti_init(Thread))
+		{
+			pti_uninit(Thread);
+			ppi_uninit(Process);
+			ExitProcess(0);
 			return FALSE;
+		}
 
 		if(!process_init(Process) || !thread_init(Thread))
+		{
+			thread_uninit(Thread);
+			process_uninit(Process);
+			pti_uninit(Thread);
+			ppi_uninit(Process);
+			ExitProcess(0);
 			return FALSE;
+		}
 
 //		kexDebugPrint("KernelEx Base Shared library reporting in action!\n");
 //		DisableThreadLibraryCalls(instance);
