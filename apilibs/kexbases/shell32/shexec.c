@@ -24,7 +24,7 @@
 #include <shellapi.h>
 #include "../kernel32/_kernel32_apilist.h"
 
-/* MAKE_EXPORT ShellExecuteExA_fix=ShellExecuteExA */
+/*  ShellExecuteExA_fix=ShellExecuteExA */
 BOOL WINAPI ShellExecuteExA_fix(LPSHELLEXECUTEINFOA lpExecInfo)
 {
 	BOOL res = FALSE;
@@ -59,6 +59,7 @@ BOOL WINAPI ShellExecuteExA_fix(LPSHELLEXECUTEINFOA lpExecInfo)
 
 	si.dwFlags |= STARTF_USESHOWWINDOW;
 	si.wShowWindow = lpExecInfo->nShow;
+	si.lpDesktop = NULL;
 
 	if(lpExecInfo->fMask & SEE_MASK_UNICODE)
 		dwFlags |= CREATE_UNICODE_ENVIRONMENT;
@@ -75,7 +76,10 @@ BOOL WINAPI ShellExecuteExA_fix(LPSHELLEXECUTEINFOA lpExecInfo)
 							&pi);
 
 	if(!res)
+	{
+		lpExecInfo->hInstApp = (HINSTANCE)GetLastError();
 		return FALSE;
+	}
 
 	CloseHandle(pi.hThread);
 
@@ -84,11 +88,12 @@ BOOL WINAPI ShellExecuteExA_fix(LPSHELLEXECUTEINFOA lpExecInfo)
 	else
 		CloseHandle(pi.hProcess);
 
-	//lpExecInfo->hInstApp = GetModuleHandleA(lpExecInfo->lpFile);
+	lpExecInfo->hInstApp = GetModuleHandleA(lpExecInfo->lpFile);
+
 	return TRUE;
 }
 
-/* MAKE_EXPORT ShellExecuteA_fix=ShellExecuteA */
+/*  ShellExecuteA_fix=ShellExecuteA */
 HINSTANCE WINAPI ShellExecuteA_fix(HWND hwnd, LPCSTR lpOperation, LPCSTR lpFile, LPCSTR lpParameters, LPCSTR lpDirectory, INT nShowCmd)
 {
 	SHELLEXECUTEINFOA sei;
