@@ -114,7 +114,6 @@ BOOL CALLBACK EnumProcessesProc(DWORD dwProcessId, PSHUTDOWNDATA ShutdownData)
 	DWORD Threads = 0;
 	ULONG i = 0;
 	PPDB98 Process = NULL;
-	PPROCESSINFO ppi = NULL;
 
 	Process = (PPDB98)kexGetProcess(dwProcessId);
 
@@ -123,11 +122,6 @@ BOOL CALLBACK EnumProcessesProc(DWORD dwProcessId, PSHUTDOWNDATA ShutdownData)
 
 	/* Skip services processes */
 	if(Process->Flags & fServiceProcess || Process == Msg32Process)
-		return TRUE;
-
-	ppi = Process->Win32Process;
-
-	if(ppi != NULL && ppi->rpwinsta != ShutdownData->WindowStation && Process != pKernelProcess)
 		return TRUE;
 
 	ShutdownData->ShellProcessId = GetWindowProcessId(GetShellWindow_new());
@@ -163,10 +157,46 @@ BOOL CALLBACK EnumProcessesProc(DWORD dwProcessId, PSHUTDOWNDATA ShutdownData)
 	return TRUE;
 }
 
+ULONG GetUserProcessesCount(PSHUTDOWNDATA sa)
+{
+	DWORD pProcess[1024];
+	DWORD cbProcesses = 0;
+	ULONG ProcessCount = 0;
+	ULONG index = 0;
+	PPDB98 Process = NULL;
+
+	kexEnumProcesses(pProcess, sizeof(pProcess), &cbProcesses);
+
+	cbProcesses /= sizeof(DWORD);
+
+	for(index=0;index<=cbProcesses;index++)
+	{
+		Process = (PPDB98)kexGetProcess(pProcess[index]);
+
+		if(Process == NULL)
+			continue;
+
+		if(Process->Flags & fServiceProcess || Process == Msg32Process)
+			continue;
+
+		if(Process == pKernelProcess)
+			continue;
+
+		/* Skip the shell process because he must be the last process running
+		   in the session */
+		if(pProcess[index] == sa->ShellProcessId)
+			continue;
+
+		ProcessCount++;
+	}
+
+	return ProcessCount;
+}
+
 DWORD WINAPI ShutdownThread(PVOID lParam)
 {
 	MSG msg;
-	DWORD pProcess[2048];
+	DWORD pProcess[1024];
 	DWORD Processes = 0;
 	BOOL fAborted = FALSE;
 	ULONG i = 0;
@@ -231,27 +261,33 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 		if(HungAppTimeout == 0)
 			HungAppTimeout = 5000;
 
-		kexEnumProcesses(pProcess, sizeof(pProcess), &Processes);
-
-		Processes /= sizeof(DWORD);
-
 		sa.uFlags = msg.wParam;
-		sa.WindowStation = (PWINSTATION_OBJECT)msg.lParam;
+		sa.WindowStation = NULL;
 		sa.Result = 1;
 		sa.dwProcessId = 0;
 		sa.dwThreadId = 0;
 
 		__try
 		{
-			for(i=0;i<=Processes;i++)
+			/* Loop until there are no processes in the current user and no application
+			   refused to terminate */
+			do
 			{
-				Sleep(100);
-				if(!EnumProcessesProc(pProcess[i], &sa))
+				kexEnumProcesses(pProcess, sizeof(pProcess), &Processes);
+
+				Processes /= sizeof(DWORD);
+
+				for(i=0;i<=Processes;i++)
 				{
-					fAborted = TRUE;
-					break;
+					Sleep(100);
+					if(!EnumProcessesProc(pProcess[i], &sa))
+					{
+						fAborted = TRUE;
+						break;
+					}
 				}
-			}
+
+			} while(GetUserProcessesCount(&sa) != 0 && !fAborted);
 		}
 		__except(EXCEPTION_EXECUTE_HANDLER)
 		{
@@ -281,22 +317,31 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 		RegFlushKey(HKEY_DYN_DATA);
 
 		/* FIXME: Instead of calling ExitWindowsEx, send a logoff message to MPREXE */
-		ExitWindowsEx(EWX_LOGOFF, 0);
 
-		if(sa.uFlags & EWX_REBOOT)
+		__try
 		{
+			ExitWindowsEx(EWX_LOGOFF, 0);
+
+			if(sa.uFlags & EWX_REBOOT)
+			{
+				ZwShutdownSystem(ShutdownReboot);
+				ExitWindowsEx(EWX_REBOOT | EWX_FORCE, 0);
+			}
+			else if(sa.uFlags & EWX_SHUTDOWN)
+			{
+				ZwShutdownSystem(ShutdownNoReboot);
+				ExitWindowsEx(EWX_SHUTDOWN | EWX_FORCE, 0);
+			}
+			else if(sa.uFlags & EWX_POWEROFF)
+			{
+				ZwShutdownSystem(ShutdownPowerOff);
+				ExitWindowsEx(EWX_POWEROFF | EWX_FORCE, 0);
+			}
+		}
+		__except(EXCEPTION_EXECUTE_HANDLER)
+		{
+			/* just in case, because if MPREXE is terminated, ExitWindowsEx will crash */
 			ZwShutdownSystem(ShutdownReboot);
-			ExitWindowsEx(EWX_REBOOT | EWX_FORCE, 0);
-		}
-		else if(sa.uFlags & EWX_SHUTDOWN)
-		{
-			ZwShutdownSystem(ShutdownNoReboot);
-			ExitWindowsEx(EWX_SHUTDOWN | EWX_FORCE, 0);
-		}
-		else if(sa.uFlags & EWX_POWEROFF)
-		{
-			ZwShutdownSystem(ShutdownPowerOff);
-			ExitWindowsEx(EWX_POWEROFF | EWX_FORCE, 0);
 		}
 
 finished:
@@ -313,10 +358,7 @@ finished:
 /* MAKE_EXPORT ExitWindowsEx_fix=ExitWindowsEx */
 BOOL WINAPI ExitWindowsEx_fix(UINT uFlags, DWORD dwReserved)
 {
-	/* dwReserved will be used for window stations */
-
 	PPROCESSINFO ppi = NULL;
-	HWINSTA hWinSta = (HWINSTA)dwReserved;
 	PWINSTATION_OBJECT WindowStation = NULL;
 
 	if(fShutdown)
@@ -324,9 +366,6 @@ BOOL WINAPI ExitWindowsEx_fix(UINT uFlags, DWORD dwReserved)
 
 	/* Check if the flags does not exceed the maximum shutdown type */
 	if(uFlags & ~(EWX_LOGOFF | EWX_SHUTDOWN | EWX_REBOOT | EWX_FORCE | EWX_POWEROFF | EWX_FORCEIFHUNG))
-		return FALSE;
-
-	if(hWinSta != NULL && !IntValidateWindowStationHandle(hWinSta, &WindowStation))
 		return FALSE;
 
 	ppi = get_pdb()->Win32Process;
@@ -337,12 +376,7 @@ BOOL WINAPI ExitWindowsEx_fix(UINT uFlags, DWORD dwReserved)
 		   this can also prevent services process from shutting down the system */
 		if(!(kexGetHandleAccess(ppi->hwinsta) & WINSTA_EXITWINDOWS))
 			return FALSE;
-
-		if(hWinSta == NULL)
-			WindowStation = ppi->rpwinsta;
 	}
-	else if(ppi == NULL && WindowStation == NULL)
-		WindowStation = InputWindowStation;
 
-	return PostThreadMessage(dwShutdownThreadId, WM_QUERYENDSESSION, uFlags, (LPARAM)WindowStation);
+	return PostThreadMessage(dwShutdownThreadId, WM_QUERYENDSESSION, uFlags, 0);
 }
