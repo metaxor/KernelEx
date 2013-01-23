@@ -371,7 +371,7 @@ HWINSTA WINAPI OpenWindowStationA_new(LPSTR lpszWinSta, BOOL fInherit, ACCESS_MA
 
 	sprintf(WindowStationPath, "%s\\%s", WINSTA_ROOT_NAME, WindowStationName);
 
-	Sleep(1); // Sounds useless, but without this, this function become buggy...
+	Sleep(1);
 
 	WindowStation = (HWINSTA)kexOpenObjectByName(WindowStationPath, K32OBJ_WINSTATION, dwDesiredAccess | flags);
 
