@@ -2,6 +2,7 @@
  *  KernelEx
  *
  *  Copyright (C) 2010, Tihiy
+ *  Copyright (C) 2013, Ley0k
  *
  *  This file is part of KernelEx source code.
  *
@@ -26,9 +27,8 @@
 #include <kexcoresdk.h>
 #include "thuni_layer.h"
 
-static LPCRITICAL_SECTION pWin16Mutex;
+LPCRITICAL_SECTION pWin16Mutex;
 DWORD g_UserBase;
-DWORD g_SharedInfo;
 HMODULE g_hUser32;
 
 BOOL InitUniThunkLayerStuff()
@@ -42,16 +42,12 @@ BOOL InitUniThunkLayerStuff()
 
 	_GetpWin16Lock( &pWin16Mutex );
 	g_UserBase = MapSL((DWORD)hUser16 << 16);
-	g_hUser32 = GetModuleHandleA("user32");	
-    GetDialogBaseUnits();
+	g_hUser32 = GetModuleHandleA("user32");
 
-    /* ecx holds gSharedInfo */
-    __asm mov [g_SharedInfo], ecx
+	//FreeLibrary16(hUser16);
 
-	FreeLibrary16(hUser16);
-
-	TRACE("ThunkLayer initialized: g_UserBase = 0x%X, g_SharedInfo = 0x%X\n", g_UserBase, g_SharedInfo);
-	return (g_UserBase && g_hUser32 && g_SharedInfo);
+	TRACE("ThunkLayer initialized: g_UserBase = 0x%X, hUser16 = 0x%X, g_hUser32 = 0x%X\n", g_UserBase, hUser16, g_hUser32);
+	return (g_UserBase && g_hUser32);
 }
 
 void GrabWin16Lock()
@@ -191,3 +187,42 @@ void UpdateLRKeyState(LPMSG msg)
 	}	
 }
 
+HINSTANCE hUser16 = NULL;
+DWORD GFSR_Address = NULL;
+WORD result = 0;
+
+UINT __fastcall GetFreeSystemResources(UINT uFlags)
+{
+    char buffer[0x40]; 
+ 
+    buffer[0] = 0;
+
+	hUser16 = (HINSTANCE)LoadLibrary16("USER.EXE");
+
+	if(hUser16 < (HINSTANCE)32)
+	{
+		SetLastError((DWORD)hUser16);
+		return 0;
+	}
+
+	GFSR_Address = GetProcAddress16(hUser16, "GetFreeSystemResources");
+
+	if(GFSR_Address == NULL)
+	{
+		SetLastError(ERROR_INVALID_ADDRESS);
+		FreeLibrary16(hUser16);
+		return 0;
+	}
+
+	SetLastError(0);
+
+	__asm	xor eax, eax
+	__asm	push [uFlags]
+	__asm	mov edx, [GFSR_Address]
+	__asm	call ds:QT_Thunk
+	__asm	mov [result], ax
+
+	FreeLibrary16(hUser16);
+
+	return result;
+}
