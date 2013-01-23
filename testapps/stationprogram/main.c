@@ -53,10 +53,14 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd,
 )
 {
     DWORD dwResult = -1;
-    DWORD dwProcessId;
-    LRESULT Message;
+    DWORD dwProcessId = 0;
+    LRESULT Message = 0;
+	HANDLE hProcess = NULL;
 
     GetWindowThreadProcessId(hwnd, &dwProcessId);
+
+	if(lParam & EWX_FORCE)
+		goto _terminate;
 
     Message = SendMessageTimeout(hwnd,
                                 WM_QUERYENDSESSION,
@@ -66,29 +70,14 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd,
                                 3000,
                                 &dwResult);
 
-    if(!Message || dwResult == FALSE)
-    {
-        if(lParam & EWX_FORCE)
-        {
-            HANDLE hProcess;
+    if(!Message || !dwResult)
+		return FALSE;
 
-            hProcess = OpenProcess(PROCESS_TERMINATE, FALSE, dwProcessId);
-            TerminateProcess(hProcess, 0);
-        }
-        else
-        {
-            return FALSE;
-        }
-    }
+_terminate:
+	hProcess = OpenProcess(PROCESS_TERMINATE, FALSE, dwProcessId);
+	TerminateProcess(hProcess, 0);
 
-    if(dwResult == TRUE)
-    {
-        HANDLE hProcess;
-
-        hProcess = OpenProcess(PROCESS_TERMINATE, FALSE, dwProcessId);
-        TerminateProcess(hProcess, 0);
-    }
-
+	Sleep(100);
     return TRUE;
 }
 
