@@ -81,15 +81,35 @@ BOOL thread_user32_init(PTDB98 Thread)
 
 BOOL process_user32_init(PPDB98 Process)
 {
+	TRACE("GDI resources: %u%%\n", GetFreeSystemResources(GFSR_GDIRESOURCES));
+	TRACE("System resources: %u%%\n", GetFreeSystemResources(GFSR_SYSTEMRESOURCES));
+	TRACE("USER resources: %u%%\n", GetFreeSystemResources(GFSR_USERRESOURCES));
+	if(GetFreeSystemResources(GFSR_USERRESOURCES) < 12 && GetLastError() == 0)
+	{
+		WARN("Out of USER resources ! Process %p cannot start\n", Process);
+		return FALSE;
+	}
+
 	return TRUE;
 }
 
 VOID thread_user_uninit(PTDB98 Thread)
 {
-	TRACE_OUT("Dereferencing thread's desktop\n");
-	kexDereferenceObject(Thread->Win32Thread->rpdesk);
-	Thread->Win32Thread->rpdesk = NULL;
-	Thread->Win32Thread->hdesk = NULL;
+	__try
+	{
+		/* Dereference the desktop if this is the last thread in the process */
+		if(Thread->tib.pProcess->cNotTermThreads < 1)
+		{
+			TRACE_OUT("Dereferencing thread's desktop\n");
+			kexDereferenceObject(Thread->Win32Thread->rpdesk);
+		}
+
+		Thread->Win32Thread->rpdesk = NULL;
+		Thread->Win32Thread->hdesk = NULL;
+	}
+	__except(EXCEPTION_EXECUTE_HANDLER)
+	{
+	}
 	return;
 }
 
@@ -99,25 +119,31 @@ VOID process_user_uninit(PPDB98 Process)
 	PK32OBJHEAD Object;
 	UINT index;
 
-	Process->Win32Process->rpdeskStartup = NULL;
-	Process->Win32Process->hdeskStartup = NULL;
-
-	kexDereferenceObject(Process->Win32Process->rpwinsta);
-	Process->Win32Process->rpwinsta = NULL;
-	Process->Win32Process->hwinsta = NULL;
-
-	TRACE_OUT("Trying to free some desktops\n");
-	for(index=1;index<=pHandleTable->cEntries;index++)
+	__try
 	{
-		Object = (PK32OBJHEAD)pHandleTable->array[index].pObject;
+		Process->Win32Process->rpdeskStartup = NULL;
+		Process->Win32Process->hdeskStartup = NULL;
 
-		if(IsBadReadPtr(Object, sizeof(K32OBJHEAD)))
-			continue;
+		kexDereferenceObject(Process->Win32Process->rpwinsta);
+		Process->Win32Process->rpwinsta = NULL;
+		Process->Win32Process->hwinsta = NULL;
 
-		if(Object->Type == K32OBJ_DESKTOP)
-			CloseDesktop_new((HDESK)(index*4));
-		else if(Object->Type == K32OBJ_WINSTATION)
-			CloseWindowStation_new((HWINSTA)(index*4));
+		TRACE_OUT("Trying to free some desktops\n");
+		for(index=1;index<=pHandleTable->cEntries;index++)
+		{
+			Object = (PK32OBJHEAD)pHandleTable->array[index].pObject;
+
+			if(IsBadReadPtr(Object, sizeof(K32OBJHEAD)))
+				continue;
+
+			if(Object->Type == K32OBJ_DESKTOP)
+				CloseDesktop_new((HDESK)(index*4));
+			else if(Object->Type == K32OBJ_WINSTATION)
+				CloseWindowStation_new((HWINSTA)(index*4));
+		}
+	}
+	__except(EXCEPTION_EXECUTE_HANDLER)
+	{
 	}
 	return;
 }
