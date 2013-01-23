@@ -50,19 +50,26 @@ static BOOL WINAPI TestChild(HWND hwnd, HWND hwndNewParent)
 	return ret;
 }
 
-BOOL __fastcall GetWndList(PWND *pWndList, DWORD dwSize, LPDWORD dwReturnedSize)
+BOOL __fastcall GetWndList(PWND **pWndList, LPDWORD lpReturnedSize)//, DWORD dwSize, LPDWORD dwReturnedSize)
 {
 	PWND pWnd = NULL;
 	PWND pWndParent = NULL;
-	DWORD dwRetSize = 0;
+	DWORD dwRetSize = sizeof(PWND);
+	PWND *newList = NULL;
+	PWND *tmpList = NULL;
+	DWORD cbWnd = 0;
+	BOOL fAllocated = FALSE;
+	BOOL fAlloc = TRUE;
 
-	GrabWin16Lock();
+	/* FIXME: This function enumerate the half of the hWnd */
+
+	//GrabWin16Lock();
 
 	pWndParent = HWNDtoPWND(GetDesktopWindow());
 
 	if(pWndParent == NULL)
 	{
-		ReleaseWin16Lock();
+		//ReleaseWin16Lock();
 		return FALSE;
 	}
 
@@ -70,38 +77,53 @@ BOOL __fastcall GetWndList(PWND *pWndList, DWORD dwSize, LPDWORD dwReturnedSize)
 
 	if(pWnd == NULL)
 	{
-		SetLastError(ERROR_INVALID_PARAMETER);
-		ReleaseWin16Lock();
+		//ReleaseWin16Lock();
 		return FALSE;
 	}
 
 	while(TRUE)
 	{
-		if(pWndList != NULL && dwRetSize*4 <= dwSize)
-			pWndList[dwRetSize] = pWnd;
+		//if(pWndList != NULL && dwRetSize*4 <= dwSize)
+		//	pWndList[dwRetSize] = pWnd;
 
-		dwRetSize++;
+		if(fAlloc)
+		{
+			dwRetSize += sizeof(PWND);
+
+			if(!fAllocated)
+				newList = (PWND*)malloc(dwRetSize);
+			else
+			{
+				tmpList = (PWND*)realloc(newList, dwRetSize);
+				newList = tmpList;
+			}
+
+			newList[cbWnd] = pWnd;
+
+			cbWnd++;
+
+			fAlloc = FALSE;
+		}
 
 		if(REBASEUSER(pWnd->spwndNext) != NULL)
 		{
 			pWnd = (PWND)REBASEUSER(pWnd->spwndNext);
+			fAlloc = TRUE;
 			continue;
 		}
 
-		if(REBASEUSER(pWnd->spwndParent) != NULL)
-			pWnd = (PWND)REBASEUSER(pWnd->spwndParent);
-		else
-			pWnd = pWndParent;
+		pWnd = (PWND)REBASEUSER(pWnd->spwndParent);
 
 		if (pWnd == pWndParent)
 			goto finished;
 	}
 
 finished:
-	if(dwReturnedSize != NULL)
-		*dwReturnedSize = dwRetSize * sizeof(DWORD);
+	if(lpReturnedSize != NULL)
+		*lpReturnedSize = dwRetSize;
 
-	ReleaseWin16Lock();
+	*pWndList = newList;
+	//ReleaseWin16Lock();
 	return TRUE;
 }
 
@@ -144,22 +166,24 @@ BOOL __fastcall EnumWindowsEx(DWORD dwThreadId, WNDENUMPROC lpEnumFunc, LPARAM l
 	   this is important because if we directly get next window and so on
 	   we could refer to a destroyed window which would make the current app crash */
 
-
-	result = GetWndList(NULL, 0, &cbWnd);
+	result = GetWndList(&pWndList, &cbWnd);//, 0, &cbWnd);
 
 	if(!result)
 		return FALSE;
 
-	pWndList = (PWND*)malloc(cbWnd);
+	/*pWndList = (PWND*)malloc(cbWnd);
 
 	result = GetWndList(pWndList, cbWnd, &cbWnd);
 
 	if(!result)
-		return FALSE;
+		return FALSE;*/
 
 	for(index=0;index<=cbWnd/4;index++)
 	{
 		pWnd = pWndList[index];
+
+		if(IsBadReadPtr(pWnd, sizeof(DWORD)))
+			continue;
 
 		if(fEnumThread)
 		{
@@ -194,10 +218,6 @@ BOOL __fastcall EnumWindowsEx(DWORD dwThreadId, WNDENUMPROC lpEnumFunc, LPARAM l
 			if(pti->rpdesk != Desktop)
 				continue;
 		}
-
-		//DBGPRINTF(("pWnd = 0x%X\n"), pWnd);
-		if(IsBadReadPtr(pWnd, sizeof(DWORD)))
-			continue;
 
 		if(!(*lpEnumFunc)((HWND)pWnd->hWnd16, lParam))
 		{
@@ -307,7 +327,7 @@ HWND WINAPI CreateDialogIndirectParamA_fix(HINSTANCE hInstance,
 	if(pWnd == NULL)
 		goto _ret;
 
-	if(pti->rpdesk != gpdeskInputDesktop)
+	if(pti->rpdesk != gpdeskInputDesktop && pWnd->style & WS_VISIBLE)
 	{
 		pWnd->style |= WS_INTERNAL_WASVISIBLE;
 		ShowWindowAsync(hWnd, SW_HIDE);
@@ -346,7 +366,7 @@ HWND WINAPI CreateDialogParamA_fix(HINSTANCE hInstance,
 	if(pWnd == NULL)
 		goto _ret;
 
-	if(pti->rpdesk != gpdeskInputDesktop)
+	if(pti->rpdesk != gpdeskInputDesktop && pWnd->style & WS_VISIBLE)
 	{
 		pWnd->style |= WS_INTERNAL_WASVISIBLE;
 		ShowWindowAsync(hWnd, SW_HIDE);
@@ -391,17 +411,12 @@ HWND WINAPI CreateMDIWindowA_fix(LPCSTR lpClassName, LPCSTR lpWindowName, DWORD 
 
 	pwnd = HWNDtoPWND(hwnd);
 
-	if(pti != NULL && pti->rpdesk != gpdeskInputDesktop)
+	if(pti != NULL && pti->rpdesk != gpdeskInputDesktop && pwnd->style & WS_VISIBLE)
 	{
 		if(!(pwnd->style & WS_CHILD))
 		{
 			pwnd->style |= WS_INTERNAL_WASVISIBLE;
 			ShowWindowAsync(hwnd, SW_HIDE);
-		}
-		else
-		{
-			if(dwStyle & WS_VISIBLE)
-				ShowWindowAsync(hwnd, SW_SHOW);
 		}
 	}
 
@@ -468,17 +483,12 @@ HWND WINAPI CreateWindowExA_fix(DWORD dwExStyle,
 	pwnd = HWNDtoPWND(hwnd);
 
 	TRACE("Window hwnd 0x%X object 0x%X created\n", hwnd, pwnd);
-	if(pti != NULL && pti->rpdesk != gpdeskInputDesktop)
+	if(pti != NULL && pti->rpdesk != gpdeskInputDesktop && pwnd->style & WS_VISIBLE)
 	{
 		if(!(pwnd->style & WS_CHILD))
 		{
 			pwnd->style |= WS_INTERNAL_WASVISIBLE;
 			ShowWindowAsync(hwnd, SW_HIDE);
-		}
-		else
-		{
-			if(dwStyle & WS_VISIBLE)
-				ShowWindowAsync(hwnd, SW_SHOW);
 		}
 	}
 
@@ -594,7 +604,7 @@ BOOL WINAPI EnumThreadWindows_nothunk(DWORD dwThreadId,
 {
 	BOOL fEnumThread = (dwThreadId != 0);
 
-	return EnumWindowsEx(dwThreadId, lpfn, lParam, fEnumThread, NULL, FALSE);
+	return EnumThreadWindows(dwThreadId, lpfn, lParam);//EnumWindowsEx(dwThreadId, lpfn, lParam, fEnumThread, NULL, FALSE);
 }
 
 /* MAKE_EXPORT EnumWindows_nothunk=EnumWindows */
@@ -602,7 +612,7 @@ BOOL WINAPI EnumWindows_nothunk(WNDENUMPROC lpEnumFunc,
     LPARAM lParam
 )
 {
-	return EnumWindowsEx(0, lpEnumFunc, lParam, FALSE, NULL, FALSE);
+	return EnumWindows(lpEnumFunc, lParam);//EnumWindowsEx(0, lpEnumFunc, lParam, FALSE, NULL, FALSE);
 }
 
 /* MAKE_EXPORT GetParent_nothunk=GetParent */
