@@ -46,6 +46,7 @@ typedef HANDLE (WINAPI *CREATEKERNELTHREAD)(LPSECURITY_ATTRIBUTES, SIZE_T, LPTHR
 extern CREATEKERNELTHREAD CreateKernelThread;
 
 extern PPDB98 Msg32Process;
+extern PPDB98 MprProcess;
 
 extern BOOL fShutdown;
 
@@ -81,6 +82,7 @@ LONG WINAPI ChangeDisplaySettingsA_fix(LPDEVMODE lpDevMode, DWORD dwflags);
 BOOL WINAPI EnumDisplaySettingsA_fix(LPCSTR lpszDeviceName, DWORD iModeNum, LPDEVMODE lpDevMode);
 BOOL WINAPI EnumDisplaySettingsExA_fix(LPCSTR lpszDeviceName, DWORD iModeNum, LPDEVMODE lpDevMode, DWORD dwFlags);
 BOOL WINAPI ExitWindowsEx_fix(UINT uFlags, DWORD dwReserved);
+BOOL WINAPI GetLastInputInfo_new(PLASTINPUTINFO plii);
 UINT WINAPI MapVirtualKeyA_new(UINT uCode, UINT uMapType);
 UINT WINAPI MapVirtualKeyExA_new(UINT uCode, UINT uMapType, HKL dwhkl);
 LRESULT WINAPI DefRawInputProc_new(PVOID paRawInput, INT nInput, UINT cbSizeHeader);
