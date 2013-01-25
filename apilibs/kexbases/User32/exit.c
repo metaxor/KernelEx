@@ -214,6 +214,9 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 		if(msg.message != WM_QUERYENDSESSION)
 			continue;
 
+		if(IsBadReadPtr(MprProcess, sizeof(PDB98)) || MprProcess->Flags & INVALID_FLAGS)
+			continue;
+
 		fShutdown = TRUE;
 
 		RegOpenKeyEx(HKEY_CURRENT_USER,  "Control Panel\\Desktop", 0, KEY_ALL_ACCESS, &hKey);
@@ -318,30 +321,22 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 
 		/* FIXME: Instead of calling ExitWindowsEx, send a logoff message to MPREXE */
 
-		__try
-		{
-			ExitWindowsEx(EWX_LOGOFF, 0);
+		ExitWindowsEx(EWX_LOGOFF, 0);
 
-			if(sa.uFlags & EWX_REBOOT)
-			{
-				ZwShutdownSystem(ShutdownReboot);
-				ExitWindowsEx(EWX_REBOOT | EWX_FORCE, 0);
-			}
-			else if(sa.uFlags & EWX_SHUTDOWN)
-			{
-				ZwShutdownSystem(ShutdownNoReboot);
-				ExitWindowsEx(EWX_SHUTDOWN | EWX_FORCE, 0);
-			}
-			else if(sa.uFlags & EWX_POWEROFF)
-			{
-				ZwShutdownSystem(ShutdownPowerOff);
-				ExitWindowsEx(EWX_POWEROFF | EWX_FORCE, 0);
-			}
-		}
-		__except(EXCEPTION_EXECUTE_HANDLER)
+		if(sa.uFlags & EWX_REBOOT)
 		{
-			/* just in case, because if MPREXE is terminated, ExitWindowsEx will crash */
 			ZwShutdownSystem(ShutdownReboot);
+			ExitWindowsEx(EWX_REBOOT | EWX_FORCE, 0);
+		}
+		else if(sa.uFlags & EWX_SHUTDOWN)
+		{
+			ZwShutdownSystem(ShutdownNoReboot);
+			ExitWindowsEx(EWX_SHUTDOWN | EWX_FORCE, 0);
+		}
+		else if(sa.uFlags & EWX_POWEROFF)
+		{
+			ZwShutdownSystem(ShutdownPowerOff);
+			ExitWindowsEx(EWX_POWEROFF | EWX_FORCE, 0);
 		}
 
 finished:
