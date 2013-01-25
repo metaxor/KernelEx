@@ -81,6 +81,24 @@ static inline int NoLeftRightVK(int nVirtKey)
 	return nVirtKey;
 }
 
+/* MAKE_EXPORT GetLastInputInfo_new=GetLastInputInfo */
+BOOL WINAPI GetLastInputInfo_new(PLASTINPUTINFO plii)
+{
+	__try
+	{
+		if(plii->cbSize != sizeof(LASTINPUTINFO))
+			return FALSE;
+
+		plii->dwTime = GetTickCount();
+	}
+	__except(EXCEPTION_EXECUTE_HANDLER)
+	{
+		return FALSE;
+	}
+
+	return FALSE;
+}
+
 /* MAKE_EXPORT MapVirtualKeyA_new=MapVirtualKeyA */
 UINT WINAPI MapVirtualKeyA_new(UINT uCode, UINT uMapType)
 {
