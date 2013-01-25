@@ -1,10 +1,4 @@
 LIBRARY wtsapi32.dll BASE=0x7D040000
-SECTIONS
-	.bss SHARED
-	.data SHARED
-	.edata SHARED
-	.rdata SHARED
-	.idata SHARED
 
 EXPORTS
 	WTSCloseServer

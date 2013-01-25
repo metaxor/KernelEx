@@ -80,7 +80,7 @@ BOOL WINAPI DllMain (HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 			if(!fInitialized)
 			{
 				fInitialized = TRUE;
-				memset(&RegisteredWindowListHead, 0, sizeof(LIST_ENTRY));
+				InitializeListHead(&RegisteredWindowListHead);
 			}
 
 			DisableThreadLibraryCalls(hinstDLL);
