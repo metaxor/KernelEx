@@ -21,7 +21,7 @@
 
 #include "common.h"
 
-UNIMPL_FUNC(InitSharedTable, 0); // InitSharedTable... An application who call this would make the system badly crash
+UNIMPL_FUNC(InitSharedTable, 4); // An application who call this would make the system badly crash
 UNIMPL_FUNC(PrintWindow, 3);
 UNIMPL_FUNC(RegisterServicesProcess, 1);
 UNIMPL_FUNC(SetLayeredWindowAttributes, 4);
