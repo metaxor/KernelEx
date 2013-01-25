@@ -31,6 +31,7 @@ DrawCaptionTempA_t DrawCaptionTempA_pfn;
 CREATEKERNELTHREAD CreateKernelThread;
 
 PPDB98 Msg32Process = NULL;
+PPDB98 MprProcess = NULL;
 
 BOOL SetParent_fix_init();
 
@@ -67,8 +68,10 @@ BOOL init_user32()
 			CloseHandle(hThread2);
 	}
 
+	MprProcess = get_pdb();
+
 	/* Get MSGSRV32 */
-	Msg32Process = get_pdb()->ParentPDB->ParentPDB;
+	Msg32Process = MprProcess->ParentPDB->ParentPDB;
 
 	return IsHungThread_pfn && DrawCaptionTempA_pfn && GetMouseMovePoints_pfn
 			&& hThread && InitUniThunkLayer();
@@ -239,6 +242,7 @@ static const apilib_named_api user32_named_apis[] =
 	DECL_API("GetDlgItemTextW", GetDlgItemTextW_NEW),
 	DECL_API("GetForegroundWindow", GetForegroundWindow_fix),
 	DECL_API("GetInputDesktop", GetInputDesktop_new),
+	DECL_API("GetLastInputInfo", GetLastInputInfo_new),
 	DECL_API("GetLastInputInfo", GetLastInputInfo_NEW),
 	DECL_API("GetMessageA", GetMessageA_NEW),
 	DECL_API("GetMessageW", GetMessageW_NEW),
