@@ -22,6 +22,7 @@
 
 #include <windows.h>
 #include <commctrl.h>
+#include "common.h"
 #include "thuni_thunk.h"
 #include "thuni_layer.h"
 #include "thuni_macro.h"
@@ -616,3 +617,41 @@ LRESULT WINAPI SendMessageTimeoutW_NEW( HWND hWnd, UINT Msg, WPARAM wParam, LPAR
 	return ret;
 }
 
+BOOL __fastcall IntCompleteRedrawWindow(PWND pWnd)
+{
+	HWND hWnd = NULL;
+	HRGN hRgn = NULL;
+	RECT rcWindow;
+	RECT rc;
+
+	if(IsBadReadPtr(pWnd, sizeof(WND)))
+		return FALSE;
+
+	hWnd = (HWND)pWnd->hWnd16;
+	/* Copy from the window's rect struct to the new rect struct because the window one has
+	   only SHORT types while the other one has only LONG types */
+	rcWindow.bottom = pWnd->rcWindow.bottom;
+	rcWindow.left = pWnd->rcWindow.left;
+	rcWindow.right = pWnd->rcWindow.right;
+	rcWindow.top = pWnd->rcWindow.top;
+
+	CopyRect(&rc, &rcWindow);
+
+	/* Create a new rect region */
+	hRgn = CreateRectRgnIndirect(&rc);
+
+	//TRACE("Region %p created\n", hRgn);
+
+	/* Draw the new region to the desktop window */
+	RedrawWindow(hWnd,
+				NULL,
+				hRgn,
+				RDW_FRAME | RDW_ERASE |
+				RDW_INVALIDATE | RDW_ALLCHILDREN);
+
+	//TRACE("Window %p redrawn\n", hWnd);
+	/* Delete the new region (we don't need it anymore) */
+	DeleteObject(hRgn);
+
+	return TRUE;
+}
