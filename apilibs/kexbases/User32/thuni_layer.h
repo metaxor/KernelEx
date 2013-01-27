@@ -38,8 +38,9 @@ static const char c_szDBCSProp[]="kexDBCS";
 #define WF_M_DIALOG	0x2
 
 /* Custom flags */
-#define WS_INTERNAL_MUSTPAINT	0x00004000
-#define WS_INTERNAL_WASVISIBLE  0x00008000 // Reseved flag for desktop switching
+#define WS_INTERNAL_MUSTPAINT		0x00004000 // currently unused
+#define WS_INTERNAL_WASVISIBLE		0x00008000 // Reseved flag for desktop switching
+#define WS_EX_INTERNAL_WASTOPMOST	0x80000000
  
 #define IS32BITWIN(pwnd) (pwnd->dwFlags & WF_EX_WIN32)
 #define ISDIALOG(pwnd) (pwnd->moreFlags & WF_M_DIALOG)
@@ -71,7 +72,9 @@ void UpdateLRKeyState(LPMSG msg);
 WNDPROC WINAPI GetWindowProc32(PWND pwnd);
 PMSGQUEUE GetWindowQueue(PWND pwnd);
 
+//windows
 BOOL __fastcall EnumWindowsEx(DWORD dwThreadId, WNDENUMPROC lpEnumFunc, LPARAM lParam, BOOL fEnumThread, HDESK hDesktop, BOOL fEnumDesktop);
+BOOL __fastcall IntCompleteRedrawWindow(PWND pWnd);
 
 //conv
 WPARAM wparam_AtoW( HWND hwnd, UINT message, WPARAM wParam, BOOL messDBCS );
