@@ -215,7 +215,10 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 			continue;
 
 		if(IsBadReadPtr(MprProcess, sizeof(PDB98)) || MprProcess->Flags & INVALID_FLAGS)
+		{
+			TRACE_OUT("Cannot logoff/shutdown because MPREXE process is terminated !!\n");
 			continue;
+		}
 
 		fShutdown = TRUE;
 
