@@ -34,6 +34,7 @@
 PDESKTOP gpdeskInputDesktop = NULL;
 PTDB98 pDesktopThread = NULL;
 DWORD dwDesktopThreadId = NULL;
+BOOL fNewDesktop = FALSE;
 
 VOID RepaintScreen(VOID)
 {
@@ -128,6 +129,11 @@ VOID EnableOEMLayer()
 	FreeLibrary16(hModule);
 
 	return;
+}
+
+VOID APIENTRY RedrawDesktop()
+{
+	IntCompleteRedrawWindow(HWNDtoPWND(GetDesktopWindow()));
 }
 
 BOOL WINAPI CreateWindowStationAndDesktops()
@@ -405,6 +411,7 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
 			if(WindowStationObject == NULL)
 			{
 				WindowStationObject = InputWindowStation;
+				DesktopObject = gpdeskInputDesktop;
 				__leave;
 			}
 
@@ -464,15 +471,19 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
 		/* Window's thread isn't in the input desktop, hide it */
 		if(pwnd->style & WS_VISIBLE)
 		{
-			fHung = IsHungThread_pfn(dwThreadId);
 			if(!(pwnd->style & WS_INTERNAL_WASVISIBLE))
 				pwnd->style |= WS_INTERNAL_WASVISIBLE;
 
-			/* In case the thread is hung, manually remove the WS_VISIBLE flag */
-			SetWindowPos(hwnd, NULL, 0, 0, 0, 0, SWP_ASYNCWINDOWPOS | SWP_HIDEWINDOW | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER);
+			pwnd->style &= ~WS_VISIBLE;
 
-			if(fHung)
-				pwnd->style &= ~WS_VISIBLE;
+			if(pwnd->ExStyle & WS_EX_TOPMOST)
+			{
+				SetWindowPos(hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_ASYNCWINDOWPOS | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER);
+				pwnd->ExStyle |= WS_EX_INTERNAL_WASTOPMOST;
+			}
+
+			/* Alot faster than SetWindowPos, and even redraw hung windows */
+			IntCompleteRedrawWindow(pwnd);
 		}
 	}
 	else
@@ -480,13 +491,17 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
 		/* Window's thread is in the input desktop, show it and update it if necessary */
 		if(pwnd->style & WS_INTERNAL_WASVISIBLE)
 		{
-			fHung = IsHungThread_pfn(dwThreadId);
 			pwnd->style &= ~WS_INTERNAL_WASVISIBLE;
 
-			SetWindowPos(hwnd, NULL, 0, 0, 0, 0, SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER);
+			pwnd->style |= WS_VISIBLE;
 
-			if(fHung)
-				pwnd->style |= WS_VISIBLE;
+			if(pwnd->ExStyle & WS_EX_INTERNAL_WASTOPMOST)
+			{
+				SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_ASYNCWINDOWPOS | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER);
+				pwnd->ExStyle &= ~WS_EX_INTERNAL_WASTOPMOST;
+			}
+
+			IntCompleteRedrawWindow(pwnd);
 		}
 	}
 
@@ -520,6 +535,14 @@ DWORD WINAPI DesktopThread(PVOID lParam)
 		{
 			EnumWindows_nothunk(EnumWindowsProc, 0);
 			EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, gpdeskInputDesktop->pdev);
+			if(fNewDesktop == TRUE)
+			{
+				fNewDesktop = FALSE;
+				TRACE_OUT("Input desktop has changed, redrawing screen... ");
+				RepaintScreen();
+				RedrawDesktop();
+				DBGPRINTF(("successful\n"));
+			}
 		}
 		__except(EXCEPTION_EXECUTE_HANDLER)
 		{
@@ -1047,6 +1070,7 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
 	if(DesktopObject == gpdeskInputDesktop)
 	{
 		/* Nothing to do */
+		TRACE("hDesktop 0x%X is already the current desktop !\n", hDesktop);
 		kexDereferenceObject(DesktopObject);
 		ReleaseWin16Lock();
 		return TRUE;
@@ -1113,9 +1137,6 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
 		TRACE("DesktopObject 0x%X has different display setting than the input desktop, changing display settings...\n", DesktopObject);
 		ChangeDisplaySettings(DesktopObject->pdev, CDS_UPDATEREGISTRY);
 	}
-	TRACE_OUT("Repainting screen...\n");
-	RepaintScreen();
-	TRACE_OUT("success\n");
 
 	if(fParent == FALSE)
 	{
@@ -1127,6 +1148,8 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
 
 	kexDereferenceObject(DesktopObject);
 	kexDereferenceObject(WindowStationObject);
+
+	fNewDesktop = TRUE;
 
 	ReleaseWin16Lock();
 
