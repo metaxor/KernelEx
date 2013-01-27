@@ -199,8 +199,6 @@ BOOL APIENTRY DllMain(HINSTANCE instance, DWORD reason, BOOL load_static)
 			return FALSE;
 		}
 
-//		kexDebugPrint("KernelEx Base Shared library reporting in action!\n");
-//		DisableThreadLibraryCalls(instance);
 		if (InterlockedExchange(&inited, 1) == 0)
 		{
 			if (!init_once())
@@ -219,7 +217,6 @@ BOOL APIENTRY DllMain(HINSTANCE instance, DWORD reason, BOOL load_static)
 		process_uninit(Process);
 		pti_uninit(Thread);
 		ppi_uninit(Process);
-//		kexDebugPrint("KernelEx Base Shared library signing off!\n");
 		break;
 	}
 	return TRUE;
