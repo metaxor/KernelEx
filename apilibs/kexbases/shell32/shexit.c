@@ -24,7 +24,7 @@
 #include "../user32/_user32_apilist.h"
 
 /* MAKE_EXPORT SHExitWindowsEx=SHExitWindowsEx */
-BOOL WINAPI SHExitWindowsEx(HWND hWnd, HINSTANCE hInstance, LPCSTR pszString, DWORD Param4)
+BOOL WINAPI SHExitWindowsEx(HWND hWnd, HINSTANCE hInstance, LPCSTR pszString, int nCmdShow)
 {
 	int Flags;
 
