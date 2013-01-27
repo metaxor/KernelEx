@@ -629,7 +629,7 @@ BOOL __fastcall IntCompleteRedrawWindow(PWND pWnd)
 
 	hWnd = (HWND)pWnd->hWnd16;
 	/* Copy from the window's rect struct to the new rect struct because the window one has
-	   only SHORT types while the other one has only LONG types */
+	   SHORT types while the other one has LONG types which may vary on the offset */
 	rcWindow.bottom = pWnd->rcWindow.bottom;
 	rcWindow.left = pWnd->rcWindow.left;
 	rcWindow.right = pWnd->rcWindow.right;
