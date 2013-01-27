@@ -513,27 +513,40 @@ BOOL WINAPI EnableWindow_nothunk(HWND hWnd, BOOL bEnable)
 {
 	PWND pWnd = HWNDtoPWND(hWnd);
 	BOOL fDisabled = FALSE;
+	BOOL fUpdate = FALSE;
+	PMSGQUEUE pQueue = NULL;
 
 	if(pWnd == NULL)
-	{
-		SetLastError(ERROR_INVALID_PARAMETER);
 		return FALSE;
-	}
+
+	pQueue = GetWindowQueue(pWnd);
+
+	if(pQueue == NULL)
+		return FALSE;
 
 	fDisabled = (pWnd->style & WS_DISABLED);
 
-	if(fDisabled && !bEnable)
-		return TRUE;
+	if(!bEnable)
+	{
+		fUpdate = !fDisabled;
 
-	if(!fDisabled && bEnable)
-		return FALSE;
+		SendMessage(hWnd, WM_CANCELMODE, 0, 0);
 
-	if(bEnable)
-		pWnd->style &= ~WS_DISABLED;
-	else
+		/* To avoid troubles, remove the input from this windows if the thread has focus for it */
+		if(pQueue->threadId == GetCurrentThreadId())
+			SetFocus(NULL);
+
 		pWnd->style |= WS_DISABLED;
+	}
+	else
+	{
+		fUpdate = fDisabled;
+		pWnd->style &= ~WS_DISABLED;
+	}
 
-	RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);
+	/* Update if needed */
+	if(fUpdate)
+		SendMessage(hWnd, WM_ENABLE, bEnable, 0);
 
 	return fDisabled;
 }
