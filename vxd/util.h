@@ -22,10 +22,19 @@
 #ifndef __UTIL_H
 #define __UTIL_H
 
+#pragma once
+
+#include <vmm.h>
+
+#define MINIVDD
+#include <minivdd.h>
+
 #define __STR(x)		#x
 #define STR(x)			__STR(x)
 
 #define EXTERNC extern "C"
+
+int CurrentLine = 0;
 
 #define	_Declare_Virtual_Device(name, ver_major, ver_minor, ctrl_proc, device_num, init_order, V86_proc, PM_proc, ref_data) \
 BOOL __stdcall ControlDispatcher(DWORD, DWORD, DWORD, DWORD, DWORD, DWORD); \
@@ -65,6 +74,102 @@ bool Hook_Device_Service(ULONG service, ULONG hookproc)
 #ifndef __BOOL_DEFINED
 	_asm movzx eax, al
 #endif
+}
+
+__declspec(naked)
+int
+VXDINLINE
+_lstrcmpi(PCHAR pString1, PCHAR pString2)
+{
+    VMMJmp(_lstrcmpi);
+}
+
+ULONG VXDINLINE
+VDD_Msg_ClrScrn(HVM hvm, DWORD bgcolor)
+{
+    int column;
+    int row;
+
+    _asm mov eax, [bgcolor]
+    _asm mov ebx, [hvm]
+    VxDCall(VDD_Msg_ClrScrn);
+    _asm mov [column], eax
+    _asm mov [row], edx
+
+    return MAKELONG(row, column);
+}
+
+VOID VXDINLINE
+VDD_Msg_BakColor(HVM hvm, DWORD bgcolor)
+{
+    _asm mov eax, [bgcolor]
+    _asm mov ebx, [hvm]
+    VxDCall(VDD_Msg_BakColor);
+}
+VOID VXDINLINE
+VDD_Msg_ForColor(HVM hvm, DWORD fgcolor)
+{
+    _asm mov eax, [fgcolor]
+    _asm mov ebx, [hvm]
+    VxDCall(VDD_Msg_ForColor);
+}
+
+VOID VXDINLINE
+VDD_Msg_SetCursPos(HVM hvm, int row, int column)
+{
+    _asm mov eax, [row]
+    _asm mov edx, [column]
+    _asm mov ebx, [hvm]
+    VxDCall(VDD_Msg_SetCursPos);
+}
+
+VOID VXDINLINE
+VDD_Msg_TextOut(HVM hvm, int row, int msglength, int column, PCHAR pszMessage)
+{
+    _asm mov eax, [row]
+    _asm mov ecx, [msglength]
+    _asm mov edx, [column]
+    _asm mov ebx, [hvm]
+    _asm mov esi, [pszMessage]
+    VxDCall(VDD_Msg_TextOut);
+}
+
+VOID _stdcall ReplaceLine(int Line, PCHAR String)
+{
+	HVM CurVM = Get_Cur_VM_Handle();
+    ULONG Length = 0;
+    int i;
+
+    if(String == NULL)
+    {
+        for(i=0; i<=300; i++)
+            VDD_Msg_TextOut(CurVM, Line, 1, i, " ");
+        goto _return;
+    }
+
+    Length = _lstrlen(String);
+    VDD_Msg_TextOut(CurVM, Line, Length, 0, String);
+
+_return:
+    VDD_Msg_SetCursPos(CurVM, Line, Length);
+}
+
+int _stdcall DisplayString(PCHAR String)
+{
+	HVM CurVM = Get_Cur_VM_Handle();
+    ULONG Length = 0;
+    int OldLine = CurrentLine;
+
+    if(String == NULL)
+        goto _return;
+
+    Length = _lstrlen(String);
+    VDD_Msg_TextOut(CurVM, CurrentLine, Length, 0, String);
+
+_return:
+    VDD_Msg_SetCursPos(CurVM, CurrentLine, Length);
+    CurrentLine++;
+    return OldLine;
 }
 
 #pragma warning (default:4035)		// turn on no return code warning
