@@ -44,6 +44,7 @@ NTSTATUS NTAPI ZwShutdownSystem(IN SHUTDOWN_ACTION Action)
 	switch(Action)
 	{
 	case ShutdownNoReboot:
+		VKernelExCall(KEXSHUTDOWNSYSTEM, Action);
 		return STATUS_SUCCESS;
 		break;
 
