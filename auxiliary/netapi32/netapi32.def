@@ -13,3 +13,4 @@ EXPORTS
 	NetApiBufferFree
 	NetApiBufferReallocate
 	NetApiBufferSize
+	NetShareEnum
