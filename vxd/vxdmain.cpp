@@ -30,6 +30,7 @@ extern "C" {
 #include <shell.h>
 #include <vxdwraps.h>
 #include <vwin32.h>
+#include <vkd.h>
 };
 #include <winerror.h>
 #include "vxdmain.h"
@@ -220,6 +221,7 @@ BOOL _stdcall VKernelEx_Begin_PM_App(HVM hVM)
 DWORD _stdcall VKernelEx_ShutdownSystem(DWORD hDevice, PDIOCPARAMETERS lpDIOCParms)
 {
 	HVM SysVM;
+	HVM CurVM;
 	DWORD Action;
 
 	Action = *(DWORD*)lpDIOCParms->lpvInBuffer;
@@ -227,6 +229,22 @@ DWORD _stdcall VKernelEx_ShutdownSystem(DWORD hDevice, PDIOCPARAMETERS lpDIOCPar
 	switch(Action)
 	{
 	case ShutdownNoReboot:
+
+		CurVM = Get_Cur_VM_Handle();
+		
+		__asm mov eax, BEGIN_MESSAGE_MODE
+		__asm mov ebx,[CurVM]
+		__asm mov esi, 0
+		__asm mov edi, 0
+		__asm mov edx, 0
+		VMMCall(System_Control);
+		VDD_Msg_ClrScrn(CurVM, 0);
+		DisplayString("It is now safe to turn off your computer.");
+		Fatal_Error_Handler(NULL, 1);
+		for(;;){
+			__asm cli
+			__asm hlt
+		}
 		break;
 
 	case ShutdownReboot:
