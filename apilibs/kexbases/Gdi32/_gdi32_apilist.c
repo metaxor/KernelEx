@@ -41,6 +41,7 @@ static const apilib_named_api gdi32_named_apis[] =
 	DECL_API("AddFontResourceExA", AddFontResourceExA_new),
 	DECL_API("AddFontResourceExW", AddFontResourceExW_new),
 	DECL_API("AddFontResourceW", AddFontResourceW_new),
+	DECL_API("ByeByeGDI", ByeByeGDI_stub),
 	DECL_API("CreateDIBSection", CreateDIBSection_fix),
 	DECL_API("CreateFontIndirectA", CreateFontIndirectA_fix),
 	DECL_API("DeleteObject", DeleteObject_fix),
