@@ -127,7 +127,7 @@ typedef struct _THREADINFO
     HDESK               hdesk;
     union
     {
-        PVOID                   *Thread;
+        PVOID                   Thread;
         struct _WINDOWSTATION   *rpwinsta;
     };
 } THREADINFO, *PTHREADINFO;
@@ -142,7 +142,8 @@ typedef struct _PROCESSINFO
 
     DWORD           SessionId;
     BOOL            WindowsGhosting;
-    PVOID           *Process;
+	DWORD			ShutdownLevel;
+    PVOID           Process;
 } PROCESSINFO, *PPROCESSINFO;
 
 // Structured Exception Handler
