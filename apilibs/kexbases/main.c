@@ -34,6 +34,7 @@
 #include "user32/thuni_layer.h"
 //#include "/__apilist.h"
 
+DWORD Obfuscator = 0;
 static LONG inited = 0;
 static apilib_api_table api_table[10];
 
@@ -61,13 +62,14 @@ const apilib_api_table* get_api_table()
 
 BOOL init_once()
 {
+	Obfuscator = (DWORD)get_pdb() ^ GetCurrentProcessId();
 	return common_init() && init_kernel32() && init_gdi32() && init_user32() && init_advapi32() && init_comdlg32() && init_shell32() && init_version() && init_comctl32() && init_ntdll();
 }
 
 /* Initialization phase */
 BOOL ppi_init(PPDB98 Process)
 {
-	PPROCESSINFO ppi;
+	PPROCESSINFO ppi = NULL;
 
 	if(IsBadReadPtr(Process, sizeof(PDB98)))
 		Process = get_pdb();
@@ -75,34 +77,44 @@ BOOL ppi_init(PPDB98 Process)
 	if(GetFreeSystemResources(GFSR_SYSTEMRESOURCES) < 10 && GetLastError() == 0)
 		ExitProcess(0);
 
-	Process->Win32Process = (PPROCESSINFO)kexAllocObject(sizeof(PROCESSINFO));
+	ppi = (PPROCESSINFO)kexAllocObject(sizeof(PROCESSINFO));
 
-	if(Process->Win32Process == NULL)
+	if(ppi == NULL)
 	{
 		TRACE("Couldn't allocate Win32Process for Process 0x%X !\n", Process);
 		return FALSE;
 	}
 
-	ppi = Process->Win32Process;
+	Process->Win32Process = ppi;
 
+	ppi->Process = Process;
+	ppi->UniqueProcessId = Obfuscator ^ (DWORD)Process;
 	ppi->hdeskStartup = NULL;
 	ppi->rpdeskStartup = NULL;
+	ppi->ShutdownLevel = 0x280;
 
 	return TRUE;
 }
 
 BOOL pti_init(PTDB98 Thread)
 {
+	PTHREADINFO pti = NULL;
+
 	if(IsBadReadPtr(Thread, sizeof(TDB98)))
 		Thread = get_tdb();
 
-	Thread->Win32Thread = (PTHREADINFO)kexAllocObject(sizeof(THREADINFO));
+	pti = (PTHREADINFO)kexAllocObject(sizeof(THREADINFO));
 
-	if(Thread->Win32Thread == NULL)
+	if(pti == NULL)
 	{
 		TRACE("Couldn't allocate Win32Thread for Thread 0x%X !\n", Thread);
 		return FALSE;
 	}
+
+	Thread->Win32Thread = pti;
+
+	pti->UniqueThreadId = Obfuscator ^ (DWORD)Thread;
+	pti->Thread = Thread;
 
 	return TRUE;
 }
