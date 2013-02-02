@@ -186,6 +186,8 @@ BOOL APIENTRY PreDllMain(HINSTANCE instance, DWORD reason, LPVOID reserved)
 
 	if (reason == DLL_PROCESS_ATTACH)
 	{
+		DisableThreadLibraryCalls(instance);
+
 		if (load_count((DWORD) instance) == 1)
 		{
 			//first reference => do init
