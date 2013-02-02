@@ -23,6 +23,7 @@
 
 #include "common.h"
 #include "locale_unicode.h"
+#include "main.h"
 
 
 /******************************************************************************
@@ -163,6 +164,8 @@ INT WINAPI LCMapStringW_new(LCID lcid, DWORD flags, LPCWSTR src, INT srclen,
                             LPWSTR dst, INT dstlen)
 {
 	LPWSTR dst_ptr;
+	PTDB98 Thread = get_tdb();
+	PPDB98 Process = get_pdb();
 
 	if (!src || !srclen || dstlen < 0)
 	{
@@ -217,6 +220,10 @@ INT WINAPI LCMapStringW_new(LCID lcid, DWORD flags, LPCWSTR src, INT srclen,
 
 	TRACE("(0x%04x,0x%08x,%s,%d,%p,%d)\n",
 		  lcid, flags, debugstr_wn(src, srclen), srclen, dst, dstlen);
+
+	/* Sometimes kexbases.dll isn't loaded, we will manually allocate threadinfo/processinfo structures */
+	if(Process->Win32Process == NULL || Thread->Win32Thread == NULL)
+		LoadLibrary("kexbases.dll");
 
 	if (!dst) /* return required string length */
 	{
