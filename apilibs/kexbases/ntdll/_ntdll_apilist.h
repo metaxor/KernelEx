@@ -22,19 +22,18 @@
 #ifndef _NTDLL_APILIST_H
 #define _NTDLL_APILIST_H
 
-#include <windows.h>
-#include <ntsecapi.h>
+#include "ntstatus.h"
+#define WIN32_NO_STATUS
 #include "common.h"
+#include <ntsecapi.h>
 #include "../kernel32/_kernel32_apilist.h"
+#include "../user32/_user32_apilist.h"
 
 #define KEXSHUTDOWNSYSTEM	2
 
 DWORD __fastcall VKernelExCall(DWORD command, DWORD param1);
 
 typedef PLSA_OBJECT_ATTRIBUTES POBJECT_ATTRIBUTES;
-
-#define STATUS_SUCCESS ((NTSTATUS)0x00000000L)
-#define STATUS_INVALID_PARAMETER ((NTSTATUS)0xC000000DL)
 
 typedef struct _CLIENT_ID
 {
@@ -48,6 +47,38 @@ typedef enum _SHUTDOWN_ACTION {
 	ShutdownPowerOff
 } SHUTDOWN_ACTION, *PSHUTDOWN_ACTION;
 
+//
+// Responses for NtRaiseHardError
+//
+typedef enum _HARDERROR_RESPONSE_OPTION
+{
+    OptionAbortRetryIgnore,
+    OptionOk,
+    OptionOkCancel,
+    OptionRetryCancel,
+    OptionYesNo,
+    OptionYesNoCancel,
+    OptionShutdownSystem,
+    OptionOkNoWait,
+    OptionCancelTryContinue
+} HARDERROR_RESPONSE_OPTION, *PHARDERROR_RESPONSE_OPTION;
+
+typedef enum _HARDERROR_RESPONSE
+{
+    ResponseReturnToCaller,
+    ResponseNotHandled,
+    ResponseAbort,
+    ResponseCancel,
+    ResponseIgnore,
+    ResponseNo,
+    ResponseOk,
+    ResponseRetry,
+    ResponseYes,
+    ResponseTryAgain,
+    ResponseContinue
+} HARDERROR_RESPONSE, *PHARDERROR_RESPONSE;
+
+
 BOOL init_ntdll();
 extern const apilib_api_table apitable_ntdll;
 
@@ -56,6 +87,8 @@ STUB NtCreateProcess_stub;
 STUB NtCreateThread_stub;
 STUB ZwCreateProcess_stub;
 STUB ZwCreateThread_stub;
+ULONG NTAPI RtlNtStatusToDosError(NTSTATUS Status);
+NTSTATUS NTAPI NtRaiseHardError(IN NTSTATUS ErrorStatus, IN ULONG NumberOfParameters, IN ULONG UnicodeStringParameterMask, IN PULONG_PTR Parameters, IN ULONG ValidResponseOptions, OUT PULONG Response);
 NTSTATUS NTAPI ZwOpenProcess(OUT PHANDLE ProcessHandle, IN ACCESS_MASK AccessMask, IN POBJECT_ATTRIBUTES ObjectAttributes, IN PCLIENT_ID ClientId);
 NTSTATUS NTAPI ZwResumeProcess(IN HANDLE ProcessHandle);
 NTSTATUS NTAPI ZwSuspendProcess(IN HANDLE ProcessHandle);
