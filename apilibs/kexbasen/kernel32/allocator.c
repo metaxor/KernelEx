@@ -145,7 +145,7 @@ void write_footer(void* ptr, size_t usable, int fs, DWORD value)
 		footer->dd = (DWORD) value;
 }
 
-/* MAKE_EXPORT HeapCreate_new=HeapCreate */
+/*  HeapCreate_new=HeapCreate */
 HANDLE WINAPI HeapCreate_new(DWORD flOptions, DWORD dwInitialSize, DWORD dwMaximumSize)
 {
 	if (flOptions & HEAP_SHARED || dwMaximumSize != 0)
@@ -156,7 +156,7 @@ HANDLE WINAPI HeapCreate_new(DWORD flOptions, DWORD dwInitialSize, DWORD dwMaxim
 		return JM_HEAP_NORM;
 }
 
-/* MAKE_EXPORT HeapDestroy_new=HeapDestroy */
+/*  HeapDestroy_new=HeapDestroy */
 BOOL WINAPI HeapDestroy_new(HANDLE hHeap)
 {
 	if (hHeap == JM_HEAP_NORM || hHeap == JM_HEAP_EXCP)
@@ -165,7 +165,7 @@ BOOL WINAPI HeapDestroy_new(HANDLE hHeap)
 		return HeapDestroy(hHeap);
 }
 
-/* MAKE_EXPORT HeapAlloc_new=HeapAlloc */
+/*  HeapAlloc_new=HeapAlloc */
 LPVOID WINAPI HeapAlloc_new(HANDLE hHeap, DWORD dwFlags, DWORD dwBytes)
 {
 	if (hHeap == JM_HEAP_NORM || hHeap == JM_HEAP_EXCP)
@@ -189,7 +189,7 @@ LPVOID WINAPI HeapAlloc_new(HANDLE hHeap, DWORD dwFlags, DWORD dwBytes)
 		return HeapAlloc(hHeap, dwFlags, dwBytes);
 }
 
-/* MAKE_EXPORT HeapFree_new=HeapFree */
+/*  HeapFree_new=HeapFree */
 BOOL WINAPI HeapFree_new(HANDLE hHeap, DWORD dwFlags, LPVOID lpMem)
 {
 	if (hHeap == JM_HEAP_NORM || hHeap == JM_HEAP_EXCP)
@@ -208,7 +208,7 @@ BOOL WINAPI HeapFree_new(HANDLE hHeap, DWORD dwFlags, LPVOID lpMem)
 		return HeapFree(hHeap, dwFlags, lpMem);
 }
 
-/* MAKE_EXPORT HeapSize_new=HeapSize */
+/*  HeapSize_new=HeapSize */
 DWORD WINAPI HeapSize_new(HANDLE hHeap, DWORD dwFlags, LPCVOID lpMem)
 {
 	if (hHeap == JM_HEAP_NORM || hHeap == JM_HEAP_EXCP)
@@ -224,7 +224,7 @@ DWORD WINAPI HeapSize_new(HANDLE hHeap, DWORD dwFlags, LPCVOID lpMem)
 		return HeapSize(hHeap, dwFlags, lpMem);
 }
 
-/* MAKE_EXPORT HeapReAlloc_new=HeapReAlloc */
+/*  HeapReAlloc_new=HeapReAlloc */
 LPVOID WINAPI HeapReAlloc_new(HANDLE hHeap, DWORD dwFlags, LPVOID lpMem, DWORD dwBytes)
 {
 	if (hHeap == JM_HEAP_NORM || hHeap == JM_HEAP_EXCP)

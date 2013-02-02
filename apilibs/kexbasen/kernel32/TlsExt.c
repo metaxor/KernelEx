@@ -89,6 +89,18 @@ BOOL init_exttls(void)
 	TlsLock = find_TlsLock();
 	k32lock = (CRITICAL_SECTION*) kexGetK32Lock();
 
+	if(TlsLock == NULL)
+	{
+		TRACE_OUT("TlsLock not found !\n");
+		return FALSE;
+	}
+
+	if(k32lock == NULL)
+	{
+		TRACE_OUT("k32lock not found !\n");
+		return FALSE;
+	}
+
 	_EnterSysLevel(TlsLock);
 
 	//check if TLS index 79 free
@@ -118,7 +130,7 @@ void detach_exttls(void)
 	}
 }
 
-/* MAKE_EXPORT TlsAlloc_new=TlsAlloc */
+/*  TlsAlloc_new=TlsAlloc */
 DWORD WINAPI TlsAlloc_new(void)
 {
 	PDB98* pdb;
@@ -167,7 +179,7 @@ DWORD WINAPI TlsAlloc_new(void)
 	return TLS_OUT_OF_INDEXES;
 }
 
-/* MAKE_EXPORT TlsFree_new=TlsFree */
+/*  TlsFree_new=TlsFree */
 BOOL WINAPI TlsFree_new(DWORD dwTlsIndex)
 {
 	int ret = 0;
@@ -226,7 +238,7 @@ BOOL WINAPI TlsFree_new(DWORD dwTlsIndex)
 
 #ifdef __ASM_IS_L33T__
 
-/* MAKE_EXPORT TlsGetValue_new2=TlsGetValue */
+/*  TlsGetValue_new2=TlsGetValue */
 __declspec(naked)
 LPVOID WINAPI TlsGetValue_new2(DWORD dwTlsIndex)
 {
@@ -258,7 +270,7 @@ __error:
 	}
 }
 
-/* MAKE_EXPORT TlsSetValue_new2=TlsSetValue */
+/*  TlsSetValue_new2=TlsSetValue */
 __declspec(naked)
 BOOL WINAPI TlsSetValue_new2(DWORD dwTlsIndex, LPVOID lpTlsValue)
 {

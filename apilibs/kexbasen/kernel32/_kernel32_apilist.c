@@ -30,7 +30,7 @@ extern void detach_exttls();
 
 BOOL init_kernel32()
 {
-	return init_jemalloc() && init_exttls() && init_threadpool();
+	return init_threadpool();//init_exttls() && init_threadpool(); && init_jemalloc();
 }
 
 void uninit_kernel32()
@@ -96,12 +96,6 @@ static const apilib_named_api kernel32_named_apis[] =
 	DECL_API("GetProfileStringW", GetProfileStringW_fwd),
 	DECL_API("GetTimeFormatW", GetTimeFormatW_fwd),
 	DECL_API("GetVolumeInformationW", GetVolumeInformationW_fwd),
-	DECL_API("HeapAlloc", HeapAlloc_new),
-	DECL_API("HeapCreate", HeapCreate_new),
-	DECL_API("HeapDestroy", HeapDestroy_new),
-	DECL_API("HeapFree", HeapFree_new),
-	DECL_API("HeapReAlloc", HeapReAlloc_new),
-	DECL_API("HeapSize", HeapSize_new),
 	DECL_API("IsBadStringPtrW", IsBadStringPtrW_fwd),
 	DECL_API("OpenEventW", OpenEventW_fwd),
 	DECL_API("OpenFileMappingW", OpenFileMappingW_fwd),
@@ -124,10 +118,6 @@ static const apilib_named_api kernel32_named_apis[] =
 	DECL_API("SetLocaleInfoW", SetLocaleInfoW_fwd),
 	DECL_API("SetTimerQueueTimer", SetTimerQueueTimer_new),
 	DECL_API("SetVolumeLabelW", SetVolumeLabelW_fwd),
-	DECL_API("TlsAlloc", TlsAlloc_new),
-	DECL_API("TlsFree", TlsFree_new),
-	DECL_API("TlsGetValue", TlsGetValue_new2),
-	DECL_API("TlsSetValue", TlsSetValue_new2),
 	DECL_API("UnregisterWait", UnregisterWait_new),
 	DECL_API("UnregisterWaitEx", UnregisterWaitEx_new),
 	DECL_API("WaitNamedPipeW", WaitNamedPipeW_fwd),
