@@ -25,6 +25,8 @@
 #include "kexcoresdk.h"
 #include "main.h"
 
+#define MAX_HARD_ERRORS		128
+
 /* There is no GetAltTabInfoA or RealGetWindowClassA in 9x */
 #ifdef GetAltTabInfo
 #undef GetAltTabInfo
@@ -45,10 +47,27 @@ extern GetMouseMovePoints_t GetMouseMovePoints_pfn;
 typedef HANDLE (WINAPI *CREATEKERNELTHREAD)(LPSECURITY_ATTRIBUTES, SIZE_T, LPTHREAD_START_ROUTINE, LPVOID, DWORD, LPDWORD);
 extern CREATEKERNELTHREAD CreateKernelThread;
 
+typedef struct _HARDERRORDATA
+{
+	LPCSTR lpHardErrorTitle;
+	LPCSTR lpHardErrorMessage;
+	DWORD dwProcessId;
+	HANDLE hEvent;
+	DWORD Result;
+	ULONG uType;
+} HARDERRORDATA, *PHARDERRORDATA;
+
 extern PPDB98 Msg32Process;
 extern PPDB98 MprProcess;
 
+extern PTDB98 pHardErrorThread;
+extern DWORD HardErrorThreadId;
+
+extern PHARDERRORDATA *pHardErrorData;
+
 extern BOOL fShutdown;
+
+BOOL WINAPI Win32RaiseHardError(LPCSTR lpszMessage, LPCSTR lpszTitle, UINT uMsgType, BOOL fWait);
 
 BOOL init_user32();
 BOOL thread_user32_init(PTDB98 Thread);
@@ -76,6 +95,8 @@ HDESK WINAPI OpenDesktopA_new(LPSTR lpszDesktop, DWORD dwFlags, BOOL fInherit, A
 HDESK WINAPI OpenInputDesktop_new(DWORD dwFlags, BOOL fInherit, ACCESS_MASK dwDesiredAccess);
 BOOL WINAPI SetThreadDesktop_new(HDESK hDesktop);
 BOOL WINAPI SwitchDesktop_new(HDESK hDesktop);
+HWND WINAPI CreateDialogIndirectParamA_fix(HINSTANCE hInstance, LPCDLGTEMPLATE lpTemplate, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM lParamInit);
+HWND WINAPI CreateDialogParamA_fix(HINSTANCE hInstance, LPCTSTR lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam);
 HWND WINAPI GetNextDlgTabItem_fix(HWND hDlg, HWND hCtl, BOOL bPrevious);
 LONG WINAPI ChangeDisplaySettingsExA_fix(LPCSTR lpszDeviceName, LPDEVMODE lpDevMode, HWND hwnd, DWORD dwflags, LPVOID lParam);
 LONG WINAPI ChangeDisplaySettingsA_fix(LPDEVMODE lpDevMode, DWORD dwflags);
@@ -172,8 +193,6 @@ HWINSTA WINAPI OpenWindowStationW_new(LPWSTR lpszWinStaW, BOOL fInherit, ACCESS_
 UINT WINAPI RealGetWindowClassW_new(HWND hwnd, LPWSTR pszTypeW, UINT cchType);
 BOOL WINAPI AllowSetForegroundWindow_98(DWORD procid);
 BOOL WINAPI AnyPopup_nothunk(VOID);
-HWND WINAPI CreateDialogIndirectParamA_fix(HINSTANCE hInstance, LPCDLGTEMPLATE lpTemplate, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM lParamInit);
-HWND WINAPI CreateDialogParamA_fix(HINSTANCE hInstance, LPCTSTR lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam);
 HWND WINAPI CreateMDIWindowA_fix(LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int X, int Y, int nWidth, int nHeight, HWND hWndParent, HINSTANCE hInstance, LPARAM lParam);
 HWND WINAPI CreateWindowExA_fix(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam);
 void __stdcall DisableProcessWindowsGhosting_new(void);

@@ -33,7 +33,149 @@ CREATEKERNELTHREAD CreateKernelThread;
 PPDB98 Msg32Process = NULL;
 PPDB98 MprProcess = NULL;
 
+PTDB98 pHardErrorThread = NULL;
+DWORD HardErrorThreadId = 0;
+
+PHARDERRORDATA *pHardErrorData;
+LONG NumHardError = 0;
+
 BOOL SetParent_fix_init();
+
+DWORD WINAPI HardErrorThread(PVOID lParam)
+{
+	HANDLE hEvent = NULL;
+	HANDLE hDupEvent = NULL;
+	HANDLE hProcess = NULL;
+	PHARDERRORDATA pData = NULL;
+	LONG CurrentArray = 0;
+	BOOL fFound = FALSE;
+
+	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_IDLE);
+
+	pHardErrorThread = get_tdb();
+	HardErrorThreadId = GetCurrentThreadId();
+
+	pHardErrorData = (PHARDERRORDATA*)kexAllocObject(MAX_HARD_ERRORS * sizeof(DWORD));
+
+	for(CurrentArray=0;CurrentArray<=MAX_HARD_ERRORS;CurrentArray++)
+		pHardErrorData[CurrentArray] = NULL;
+
+	while(1)
+	{
+		for(CurrentArray=0;CurrentArray<=MAX_HARD_ERRORS;CurrentArray++)
+		{
+			if(pHardErrorData[CurrentArray] != NULL)
+			{
+				fFound = TRUE;
+				break;
+			}
+		}
+
+		if(!fFound)
+			goto _continue;
+
+		pData = pHardErrorData[CurrentArray];
+
+		if(pData == NULL || IsBadReadPtr(pData, sizeof(HARDERRORDATA)))
+		{
+			InterlockedExchangePointer(&pHardErrorData[CurrentArray], NULL);
+			goto _continue;
+		}
+
+		hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pData->dwProcessId);
+
+		if(hProcess != NULL)
+		{
+			hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+
+			if(hEvent != NULL)
+			{
+				DuplicateHandle(GetCurrentProcess(), hEvent, hProcess, &hDupEvent, 0, FALSE, DUPLICATE_SAME_ACCESS);
+				pData->hEvent = hDupEvent;
+			}
+			else
+				pData->hEvent = INVALID_HANDLE_VALUE;
+
+			CloseHandle(hProcess);
+		}
+
+		MessageBox(NULL, pData->lpHardErrorMessage, pData->lpHardErrorTitle, MB_ICONERROR | MB_SYSTEMMODAL | pData->uType);
+
+		if(hEvent != NULL)
+		{
+			SetEvent(hEvent);
+			CloseHandle(hEvent);
+			CloseHandle(hDupEvent);
+		}
+
+		kexFreeObject((PVOID)pData->lpHardErrorMessage);
+		kexFreeObject((PVOID)pData->lpHardErrorTitle);
+		kexFreeObject(pData);
+
+		pHardErrorData[CurrentArray] = NULL;
+
+_continue:
+		Sleep(10);
+	}
+
+	return 0;
+}
+
+BOOL WINAPI Win32RaiseHardError(LPCSTR lpszMessage, LPCSTR lpszTitle, UINT uMsgType, BOOL fWait)
+{
+	LONG i;
+	BOOL result = FALSE;
+	PHARDERRORDATA pData = NULL;
+	BOOL fFound = FALSE;
+
+	pData = (PHARDERRORDATA)kexAllocObject(sizeof(HARDERRORDATA));
+
+	if(pData == NULL)
+		return FALSE;
+
+	pData->Result = -1;
+
+	pData->lpHardErrorMessage = (LPCSTR)kexAllocObject(strlen(lpszMessage) + 1);
+	pData->lpHardErrorTitle = (LPCSTR)kexAllocObject(strlen(lpszTitle) + 1);
+	pData->uType = uMsgType;
+
+	strcpy((char*)pData->lpHardErrorMessage, lpszMessage);
+	strcpy((char*)pData->lpHardErrorTitle, lpszTitle);
+
+	for(i=0;i<=MAX_HARD_ERRORS;i++)
+	{
+		if(pHardErrorData[i] == NULL)
+		{
+			InterlockedExchangePointer(&pHardErrorData[i], pData);
+			fFound = TRUE;
+			break;
+		}
+	}
+
+	if(fFound == FALSE)
+	{
+		kexFreeObject((PVOID)pData->lpHardErrorMessage);
+		kexFreeObject((PVOID)pData->lpHardErrorTitle);
+		kexFreeObject(pData);
+		ExitProcess(0);
+	}
+
+	if(fWait)
+	{
+		while(pData->hEvent == NULL)
+		{
+			MSG msg;
+
+			PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE);
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+			Sleep(1);
+		}
+
+		WaitForSingleObject(pData->hEvent, INFINITE);
+	}
+	return TRUE;
+}
 
 DWORD WINAPI ShutdownThread(PVOID lParam);
 
@@ -43,7 +185,10 @@ BOOL init_user32()
 	HMODULE hKernel32 = GetModuleHandle("KERNEL32.DLL");
 	HANDLE hThread = NULL;
 	HANDLE hThread2 = NULL;
+	HANDLE hThread3 = NULL;
 	DWORD dwThreadId = 0;
+	STARTUPINFO si;
+	PROCESS_INFORMATION pi;
 
 	IsHungThread_pfn = (IsHungThread_t)kexGetProcAddress(hUser32, "IsHungThread");
 	DrawCaptionTempA_pfn = (DrawCaptionTempA_t)kexGetProcAddress(hUser32, "DrawCaptionTempA");
@@ -66,6 +211,11 @@ BOOL init_user32()
 
 		if(hThread2 != NULL)
 			CloseHandle(hThread2);
+
+		hThread3 = CreateKernelThread(NULL, 0, HardErrorThread, NULL, 0, &dwThreadId);
+
+		if(hThread3 != NULL)
+			CloseHandle(hThread3);
 	}
 
 	MprProcess = get_pdb();
@@ -73,8 +223,26 @@ BOOL init_user32()
 	/* Get MSGSRV32 */
 	Msg32Process = MprProcess->ParentPDB->ParentPDB;
 
+	memset(&si, 0, sizeof(STARTUPINFO));
+	memset(&pi, 0, sizeof(PROCESS_INFORMATION));
+
+	si.cb = sizeof(STARTUPINFO);
+
+#ifdef _DEBUG
+	CreateProcess(NULL,
+				"DRWATSON.EXE",
+				NULL,
+				NULL,
+				FALSE,
+				0,
+				NULL,
+				NULL,
+				&si,
+				&pi);
+#endif
+
 	return IsHungThread_pfn && DrawCaptionTempA_pfn && GetMouseMovePoints_pfn
-			&& hThread && InitUniThunkLayer();
+			&& InitUniThunkLayer() && hThread && hThread2 && hThread3;
 }
 
 BOOL thread_user32_init(PTDB98 Thread)
@@ -197,8 +365,8 @@ static const apilib_named_api user32_named_apis[] =
 	DECL_API("CopyAcceleratorTableW", CopyAcceleratorTableA),
 	DECL_API("CreateAcceleratorTableW", CreateAcceleratorTableA),
 	DECL_API("CreateDesktopA", CreateDesktopA_new),
-	DECL_API("CreateDesktopExA*/", CreateDesktopExA_new),
-	DECL_API("CreateDesktopExW*/", CreateDesktopExW_new),
+	DECL_API("CreateDesktopExA", CreateDesktopExA_new),
+	DECL_API("CreateDesktopExW", CreateDesktopExW_new),
 	DECL_API("CreateDesktopW", CreateDesktopW_new),
 	DECL_API("CreateDialogIndirectParamA", CreateDialogIndirectParamA_fix),
 	DECL_API("CreateDialogIndirectParamW", CreateDialogIndirectParamW_NEW),
