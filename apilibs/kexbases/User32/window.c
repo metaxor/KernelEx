@@ -236,6 +236,9 @@ DWORD ConfirmShowCommand(HWND hWnd, int nCmdShow)
 	DWORD newCmdShow = nCmdShow;
 	PWND pwnd;
 
+	if(pti == NULL)
+		return nCmdShow;
+
 	if(nCmdShow > SW_MAX)
 		return -1;
 
@@ -299,84 +302,6 @@ _ret:
 	return fFound;
 }
 
-/* MAKE_EXPORT CreateDialogIndirectParamA_fix=CreateDialogIndirectParamA */
-HWND WINAPI CreateDialogIndirectParamA_fix(HINSTANCE hInstance,
-    LPCDLGTEMPLATE lpTemplate,
-    HWND hWndParent,
-    DLGPROC lpDialogFunc,
-    LPARAM lParamInit
-)
-{
-	PTHREADINFO pti = get_tdb()->Win32Thread;
-	HWND hWnd = NULL;
-	PWND pWnd = NULL;
-
-	hWnd = CreateDialogIndirectParamA(hInstance,
-								lpTemplate,
-								hWndParent,
-								lpDialogFunc,
-								lParamInit);
-
-	GrabWin16Lock();
-
-	if(hWnd == NULL)
-		goto _ret;
-
-	pWnd = HWNDtoPWND(hWnd);
-
-	if(pWnd == NULL)
-		goto _ret;
-
-	if(pti->rpdesk != gpdeskInputDesktop && pWnd->style & WS_VISIBLE)
-	{
-		pWnd->style |= WS_INTERNAL_WASVISIBLE;
-		ShowWindowAsync(hWnd, SW_HIDE);
-	}
-
-_ret:
-	ReleaseWin16Lock();
-	return hWnd;
-}
-
-/* MAKE_EXPORT CreateDialogParamA_fix=CreateDialogParamA */
-HWND WINAPI CreateDialogParamA_fix(HINSTANCE hInstance,
-	LPCTSTR lpTemplateName,
-	HWND hWndParent,
-	DLGPROC lpDialogFunc,
-	LPARAM dwInitParam
-)
-{
-	PTHREADINFO pti = get_tdb()->Win32Thread;
-	HWND hWnd = NULL;
-	PWND pWnd = NULL;
-
-	hWnd = CreateDialogParamA(hInstance,
-							lpTemplateName,
-							hWndParent,
-							lpDialogFunc,
-							dwInitParam);
-
-	GrabWin16Lock();
-
-	if(hWnd == NULL)
-		goto _ret;
-
-	pWnd = HWNDtoPWND(hWnd);
-
-	if(pWnd == NULL)
-		goto _ret;
-
-	if(pti->rpdesk != gpdeskInputDesktop && pWnd->style & WS_VISIBLE)
-	{
-		pWnd->style |= WS_INTERNAL_WASVISIBLE;
-		ShowWindowAsync(hWnd, SW_HIDE);
-	}
-
-_ret:
-	ReleaseWin16Lock();
-	return hWnd;
-}
-
 /* MAKE_EXPORT CreateMDIWindowA_fix=CreateMDIWindowA */
 HWND WINAPI CreateMDIWindowA_fix(LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int X, int Y, int nWidth, int nHeight, HWND hWndParent, HINSTANCE hInstance, LPARAM lParam)
 {
@@ -410,6 +335,9 @@ HWND WINAPI CreateMDIWindowA_fix(LPCSTR lpClassName, LPCSTR lpWindowName, DWORD 
 		return NULL;
 
 	pwnd = HWNDtoPWND(hwnd);
+
+	if(pti == NULL)
+		return hwnd;
 
 	if(pti != NULL && pti->rpdesk != gpdeskInputDesktop && pwnd->style & WS_VISIBLE)
 	{
@@ -481,6 +409,9 @@ HWND WINAPI CreateWindowExA_fix(DWORD dwExStyle,
 		return NULL;
 
 	pwnd = HWNDtoPWND(hwnd);
+
+	if(pti == NULL)
+		return hwnd;
 
 	TRACE("Window hwnd 0x%X object 0x%X created\n", hwnd, pwnd);
 	if(pti != NULL && pti->rpdesk != gpdeskInputDesktop && pwnd->style & WS_VISIBLE)
