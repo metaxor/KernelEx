@@ -365,6 +365,7 @@ BOOL kexGetProcessName(DWORD dwProcessId, char *buffer)
 {
 	HANDLE hSnapshot = NULL;
 	PROCESSENTRY32 pe32;
+	char *pName = NULL;
 
 	if(dwProcessId == 0)
 		return FALSE;
@@ -389,7 +390,15 @@ BOOL kexGetProcessName(DWORD dwProcessId, char *buffer)
 		if(pe32.th32ProcessID == dwProcessId)
 		{
 			CloseHandle(hSnapshot);
-			strcpy(buffer, pe32.szExeFile);
+			pName = strrchr(pe32.szExeFile, '\\');
+			if(pName != NULL)
+			{
+				*pName = 0;
+				pName++;
+				strcpy(buffer, pName);
+			}
+			else
+				strcpy(buffer, pe32.szExeFile);
 			return TRUE;
 		}
 	} while(Process32Next(hSnapshot, &pe32));
@@ -511,3 +520,14 @@ UINT kexGetKernelExDirectory(LPSTR lpBuffer, UINT uSize)
 	}
 }
 
+UINT kexErrorCodeToString(ULONG ErrorCode, LPSTR lpBuffer)
+{
+	return FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | 
+					FORMAT_MESSAGE_FROM_SYSTEM,
+					NULL,
+					ErrorCode,
+					MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+					(LPTSTR) lpBuffer,
+					0,
+					NULL);
+}
