@@ -24,7 +24,7 @@
 #include "_user32_apilist.h"
 #include <commctrl.h>
 
-/* MAKE_EXPORT CreateDesktopExW_new=CreateDesktopExW*/
+/* MAKE_EXPORT CreateDesktopExW_new=CreateDesktopExW */
 HDESK WINAPI CreateDesktopExW_new(LPWSTR lpszDesktop, LPWSTR lpszDevice, LPDEVMODEW pDevmode, DWORD dwFlags, ACCESS_MASK dwDesiredAccess, LPSECURITY_ATTRIBUTES lpsa, ULONG ulHeapSize, PVOID pvoid)
 {
 	return CreateDesktopW_new(lpszDesktop, lpszDevice, pDevmode, dwFlags, dwDesiredAccess, lpsa);
