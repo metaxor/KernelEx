@@ -21,6 +21,8 @@
  */
 
 #include <stdio.h>
+#include "ntstatus.h"
+#define WIN32_NO_STATUS
 #include "common.h"
 #include "kernel32/_kernel32_apilist.h"
 #include "gdi32/_gdi32_apilist.h"
@@ -177,18 +179,15 @@ BOOL APIENTRY DllMain(HINSTANCE instance, DWORD reason, BOOL load_static)
 
 		if(fShutdown)
 		{
-			char lpAppName[80];
-			char buffer[80];
-			BOOL result;
+			ULONG Response = 0;
 
-			result = kexGetProcessName(GetCurrentProcessId(), lpAppName);
+			NtRaiseHardError(STATUS_DLL_INIT_FAILED_LOGOFF,
+							0,
+							0,
+							NULL,
+							OptionOk,
+							&Response);
 
-			if(!result)
-				sprintf(buffer, "<unknown> - DLL Initialization Failed");
-			else
-				sprintf(buffer, "%s - DLL Initialization Failed", lpAppName);
-
-			MessageBox(NULL, "The application failed to initialize because the window station is shutting down.", buffer, MB_ICONERROR | MB_SYSTEMMODAL);
 			ExitProcess(0);
 			return FALSE;
 		}
