@@ -19,18 +19,20 @@
  *
  */
 
+#include "../ntdll/_ntdll_apilist.h"
 #include <stdlib.h>
 #include <shlwapi.h>
 #include "desktop.h"
-#include "../ntdll/_ntdll_apilist.h"
 
 BOOL fShutdown = FALSE;
 BOOL fLoggingOff = FALSE;
 BOOL fAborted = FALSE;
+BOOL fForceShutdown = FALSE;
 DWORD dwShutdownThreadId = 0;
 
 int WaitToKillAppTimeout = 0;
 int HungAppTimeout = 0;
+int LogoffTimeout = 5 * 1000; // 5 minutes
 
 HWND hwndGlobalText;
 
@@ -54,6 +56,7 @@ typedef struct _SHUTDOWNDATA
 	DWORD dwProcessId;
 	DWORD dwThreadId;
 	BOOL fEndServices;
+	BOOL fLoggingOff;
 } SHUTDOWNDATA, *PSHUTDOWNDATA;
 
 /* - In Win9x, the shutdown is processed in the context of the caller
@@ -140,6 +143,9 @@ BOOL CALLBACK EnumProcessesProc(DWORD dwProcessId, PSHUTDOWNDATA ShutdownData)
 	if((Process->Flags & fServiceProcess || Process == Msg32Process) && !ShutdownData->fEndServices)
 		return TRUE;
 
+	if(!(Process->Flags & fServiceProcess) && Process != Msg32Process && ShutdownData->fEndServices)
+		return TRUE;
+
 	if(Process == MprProcess)
 		return TRUE;
 
@@ -196,6 +202,9 @@ ULONG GetUserProcessesCount(PSHUTDOWNDATA sa)
 			continue;
 
 		if((Process->Flags & fServiceProcess || Process == Msg32Process) && !sa->fEndServices)
+			continue;
+
+		if(!(Process->Flags & fServiceProcess) && Process != Msg32Process && sa->fEndServices)
 			continue;
 
 		if(Process == pKernelProcess || Process == MprProcess)
@@ -360,6 +369,7 @@ VOID __fastcall LogoffCurrentUser(PSHUTDOWNDATA ShutdownData)
 	DWORD pProcess[1024];
 	DWORD Processes = 0;
 	ULONG i;
+	DWORD StartTickCount = GetTickCount();
 
 	__try
 	{
@@ -377,6 +387,22 @@ VOID __fastcall LogoffCurrentUser(PSHUTDOWNDATA ShutdownData)
 
 			for(i=0;i<=Processes;i++)
 			{
+				if(GetTickCount() - StartTickCount > LogoffTimeout)
+				{
+					/* Force processes to terminate if the logoff time has raised the maximum logoff timeout */
+
+					if(ShutdownData->fLoggingOff)
+					{
+						if(!(ShutdownData->uFlags & EWX_FORCE))
+							ShutdownData->uFlags |= EWX_FORCE;
+					}
+					else
+					{
+						fForceShutdown = TRUE;
+						return;
+					}
+				}
+
 				Sleep(100);
 
 				if(pProcess[i] == 0)
@@ -408,10 +434,8 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 	DWORD tid = 0;
 	HANDLE hThread = NULL;
 	HANDLE hEvent = NULL;
-	HINSTANCE hGDI32 = GetModuleHandle("GDI32.DLL");
-	HINSTANCE hAdvapi = GetModuleHandle("ADVAPI32.DLL");
-	REGREMAPPREDEFKEY RegRemapPreDefKey = (REGREMAPPREDEFKEY)GetProcAddress(hAdvapi, "RegRemapPreDefKey");
-	BYEBYEGDI ByeByeGDI = (BYEBYEGDI)GetProcAddress(hGDI32, "ByeByeGDI");
+	REGREMAPPREDEFKEY RegRemapPreDefKey = (REGREMAPPREDEFKEY)GetProcAddress(GetModuleHandle("ADVAPI32.DLL"), "RegRemapPreDefKey");
+	BYEBYEGDI ByeByeGDI = (BYEBYEGDI)GetProcAddress(GetModuleHandle("GDI32.DLL"), "ByeByeGDI");
 
 	dwShutdownThreadId = GetCurrentThreadId();
 
@@ -485,12 +509,14 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 
 		fLoggingOff = (sa.uFlags == EWX_LOGOFF || sa.uFlags == EWX_FORCEIFHUNG || sa.uFlags == EWX_FORCE);
 
+		sa.fLoggingOff = fLoggingOff;
+
 		LogoffCurrentUser(&sa);
 
 		if(fAborted)
 			goto finished;
 
-		if(sa.ShellProcessId != 0)
+		if(sa.ShellProcessId != 0 && !fForceShutdown)
 		{
 			/* Now terminate the shell process */
 			hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, sa.ShellProcessId);
@@ -525,6 +551,16 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 				RegRemapPreDefKey(HKEY_CURRENT_USER, hKey);
 				CloseHandle(hKey);
 			}
+			else
+			{
+				DWORD LastErr = GetLastError();
+				char buffer[255];
+				LPVOID lpString = NULL;
+
+				kexErrorCodeToString(LastErr, (LPSTR)&lpString);
+				wsprintf(buffer, "%s (Error %d)", lpString, LastErr);
+				Win32RaiseHardError(buffer, "Shut down", MB_OK, TRUE);
+			}
 
 			RegOpenKey(HKEY_LOCAL_MACHINE, "System\\CurrentControlSet\\Control", &hKey);
 
@@ -537,6 +573,19 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 			SetWindowText(hwndGlobalText, "Please wait while the system is terminating services processes.");
 			sa.fEndServices = TRUE;
 			LogoffCurrentUser(&sa);
+
+			if(HardErrorThreadId != 0)
+			{
+				HANDLE hThread;
+
+				hThread = OpenThread_new(THREAD_ALL_ACCESS, FALSE, HardErrorThreadId);
+
+				if(hThread != NULL)
+				{
+					TerminateThread(hThread, 0);
+					CloseHandle(hThread);
+				}
+			}
 		}
 
 		if(hwndGlobalText != NULL)
@@ -550,28 +599,21 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 		RegFlushKey(HKEY_USERS);
 		RegFlushKey(HKEY_DYN_DATA);
 
-		/* FIXME: Instead of calling ExitWindowsEx, send a logoff message to MPREXE */
-
 		if(hwndGlobalText != NULL)
 			SetWindowText(hwndGlobalText, "Please wait while the system is shutting down.");
 
 		Sleep(50);
 
-		if(!fLoggingOff)
-		{
-			ByeByeGDI(0);
-			kexCreateRemoteThread(MprProcess, 1000, (LPTHREAD_START_ROUTINE)ExitProcess, NULL, 0);
-		}
-
 		if(sa.uFlags & EWX_REBOOT)
 		{
+			ByeByeGDI(0);
 			ZwShutdownSystem(ShutdownReboot);
 			ExitWindowsEx(EWX_REBOOT | EWX_FORCE, 0);
 		}
 		else if(sa.uFlags & EWX_SHUTDOWN)
 		{
-			ZwShutdownSystem(ShutdownNoReboot);
-			//ExitWindowsEx(EWX_SHUTDOWN | EWX_FORCE, 0);
+			ZwShutdownSystem(ShutdownPowerOff);
+			ExitWindowsEx(EWX_SHUTDOWN | EWX_FORCE, 0);
 		}
 		else if(sa.uFlags & EWX_POWEROFF)
 		{
@@ -579,6 +621,8 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 			ExitWindowsEx(EWX_POWEROFF | EWX_FORCE, 0);
 		}
 
+
+		/* FIXME: Instead of calling ExitWindowsEx, send a logoff message to MPREXE */
 		if(fLoggingOff)
 			ExitWindowsEx(EWX_LOGOFF | EWX_FORCE, 0);
 
@@ -586,6 +630,7 @@ finished:
 		fAborted = FALSE;
 		fShutdown = FALSE;
 		fLoggingOff = FALSE;
+		fForceShutdown = FALSE;
 		hwndGlobalText = NULL;
 
 		TranslateMessage(&msg);
