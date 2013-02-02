@@ -537,6 +537,10 @@ SOURCE=.\ntdll\_ntdll_stubs.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\ntdll\error.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\ntdll\ntprocess.c
 # End Source File
 # Begin Source File
