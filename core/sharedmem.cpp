@@ -29,7 +29,7 @@ HANDLE shared_heap;
 
 int create_shared_heap()
 {
-	shared_heap = HeapCreate(HEAP_SHARED, 0, 0x100000);
+	shared_heap = HeapCreate(HEAP_SHARED, 0, 0);
 	return shared_heap ? 1 : 0;
 }
 
@@ -66,9 +66,9 @@ void* realloc(void* ptr, size_t size)
 {
 	void* nptr;
 	if (ptr)
-		nptr = HeapReAlloc(shared_heap, 0, ptr, size);
+		nptr = HeapReAlloc(shared_heap, HEAP_ZERO_MEMORY, ptr, size);
 	else 
-		nptr = HeapAlloc(shared_heap, 0, size);
+		nptr = HeapAlloc(shared_heap, HEAP_ZERO_MEMORY, size);
 	if (!nptr)
 		DBGPRINTF(("ERROR: malloc failed (%d B)\n", size));
 	return nptr;
