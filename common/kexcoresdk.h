@@ -421,6 +421,14 @@ _KEXCOREIMP void* kexGetK32Lock();
  */
 _KEXCOREIMP UINT kexGetKernelExDirectory(LPSTR lpBuffer, UINT uSize);
 
+/** kexErrorCodeToString
+ * @param ErrorCode - error code that will be converted to string
+ * @param lpBuffer - pointer to a variable that will receive the address
+ * of the converted error code string
+ * @return Length of the string copied to the buffer
+ */
+_KEXCOREIMP UINT kexErrorCodeToString(ULONG ErrorCode, LPSTR lpBuffer);
+
 
 #ifdef __cplusplus
 } /* extern "C" */
