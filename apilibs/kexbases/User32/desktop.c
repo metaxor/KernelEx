@@ -676,6 +676,13 @@ HDESK WINAPI CreateDesktopA_new(LPCSTR lpszDesktop, LPCSTR lpszDevice, LPDEVMODE
 		return NULL;
 	}
 
+	if(ppi == NULL)
+	{
+		SetLastError(ERROR_ACCESS_DENIED);
+		ReleaseWin16Lock();
+		return NULL;
+	}
+
 	WindowStationObject = ppi->rpwinsta;
 
 	if(WindowStationObject == NULL)
@@ -771,7 +778,7 @@ HDESK WINAPI CreateDesktopA_new(LPCSTR lpszDesktop, LPCSTR lpszDevice, LPDEVMODE
     return hDesktop;
 }
 
-/* MAKE_EXPORT CreateDesktopExA_new=CreateDesktopExA*/
+/* MAKE_EXPORT CreateDesktopExA_new=CreateDesktopExA */
 HDESK WINAPI CreateDesktopExA_new(LPCSTR lpszDesktop, LPCSTR lpszDevice, LPDEVMODEA pDevmode, DWORD dwFlags, ACCESS_MASK dwDesiredAccess, LPSECURITY_ATTRIBUTES lpsa, ULONG ulHeapSize, PVOID pvoid)
 {
 	return CreateDesktopA_new(lpszDesktop, lpszDevice, pDevmode, dwFlags, dwDesiredAccess, lpsa);
@@ -900,14 +907,20 @@ HDESK WINAPI GetInputDesktop_new(VOID)
 /* MAKE_EXPORT GetThreadDesktop_new=GetThreadDesktop */
 HDESK WINAPI GetThreadDesktop_new(DWORD dwThreadId)
 {
-	PTDB98 Thread;
+	PTDB98 Thread = NULL;
+	PTHREADINFO pti = NULL;
 
 	Thread = (PTDB98)kexGetThread(dwThreadId);
 
 	if(Thread == NULL)
 		return NULL;
 
-	return Thread->Win32Thread->hdesk;
+	pti = Thread->Win32Thread;
+
+	if(pti == NULL)
+		return NULL;
+
+	return pti->hdesk;
 }
 
 /* MAKE_EXPORT OpenDesktopA_new=OpenDesktopA */
@@ -928,6 +941,9 @@ HDESK WINAPI OpenDesktopA_new(LPSTR lpszDesktop, DWORD dwFlags, BOOL fInherit, A
 		SetLastError(ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
+
+	if(ppi == NULL)
+		goto globalsearch;
 
 	if(fInherit)
 		flags |= HF_INHERIT;
@@ -1024,7 +1040,7 @@ BOOL WINAPI SetThreadDesktop_new(HDESK hDesktop)
 	pti->rpdesk = DesktopObject;
 	pti->hdesk = hDesktop;
 
-	if(ppi->rpdeskStartup == NULL)
+	if(ppi != NULL && ppi->rpdeskStartup == NULL)
 	{
 		ppi->rpdeskStartup = DesktopObject;
 		ppi->hdeskStartup = hDesktop;
