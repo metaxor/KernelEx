@@ -387,10 +387,19 @@ HWINSTA WINAPI OpenWindowStationA_new(LPSTR lpszWinSta, BOOL fInherit, ACCESS_MA
 /* MAKE_EXPORT SetProcessWindowStation_new=SetProcessWindowStation */
 BOOL WINAPI SetProcessWindowStation_new(HWINSTA hWinSta)
 {
-	PPDB98 Process;
-	PWINSTATION_OBJECT WindowStationObject;
+	PPDB98 Process = NULL;
+	PPROCESSINFO ppi = NULL;
+	PWINSTATION_OBJECT WindowStationObject = NULL;
 
 	Process = get_pdb();
+
+	if(Process == NULL || Process->Win32Process == NULL)
+	{
+		SetLastError(ERROR_ACCESS_DENIED);
+		return FALSE;
+	}
+
+	ppi = Process->Win32Process;
 
 	if(!IntValidateWindowStationHandle(hWinSta, &WindowStationObject))
 	{
@@ -398,8 +407,8 @@ BOOL WINAPI SetProcessWindowStation_new(HWINSTA hWinSta)
 		return FALSE;
 	}
 
-    Process->Win32Process->rpwinsta = WindowStationObject;
-    Process->Win32Process->hwinsta = hWinSta;
+    ppi->rpwinsta = WindowStationObject;
+	ppi->hwinsta = hWinSta;
 
 	kexDereferenceObject(WindowStationObject);
 	return TRUE;
