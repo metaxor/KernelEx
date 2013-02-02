@@ -22,6 +22,90 @@
 #include <windows.h>
 #include "desktop.h"
 
+/* MAKE_EXPORT CreateDialogIndirectParamA_fix=CreateDialogIndirectParamA */
+HWND WINAPI CreateDialogIndirectParamA_fix(HINSTANCE hInstance,
+    LPCDLGTEMPLATE lpTemplate,
+    HWND hWndParent,
+    DLGPROC lpDialogFunc,
+    LPARAM lParamInit
+)
+{
+	PTHREADINFO pti = get_tdb()->Win32Thread;
+	HWND hWnd = NULL;
+	PWND pWnd = NULL;
+
+	hWnd = CreateDialogIndirectParamA(hInstance,
+								lpTemplate,
+								hWndParent,
+								lpDialogFunc,
+								lParamInit);
+
+	GrabWin16Lock();
+
+	if(hWnd == NULL)
+		goto _ret;
+
+	pWnd = HWNDtoPWND(hWnd);
+
+	if(pWnd == NULL)
+		goto _ret;
+
+	if(pti == NULL)
+		goto _ret;
+
+	if(pti->rpdesk != gpdeskInputDesktop && pWnd->style & WS_VISIBLE)
+	{
+		pWnd->style |= WS_INTERNAL_WASVISIBLE;
+		ShowWindowAsync(hWnd, SW_HIDE);
+	}
+
+_ret:
+	ReleaseWin16Lock();
+	return hWnd;
+}
+
+/* MAKE_EXPORT CreateDialogParamA_fix=CreateDialogParamA */
+HWND WINAPI CreateDialogParamA_fix(HINSTANCE hInstance,
+	LPCTSTR lpTemplateName,
+	HWND hWndParent,
+	DLGPROC lpDialogFunc,
+	LPARAM dwInitParam
+)
+{
+	PTHREADINFO pti = get_tdb()->Win32Thread;
+	HWND hWnd = NULL;
+	PWND pWnd = NULL;
+
+	hWnd = CreateDialogParamA(hInstance,
+							lpTemplateName,
+							hWndParent,
+							lpDialogFunc,
+							dwInitParam);
+
+	GrabWin16Lock();
+
+	if(hWnd == NULL)
+		goto _ret;
+
+	pWnd = HWNDtoPWND(hWnd);
+
+	if(pWnd == NULL)
+		goto _ret;
+
+	if(pti == NULL)
+		goto _ret;
+
+	if(pti->rpdesk != gpdeskInputDesktop && pWnd->style & WS_VISIBLE)
+	{
+		pWnd->style |= WS_INTERNAL_WASVISIBLE;
+		ShowWindowAsync(hWnd, SW_HIDE);
+	}
+
+_ret:
+	ReleaseWin16Lock();
+	return hWnd;
+}
+
 /* Here we have fix for retarded situation.
  * 9x stucks trying to get next control in dialog to tab
  * when there is only one control on dialog, and it has tab-able
