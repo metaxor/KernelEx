@@ -40,7 +40,6 @@ STUB CreateHardLinkW_stub;
 STUB GetComputerNameExA_stub;
 STUB GetComputerNameExW_stub;
 STUB GetProcessIoCounters_stub;
-STUB HeapSetInformation_stub;
 STUB IsValidLanguageGroup_stub;
 STUB ReplaceFileA_stub;
 STUB ReplaceFileW_stub;

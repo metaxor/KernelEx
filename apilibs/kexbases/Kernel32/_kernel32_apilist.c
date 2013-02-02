@@ -162,7 +162,6 @@ static const apilib_named_api kernel32_named_apis[] =
 	DECL_API("GlobalUnlock", GlobalUnlock_fix),
 	DECL_API("HeapLock", HeapLock_new),
 	DECL_API("HeapQueryInformation", HeapQueryInformation_new),
-	DECL_API("HeapSetInformation", HeapSetInformation_stub),
 	DECL_API("HeapSetInformation", HeapSetInformation_new),
 	DECL_API("HeapUnlock", HeapUnlock_new),
 	DECL_API("HeapValidate", HeapValidate_new),

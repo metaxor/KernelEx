@@ -26,7 +26,6 @@ UNIMPL_FUNC(CreateHardLinkW, 3);
 UNIMPL_FUNC(GetComputerNameExA, 3);
 UNIMPL_FUNC(GetComputerNameExW, 3);
 UNIMPL_FUNC(GetProcessIoCounters, 2);
-UNIMPL_FUNC(HeapSetInformation, 4);
 UNIMPL_FUNC(IsValidLanguageGroup, 2);
 UNIMPL_FUNC(ReplaceFileA, 6);
 UNIMPL_FUNC(ReplaceFileW, 6);
