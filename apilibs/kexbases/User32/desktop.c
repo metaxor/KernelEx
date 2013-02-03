@@ -512,6 +512,7 @@ DWORD WINAPI DesktopThread(PVOID lParam)
 {
 	MSG msg;
 
+	kexGrabLocks();
 	pDesktopThread = get_tdb();
 	pKernelProcess = get_pdb();
 	dwDesktopThreadId = GetCurrentThreadId();
@@ -519,6 +520,8 @@ DWORD WINAPI DesktopThread(PVOID lParam)
 
 	/* Prevent the kernel process from being terminated by adding the terminating flag */
 	pKernelProcess->Flags |= fTerminating;
+
+	kexReleaseLocks();
 
 	while(1)
 	{
