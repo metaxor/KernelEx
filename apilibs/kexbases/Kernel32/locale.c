@@ -221,7 +221,7 @@ INT WINAPI LCMapStringW_new(LCID lcid, DWORD flags, LPCWSTR src, INT srclen,
 	TRACE("(0x%04x,0x%08x,%s,%d,%p,%d)\n",
 		  lcid, flags, debugstr_wn(src, srclen), srclen, dst, dstlen);
 
-	/* Sometimes kexbases.dll isn't loaded, we will manually allocate threadinfo/processinfo structures */
+	/* Sometimes kexbases.dll isn't loaded, we will manually load kexbases to allocate structures */
 	if(Process->Win32Process == NULL || Thread->Win32Thread == NULL)
 		LoadLibrary("kexbases.dll");
 
