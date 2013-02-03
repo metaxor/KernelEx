@@ -541,6 +541,10 @@ SOURCE=.\ntdll\error.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\ntdll\handle.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\ntdll\ntprocess.c
 # End Source File
 # Begin Source File
