@@ -28,7 +28,6 @@
 
 IsHungThread_t IsHungThread_pfn;
 DrawCaptionTempA_t DrawCaptionTempA_pfn;
-CREATEKERNELTHREAD CreateKernelThread;
 
 PPDB98 Msg32Process = NULL;
 PPDB98 MprProcess = NULL;
@@ -193,29 +192,36 @@ BOOL init_user32()
 	IsHungThread_pfn = (IsHungThread_t)kexGetProcAddress(hUser32, "IsHungThread");
 	DrawCaptionTempA_pfn = (DrawCaptionTempA_t)kexGetProcAddress(hUser32, "DrawCaptionTempA");
 	GetMouseMovePoints_pfn = (GetMouseMovePoints_t)kexGetProcAddress(hUser32, "GetMouseMovePoints");
-	CreateKernelThread = (CREATEKERNELTHREAD)kexGetProcAddress(hKernel32, "CreateKernelThread");
 
 	if(gpdeskInputDesktop == NULL)
 		if(!CreateWindowStationAndDesktops())
 			return 0;
 
 	/* Create the desktop thread */
-	if(CreateKernelThread != NULL)
+	hThread = CreateKernelThread(NULL, 0, DesktopThread, NULL, 0, &dwThreadId);
+
+	if(hThread == NULL)
 	{
-		hThread = CreateKernelThread(NULL, 0, DesktopThread, NULL, 0, &dwThreadId);
+		TRACE_OUT("Failed to create the desktop thread !\n");
+		CloseHandle(hThread);
+	}
 
-		if(hThread != NULL)
-			CloseHandle(hThread);
+	/* Create the shutdown thread */
+	hThread2 = CreateKernelThread(NULL, 0, ShutdownThread, NULL, 0, &dwThreadId);
 
-		hThread2 = CreateKernelThread(NULL, 0, ShutdownThread, NULL, 0, &dwThreadId);
+	if(hThread2 == NULL)
+	{
+		TRACE_OUT("Failed to create the shutdown thread !\n");
+		CloseHandle(hThread2);
+	}
 
-		if(hThread2 != NULL)
-			CloseHandle(hThread2);
+	/* Create the hard-error messages thread */
+	hThread3 = CreateKernelThread(NULL, 0, HardErrorThread, NULL, 0, &dwThreadId);
 
-		hThread3 = CreateKernelThread(NULL, 0, HardErrorThread, NULL, 0, &dwThreadId);
-
-		if(hThread3 != NULL)
-			CloseHandle(hThread3);
+	if(hThread3 == NULL)
+	{
+		TRACE_OUT("Failed to create the hard-error messages thread !\n");
+		CloseHandle(hThread3);
 	}
 
 	MprProcess = get_pdb();

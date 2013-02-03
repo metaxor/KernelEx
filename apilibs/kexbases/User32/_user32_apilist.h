@@ -44,8 +44,6 @@ typedef BOOL (WINAPI *DrawCaptionTempA_t)(HWND, HDC, const RECT*, HFONT, HICON, 
 extern DrawCaptionTempA_t DrawCaptionTempA_pfn;
 typedef int (WINAPI *GetMouseMovePoints_t)(UINT,LPMOUSEMOVEPOINT,LPMOUSEMOVEPOINT,int,DWORD);
 extern GetMouseMovePoints_t GetMouseMovePoints_pfn;
-typedef HANDLE (WINAPI *CREATEKERNELTHREAD)(LPSECURITY_ATTRIBUTES, SIZE_T, LPTHREAD_START_ROUTINE, LPVOID, DWORD, LPDWORD);
-extern CREATEKERNELTHREAD CreateKernelThread;
 
 typedef struct _HARDERRORDATA
 {
