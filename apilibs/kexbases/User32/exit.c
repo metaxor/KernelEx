@@ -32,7 +32,7 @@ DWORD dwShutdownThreadId = 0;
 
 int WaitToKillAppTimeout = 0;
 int HungAppTimeout = 0;
-int LogoffTimeout = 5 * 1000; // 5 minutes
+ULONG LogoffTimeout = 5 * 1000 * 60; // 5 minutes
 
 HWND hwndGlobalText;
 
