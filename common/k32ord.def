@@ -20,6 +20,9 @@ EXPORTS
     _EnterSysLevel @97 NONAME
     _LeaveSysLevel @98 NONAME
     MakeCriticalSectionGlobal
+	ConvertToGlobalHandle
+	CloseSystemHandle
+	CreateKernelThread
     MapSL
     LoadLibrary16 @35 NONAME
 	FreeLibrary16 @36 NONAME

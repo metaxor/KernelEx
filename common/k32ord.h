@@ -63,6 +63,9 @@ MAKE_HEADER(ULONG __stdcall VxDCall7(ULONG p1, ULONG p2, ULONG p3, ULONG p4, ULO
 MAKE_HEADER(ULONG __stdcall VxDCall8(ULONG p1, ULONG p2, ULONG p3, ULONG p4, ULONG p5, ULONG p6, ULONG p7, ULONG p8))
 
 MAKE_HEADER(void __stdcall MakeCriticalSectionGlobal(CRITICAL_SECTION* cs))
+MAKE_HEADER(HANDLE __stdcall ConvertToGlobalHandle(HANDLE hObject))
+MAKE_HEADER(BOOL __stdcall CloseSystemHandle(HANDLE hObject))
+MAKE_HEADER(HANDLE __stdcall CreateKernelThread(LPSECURITY_ATTRIBUTES lpThreadAttributes, SIZE_T dwStackSize, LPTHREAD_START_ROUTINE lpStartAddress, LPVOID lpParameter, DWORD dwCreationFlags, LPDWORD lpThreadId))
 
 MAKE_HEADER(ULONG __stdcall CommonUnimpStub())
 
