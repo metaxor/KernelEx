@@ -5,7 +5,7 @@ CXX = g++
 RCC = windres
 OBJ = wtsapi32.o
 RES = 
-LIBS = ..\..\common\KernelEx.lib
+LIBS = ..\winsta\winsta.a ..\..\common\KernelEx.lib
 DEF = wtsapi32.def
 LDFLAGS = -s -shared -Wl,--kill-at
 BIN = ..\..\output-i386\Release\wtsapi32.dll
@@ -25,8 +25,8 @@ clean :
 realclean : clean
 	-@if exist $(BIN) del $(BIN)
 
-$(BIN) : $(OBJ) $(RES)
-	$(CXX) $(LDFLAGS) -o $(BIN) $(OBJ) $(RES) $(LIBS) $(DEF)
+$(BIN) : $(OBJ) $(RES) ..\winsta\winsta.a
+	$(CXX) $(LDFLAGS) -o $(BIN) $(OBJ) $(RES) $(LIBS)  $(DEF)
 
 .c.o : 
 	$(CC) $(CFLAGS) -c -MMD -MF $*.po -o $@ $<
