@@ -168,6 +168,27 @@ DWORD WINAPI GetProcessId_new(
 }
 #endif
 
+/* MAKE_EXPORT GetProcessShutdownParameters_new=GetProcessShutdownParameters */
+BOOL WINAPI GetProcessShutdownParameters_new(LPDWORD lpdwLevel, LPDWORD lpdwFlags)
+{
+	PPDB98 Process = get_pdb();
+	PPROCESSINFO ppi = Process->Win32Process;
+
+	if(IsBadWritePtr(lpdwLevel, sizeof(DWORD)) || IsBadWritePtr(lpdwFlags, sizeof(DWORD)))
+	{
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return FALSE;
+	}
+
+	if(ppi == NULL)
+		return FALSE;
+
+	*lpdwLevel = ppi->ShutdownLevel;
+	*lpdwFlags = 0; /* Still no shutdown flags yet */
+
+	return TRUE;
+}
+
 /* MAKE_EXPORT IsWow64Process_new=IsWow64Process */
 BOOL WINAPI IsWow64Process_new(HANDLE hProcess, PBOOL Wow64Process)
 {
@@ -188,5 +209,25 @@ BOOL WINAPI ProcessIdToSessionId_new(DWORD dwProcessId, DWORD *pSessionId)
 
 	/* Process not running under RDS session */
 	*pSessionId = 0;
+	return TRUE;
+}
+
+/* MAKE_EXPORT SetProcessShutdownParameters_new=SetProcessShutdownParameters */
+BOOL WINAPI SetProcessShutdownParameters_new(DWORD dwLevel, DWORD dwFlags)
+{
+	PPDB98 Process = get_pdb();
+	PPROCESSINFO ppi = Process->Win32Process;
+
+	if(dwFlags > SHUTDOWN_NORETRY)
+	{
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return FALSE;
+	}
+
+	if(ppi == NULL)
+		return FALSE;
+
+	ppi->ShutdownLevel = dwLevel;
+
 	return TRUE;
 }
