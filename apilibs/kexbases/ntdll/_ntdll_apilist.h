@@ -89,6 +89,7 @@ STUB ZwCreateProcess_stub;
 STUB ZwCreateThread_stub;
 ULONG NTAPI RtlNtStatusToDosError(NTSTATUS Status);
 NTSTATUS NTAPI NtRaiseHardError(IN NTSTATUS ErrorStatus, IN ULONG NumberOfParameters, IN ULONG UnicodeStringParameterMask, IN PULONG_PTR Parameters, IN ULONG ValidResponseOptions, OUT PULONG Response);
+NTSTATUS NTAPI ZwDuplicateObject(IN HANDLE SourceProcessHandle, IN HANDLE SourceHandle, IN HANDLE TargetProcessHandle OPTIONAL, OUT PHANDLE TargetHandle OPTIONAL, IN ACCESS_MASK DesiredAccess, IN ULONG HandleAttributes, IN ULONG Options);
 NTSTATUS NTAPI ZwClose(IN HANDLE Handle);
 NTSTATUS NTAPI ZwOpenProcess(OUT PHANDLE ProcessHandle, IN ACCESS_MASK AccessMask, IN POBJECT_ATTRIBUTES ObjectAttributes, IN PCLIENT_ID ClientId);
 NTSTATUS NTAPI ZwResumeProcess(IN HANDLE ProcessHandle);
