@@ -157,7 +157,7 @@ SOURCE=.\winsta\winsta.h
 SOURCE=.\uxtheme\kord.def
 # End Source File
 # End Group
-# Begin Group "pdb_kord"
+# Begin Group "pdh_kord"
 
 # PROP Default_Filter ""
 # Begin Source File
