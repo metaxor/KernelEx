@@ -211,12 +211,17 @@ BOOL kexFindObjectHandle(PVOID Process, PVOID Object, WORD ObjectType, PHANDLE H
 	ULONG index;
 	PK32OBJHEAD k32obj;
 
-	/* FIXME: Should we return FALSE or the first handle found? */
+	if(Process != NULL && IsBadReadPtr(Process, sizeof(PDB98)))
+		return FALSE;
+
 	if(IsBadReadPtr(Object, sizeof(K32OBJHEAD)) && ObjectType == 0)
 		return FALSE;
 
 	if(IsBadReadPtr(Handle, sizeof(DWORD)) || IsBadReadPtr(Process, sizeof(PDB98)))
 		return FALSE;
+
+	if(Process == NULL)
+		Process = get_pdb();
 
 	ppdb = (PPDB98)Process;
 	pHandleTable = ppdb->pHandleTable;
@@ -251,6 +256,7 @@ BOOL kexFindObjectHandle(PVOID Process, PVOID Object, WORD ObjectType, PHANDLE H
 		}
 	}
 
+	/* FIXME: Should we return FALSE or the first handle found? */
 	return FALSE;
 }
 
