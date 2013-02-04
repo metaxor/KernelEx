@@ -47,7 +47,7 @@ dumb facts:
 - most reliable relative code ever
 - yes, kernel32 on XP+ does export this function. we make 98 too :p */
 
-DWORD WINAPI GetProcessId(
+DWORD WINAPI _GetProcessId(
   HANDLE hProcess
 )
 {
