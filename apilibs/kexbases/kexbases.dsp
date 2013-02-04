@@ -109,6 +109,10 @@ SOURCE=.\Kernel32\_kernel32_stubs.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\Kernel32\console.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\Kernel32\critsect.c
 # End Source File
 # Begin Source File
