@@ -125,6 +125,18 @@ SOURCE=.\netapi32\netapi32.c
 SOURCE=.\netapi32\netapi32.h
 # End Source File
 # End Group
+# Begin Group "winsta"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\winsta\winsta.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\winsta\winsta.h
+# End Source File
+# End Group
 # End Group
 # Begin Group "Header Files"
 
@@ -176,6 +188,10 @@ SOURCE=.\userenv\userenv.def
 # Begin Source File
 
 SOURCE=.\uxtheme\uxtheme.def
+# End Source File
+# Begin Source File
+
+SOURCE=.\winsta\winsta.def
 # End Source File
 # Begin Source File
 

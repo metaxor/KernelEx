@@ -1,0 +1,4 @@
+LIBRARY winsta.dll BASE=0x71460000
+
+EXPORTS
+	WinStationTerminateProcess@12

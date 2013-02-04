@@ -1,6 +1,7 @@
 all :
 	@$(MAKE) -C msimg32 $@
 	@$(MAKE) -C pdh $@
+	@$(MAKE) -C winsta $@
 	@$(MAKE) -C wtsapi32 $@
 	@$(MAKE) -C uxtheme $@
 	@$(MAKE) -C psapi $@
@@ -9,6 +10,7 @@ all :
 clean :
 	@$(MAKE) -C msimg32 $@
 	@$(MAKE) -C pdh $@
+	@$(MAKE) -C winsta $@
 	@$(MAKE) -C wtsapi32 $@
 	@$(MAKE) -C uxtheme $@
 	@$(MAKE) -C psapi $@
@@ -17,6 +19,7 @@ clean :
 realclean :
 	@$(MAKE) -C msimg32 $@
 	@$(MAKE) -C pdh $@
+	@$(MAKE) -C winsta $@
 	@$(MAKE) -C wtsapi32 $@
 	@$(MAKE) -C uxtheme $@
 	@$(MAKE) -C psapi $@

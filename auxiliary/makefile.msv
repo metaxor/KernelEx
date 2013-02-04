@@ -4,6 +4,9 @@ all :
 	cd ..
 	cd pdh
 	@$(MAKE) /nologo /f makefile.msv $@
+    cd ..
+	cd winsta
+	@$(MAKE) /nologo /f makefile.msv $@
 	cd ..
 	cd wtsapi32
 	@$(MAKE) /nologo /f makefile.msv $@
@@ -19,13 +22,16 @@ all :
 	cd ..
     cd netapi32
     @$(MAKE) /nologo /f makefile.msv $@
-    cd ..
+	cd ..
 
 clean :
 	cd msimg32
 	@$(MAKE) /nologo /f makefile.msv $@
 	cd ..
 	cd pdh
+	@$(MAKE) /nologo /f makefile.msv $@
+    cd ..
+	cd winsta
 	@$(MAKE) /nologo /f makefile.msv $@
 	cd ..
 	cd wtsapi32
