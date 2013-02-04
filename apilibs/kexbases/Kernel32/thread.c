@@ -139,6 +139,35 @@ HANDLE WINAPI CreateThread_fix(
 	return CreateThread( lpThreadAttributes, dwStackSize, lpStartAddress, lpParameter, dwCreationFlags, lpThreadId );
 }
 
+/* MAKE_EXPORT GetProcessIdOfThread_new=GetProcessIdOfThread */
+DWORD WINAPI GetProcessIdOfThread_new(HANDLE hThread)
+{
+	PTDB98 Thread = (PTDB98)kexGetHandleObject(hThread, WIN98_K32OBJ_THREAD, 0);
+	PPDB98 Process = NULL;
+	DWORD Obfuscator = (DWORD)get_pdb() ^ GetCurrentProcessId();
+
+	if(Thread == NULL)
+		return 0;
+
+	Process = (PPDB98)Thread->tib.pProcess;
+
+	if(Process == NULL)
+		return 0; /* a thread without a process ?!?!*/
+
+	return (DWORD)Process ^ Obfuscator;
+}
+
+/* MAKE_EXPORT GetThreadId_new=GetThreadId */
+DWORD WINAPI GetThreadId_new(HANDLE hThread)
+{
+	PTDB98 Thread = (PTDB98)kexGetHandleObject(hThread, WIN98_K32OBJ_THREAD, 0);
+	DWORD Obfuscator = (DWORD)get_tdb() ^ GetCurrentThreadId();
+
+	if(Thread == NULL)
+		return 0;
+
+	return (DWORD)Thread ^ Obfuscator;
+}
 
 /* MAKE_EXPORT OpenThread_new=OpenThread */
 HANDLE WINAPI OpenThread_new(DWORD dwDesiredAccess, BOOL bInheritHandle, DWORD dwThreadId)
