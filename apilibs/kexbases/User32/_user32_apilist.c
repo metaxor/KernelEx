@@ -189,6 +189,11 @@ BOOL init_user32()
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
 
+	MprProcess = get_pdb();
+
+	/* Get MSGSRV32 */
+	Msg32Process = MprProcess->ParentPDB->ParentPDB;
+
 	IsHungThread_pfn = (IsHungThread_t)kexGetProcAddress(hUser32, "IsHungThread");
 	DrawCaptionTempA_pfn = (DrawCaptionTempA_t)kexGetProcAddress(hUser32, "DrawCaptionTempA");
 	GetMouseMovePoints_pfn = (GetMouseMovePoints_t)kexGetProcAddress(hUser32, "GetMouseMovePoints");
@@ -223,11 +228,6 @@ BOOL init_user32()
 		TRACE_OUT("Failed to create the hard-error messages thread !\n");
 		CloseHandle(hThread3);
 	}
-
-	MprProcess = get_pdb();
-
-	/* Get MSGSRV32 */
-	Msg32Process = MprProcess->ParentPDB->ParentPDB;
 
 	memset(&si, 0, sizeof(STARTUPINFO));
 	memset(&pi, 0, sizeof(PROCESS_INFORMATION));
