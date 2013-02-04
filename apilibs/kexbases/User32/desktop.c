@@ -1015,6 +1015,7 @@ BOOL WINAPI SetThreadDesktop_new(HDESK hDesktop)
 	PTHREADINFO pti;
 	PPROCESSINFO ppi;
 	PDESKTOP DesktopObject;
+	GUITHREADINFO gti;
 
 	pti = get_tdb()->Win32Thread;
 	ppi = get_pdb()->Win32Process;
@@ -1039,6 +1040,27 @@ BOOL WINAPI SetThreadDesktop_new(HDESK hDesktop)
 		kexDereferenceObject(DesktopObject);
 		return TRUE;
 	}
+
+	/* Skip windows check if the thread has no desktop */
+	if(pti->rpdesk == NULL)
+		goto _skipwndcheck;
+
+	memset(&gti, 0, sizeof(GUITHREADINFO));
+	gti.cbSize = sizeof(GUITHREADINFO);
+
+	GetGUIThreadInfo(GetCurrentThreadId(), &gti);
+
+	/* Fail if the calling thread has any windows on its current desktop */
+	if(gti.hwndActive != NULL || gti.hwndCapture != NULL || gti.hwndCaret != NULL
+		|| gti.hwndFocus != NULL || gti.hwndMenuOwner != NULL || gti.hwndMoveSize != NULL)
+	{
+		TRACE("Cannot set thread 0x%X to desktop handle 0x%X (object 0x%X) because it has windows !\n", GetCurrentThreadId(), hDesktop, DesktopObject);
+		kexDereferenceObject(DesktopObject);
+		SetLastError(ERROR_BUSY);
+		return FALSE;
+	}
+
+_skipwndcheck:
 
 	pti->rpdesk = DesktopObject;
 	pti->hdesk = hDesktop;
