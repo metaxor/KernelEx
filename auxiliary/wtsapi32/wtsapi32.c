@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <windows.h>
 #include "wtsapi32.h"
+#include "../winsta/winsta.h"
 #include "../../common/common.h"
 #include "../../common/listhead.h"
 #include <stdio.h>
@@ -36,17 +37,6 @@ LIST_ENTRY RegisteredWindowListHead;
 BOOL fInitialized = FALSE;
 
 //WINE_DEFAULT_DEBUG_CHANNEL(wtsapi);
-static const char* debugstr_a(const char* a)
-{
-	return a;
-}
-
-static const char* debugstr_w(const wchar_t* w)
-{
-	static char a[256];
-	WideCharToMultiByte(CP_ACP, 0, w, -1, a, sizeof(a), NULL, NULL);
-	return a;
-}
 
 static void debug_output(const char* func, const char* fmt, ...)
 {
@@ -255,9 +245,7 @@ void WINAPI WTSNotifySession(UINT uMsg, WPARAM wParam, LPARAM lParam)
  */
 HANDLE WINAPI WTSOpenServerA(LPSTR pServerName)
 {
-	FIXME("(%s) stub\n", debugstr_a(pServerName));
-	SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
-	return NULL;
+	return WinStationOpenServerA(pServerName);
 }
 
 /************************************************************
@@ -265,9 +253,7 @@ HANDLE WINAPI WTSOpenServerA(LPSTR pServerName)
  */
 HANDLE WINAPI WTSOpenServerW(LPWSTR pServerName)
 {
-	FIXME("(%s) stub\n", debugstr_w(pServerName));
-	SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
-	return NULL;
+	return WinStationOpenServerW(pServerName);
 }
 
 /************************************************************
@@ -375,9 +361,7 @@ BOOL WINAPI WTSRegisterSessionNotification(HWND hWnd, DWORD dwFlags)
  */
 BOOL WINAPI WTSTerminateProcess(HANDLE hServer, DWORD ProcessId, DWORD ExitCode)
 {
-	FIXME("Stub %p 0x%08x 0x%08x\n", hServer, ProcessId, ExitCode);
-	SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
-	return FALSE;
+	return WinStationTerminateProcess(hServer, ProcessId, ExitCode);
 }
 
 /************************************************************
@@ -413,7 +397,5 @@ BOOL WINAPI WTSUnRegisterSessionNotification(HWND hWnd)
  */
 BOOL WINAPI WTSWaitSystemEvent(HANDLE hServer, DWORD Mask, DWORD* Flags)
 {
-	/* FIXME: Forward request to winsta.dll::WinStationWaitSystemEvent */
-	FIXME("Stub %p 0x%08lx %p\n", hServer, Mask, Flags);
-	return FALSE;
+	return WinStationWaitSystemEvent(hServer, Mask, Flags);
 }
