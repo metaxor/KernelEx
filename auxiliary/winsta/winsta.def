@@ -1,4 +1,9 @@
 LIBRARY winsta.dll BASE=0x71460000
 
 EXPORTS
-	WinStationTerminateProcess@12
+	WinStationOpenServerA@4=WinStationOpenServerA
+	WinStationOpenServerW@4=WinStationOpenServerW
+	WinStationSendMessageA@40=WinStationSendMessageA
+	WinStationSendMessageW@40=WinStationSendMessageW
+	WinStationTerminateProcess@12=WinStationTerminateProcess
+	WinStationWaitSystemEvent@12=WinStationWaitSystemEvent

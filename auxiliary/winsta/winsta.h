@@ -24,6 +24,49 @@
 
 #include "../../common/common.h"
 
-BOOL WINAPI WinStationTerminateProcess(HANDLE hServer, DWORD ProcessId, DWORD ExitCode);
+#define WINSTAAPI WINAPI
+
+#ifdef WINSTA
+#include <wtsapi32.h>
+#endif
+
+static const char* debugstr_a(const char* a)
+{
+	return a;
+}
+
+static const char* debugstr_w(const wchar_t* w)
+{
+	static char a[256];
+	WideCharToMultiByte(CP_ACP, 0, w, -1, a, sizeof(a), NULL, NULL);
+	return a;
+}
+
+HANDLE WINSTAAPI WinStationOpenServerA(LPSTR pServerName);
+HANDLE WINSTAAPI WinStationOpenServerW(LPWSTR pServerName);
+BOOL WINSTAAPI WinStationSendMessageA(HANDLE hServer,
+	DWORD SessionId,
+	LPSTR pTitle,
+	DWORD TitleLength,
+	LPSTR pMessage,
+	DWORD MessageLength,
+	DWORD Style,
+	DWORD Timeout,
+	DWORD* pResponse,
+	BOOL bWait
+);
+BOOL WINSTAAPI WinStationSendMessageW(HANDLE hServer,
+	DWORD SessionId,
+	LPWSTR pTitle,
+	DWORD TitleLength,
+	LPWSTR pMessage,
+	DWORD MessageLength,
+	DWORD Style,
+	DWORD Timeout,
+	DWORD* pResponse,
+	BOOL bWait
+);
+BOOL WINSTAAPI WinStationTerminateProcess(HANDLE hServer, DWORD ProcessId, DWORD ExitCode);
+BOOL WINSTAAPI WinStationWaitSystemEvent(HANDLE hServer, DWORD Mask, DWORD* Flags);
 
 #endif
