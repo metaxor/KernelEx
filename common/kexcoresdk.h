@@ -210,6 +210,8 @@ _KEXCOREIMP DWORD kexGetCoreCaps();
 #define ERR_OUT(x)			do { } while(0)
 #define FIXME(fmt, args)	do { } while(0)
 #define FIXME_OUT(x)		do { } while(0)
+#define UNIMPLEMENTED		do { } while(0)
+#define UNIMPLEMENTED2		do { } while(0);
 #else
 #define DBGPRINTF(x)		kexDebugPrint x
 #define TRACE(fmt, args)	kexDebugPrint("(%s:%d) " fmt , __FILE__ , __LINE__, args)
@@ -220,6 +222,8 @@ _KEXCOREIMP DWORD kexGetCoreCaps();
 #define ERR_OUT(x)			kexDebugPrint("(%s:%d) ERR: " x , __FILE__ , __LINE__)
 #define FIXME(fmt, args)	kexDebugPrint("(%s:%d) FIXME: " fmt , __FILE__ , __LINE__, args)
 #define FIXME_OUT(x)		kexDebugPrint("(%s:%d) FIXME: " x , __FILE__ , __LINE__)
+#define UNIMPLEMENTED		kexDebugPrint("(%s:%d) WARNING: %s is UNIMPLEMENTED!\n", __FILE__, __LINE__, __FUNCTION__);
+#define UNIMPLEMENTED2		kexDebugPrint("(%s:%d) WARNING: stub !\n", __FILE__, __LINE__);
 #endif
 
 #define TRACEW TRACE
