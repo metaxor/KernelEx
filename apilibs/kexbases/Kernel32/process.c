@@ -23,7 +23,6 @@
 #include <windows.h>
 #include "common.h"
 #include "..\user32\desktop.h"
-#include "kstructs.h"
 
 /* MAKE_EXPORT CreateProcessA_fix=CreateProcessA */
 BOOL WINAPI CreateProcessA_fix(LPCSTR lpApplicationName, LPSTR lpCommandLine, LPSECURITY_ATTRIBUTES lpProcessAttributes, LPSECURITY_ATTRIBUTES lpThreadAttributes, BOOL bInheritHandles, DWORD dwCreationFlags, LPVOID lpEnvironment, LPCSTR lpCurrentDirectory, LPSTARTUPINFOA lpStartupInfo, LPPROCESS_INFORMATION lpProcessInformation)
@@ -135,6 +134,21 @@ DWORD WINAPI GetProcessId_new(
   HANDLE hProcess
 )
 {
+	PPDB98 Process = (PPDB98)kexGetHandleObject(hProcess, WIN98_K32OBJ_PROCESS, 0);
+	DWORD Obfuscator = (DWORD)get_pdb() ^ GetCurrentProcessId();
+
+	if(Process == NULL)
+		return 0;
+
+	return (DWORD)Process ^ Obfuscator;
+}
+
+/* This is less reliable */
+#if 0
+DWORD WINAPI GetProcessId_new(
+  HANDLE hProcess
+)
+{
 	typedef DWORD (WINAPI *MPH) (HANDLE hProcess);
 	static MPH MapProcessHandle = 0;
 	
@@ -152,6 +166,7 @@ DWORD WINAPI GetProcessId_new(
 	}
 	return MapProcessHandle(hProcess);
 }
+#endif
 
 /* MAKE_EXPORT IsWow64Process_new=IsWow64Process */
 BOOL WINAPI IsWow64Process_new(HANDLE hProcess, PBOOL Wow64Process)
