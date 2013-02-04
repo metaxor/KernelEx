@@ -21,6 +21,43 @@
 
 #include "_ntdll_apilist.h"
 
+/* MAKE_EXPORT ZwDuplicateObject=NtDuplicateObject */
+/* MAKE_EXPORT ZwDuplicateObject=ZwDuplicateObject */
+NTSTATUS NTAPI ZwDuplicateObject(IN HANDLE SourceProcessHandle,
+		IN HANDLE		SourceHandle,
+		IN HANDLE		TargetProcessHandle	OPTIONAL,
+		OUT PHANDLE		TargetHandle		OPTIONAL,
+		IN ACCESS_MASK	DesiredAccess,
+		IN ULONG		HandleAttributes,
+		IN ULONG		Options 
+)
+{
+	BOOL result;
+	HANDLE pHandle = NULL;
+
+	if(SourceProcessHandle == NULL || SourceHandle == NULL)
+		return STATUS_INVALID_HANDLE;
+
+	if(TargetProcessHandle == NULL)
+		TargetProcessHandle = GetCurrentProcess();
+
+	if(TargetHandle == NULL)
+		TargetHandle = &pHandle;
+
+	result = DuplicateHandle(SourceProcessHandle,
+						SourceHandle,
+						TargetProcessHandle,
+						TargetHandle,
+						DesiredAccess,
+						HandleAttributes,
+						Options);
+
+	if(!result)
+		return GetLastError();
+
+	return STATUS_SUCCESS;
+}
+
 /* MAKE_EXPORT ZwClose=NtClose */
 /* MAKE_EXPORT ZwClose=ZwClose */
 NTSTATUS NTAPI ZwClose(IN HANDLE Handle)
