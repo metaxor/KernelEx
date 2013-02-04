@@ -44,6 +44,7 @@ STUB IsValidLanguageGroup_stub;
 STUB ReplaceFileA_stub;
 STUB ReplaceFileW_stub;
 STUB RtlCaptureStackBackTrace_stub;
+BOOL WINAPI AttachConsole_new(DWORD dwProcessId);
 void WINAPI DeleteCriticalSection_fix(PCRITICAL_SECTION lpCriticalSection);
 void WINAPI EnterCriticalSection_fix(LPCRITICAL_SECTION lpCriticalSection);
 BOOL WINAPI InitializeCriticalSectionAndSpinCount_new(LPCRITICAL_SECTION lpCriticalSection, DWORD dwSpinCount);
