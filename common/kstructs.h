@@ -146,6 +146,7 @@ typedef struct _PROCESSINFO
     DWORD           SessionId;
     BOOL            WindowsGhosting;
 	DWORD			ShutdownLevel;
+	DWORD			ShutdownFlags;
     PVOID           Process;
 } PROCESSINFO, *PPROCESSINFO;
 
