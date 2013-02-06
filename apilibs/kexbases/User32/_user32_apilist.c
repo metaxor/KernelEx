@@ -24,6 +24,7 @@
 #include "desktop.h"
 #include "kexcoresdk.h"
 #include "_user32_apilist.h"
+#include "../kernel32/_kernel32_apilist.h"
 #include "thuni_layer.h"
 
 IsHungThread_t IsHungThread_pfn;
@@ -48,6 +49,10 @@ DWORD WINAPI HardErrorThread(PVOID lParam)
 	PHARDERRORDATA pData = NULL;
 	LONG CurrentArray = 0;
 	BOOL fFound = FALSE;
+
+	ppi_init(get_pdb());
+
+	SetProcessShutdownParameters_new(0, 0);
 
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_IDLE);
 
