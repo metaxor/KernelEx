@@ -181,10 +181,13 @@ BOOL WINAPI GetProcessShutdownParameters_new(LPDWORD lpdwLevel, LPDWORD lpdwFlag
 	}
 
 	if(ppi == NULL)
+	{
+		SetLastError(ERROR_ACCESS_DENIED);
 		return FALSE;
+	}
 
 	*lpdwLevel = ppi->ShutdownLevel;
-	*lpdwFlags = 0; /* Still no shutdown flags yet */
+	*lpdwFlags = ppi->ShutdownFlags;
 
 	return TRUE;
 }
@@ -225,9 +228,13 @@ BOOL WINAPI SetProcessShutdownParameters_new(DWORD dwLevel, DWORD dwFlags)
 	}
 
 	if(ppi == NULL)
+	{
+		SetLastError(ERROR_ACCESS_DENIED);
 		return FALSE;
+	}
 
 	ppi->ShutdownLevel = dwLevel;
+	ppi->ShutdownFlags = dwFlags;
 
 	return TRUE;
 }
