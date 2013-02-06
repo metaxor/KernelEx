@@ -30,11 +30,12 @@ BOOL fAborted = FALSE;
 BOOL fForceShutdown = FALSE;
 DWORD dwShutdownThreadId = 0;
 
-int WaitToKillAppTimeout = 0;
-int HungAppTimeout = 0;
+int WaitToKillAppTimeout = 20000;
+int HungAppTimeout = 5000;
+int TimeBetweenTermination = 250;
 ULONG LogoffTimeout = 5 * 1000 * 60; // 5 minutes
 
-HWND hwndGlobalText;
+HWND hwndGlobalText = NULL;
 
 /* RegRemapPreDefKey - Remap a predefined key (e.g: HKEY_CURRENT_USER) to a new key
    HKEY hKey: Handle to a predefined key
@@ -55,6 +56,7 @@ typedef struct _SHUTDOWNDATA
 	DWORD ShellProcessId;
 	DWORD dwProcessId;
 	DWORD dwThreadId;
+	DWORD StartShutdownTickCount;
 	BOOL fEndServices;
 	BOOL fLoggingOff;
 } SHUTDOWNDATA, *PSHUTDOWNDATA;
@@ -75,11 +77,16 @@ BOOL CALLBACK EnumThreadWndProc(HWND hwnd, LPARAM lParam)
 	DWORD dwResult = 0;
 	DWORD smt = 0;
 	BOOL fHung = FALSE;
+	PPDB98 Process = (PPDB98)kexGetProcess(ShutdownData->dwProcessId);
+	PPROCESSINFO ppi = Process->Win32Process;
+	int nLength = 0;
+	PWND pWnd = HWNDtoPWND(hwnd);
 
 	if(IS_SYSTEM_HWND(hwnd))
 		return TRUE;
 
 	fHung = IsHungThread_pfn(ShutdownData->dwThreadId);
+
 	smt = SendMessageTimeout(hwnd,
 							WM_QUERYENDSESSION,
 							0,
@@ -92,7 +99,8 @@ BOOL CALLBACK EnumThreadWndProc(HWND hwnd, LPARAM lParam)
 	   and EWX_FORCE flag is not specified/the application is not hung */
 	if(!smt || !dwResult)
 	{
-		if((ShutdownData->uFlags & EWX_FORCE) || (ShutdownData->uFlags & EWX_FORCEIFHUNG) || (ShutdownData->fEndServices))
+		if((ShutdownData->uFlags & EWX_FORCE) || (ShutdownData->uFlags & EWX_FORCEIFHUNG)
+			|| (ShutdownData->fEndServices) || fHung || (ppi != NULL && ppi->ShutdownFlags == SHUTDOWN_NORETRY))
 			goto _continue;
 
 		ShutdownData->Result = 0;
@@ -100,6 +108,7 @@ BOOL CALLBACK EnumThreadWndProc(HWND hwnd, LPARAM lParam)
 	}
 
 _continue:
+
 	PostMessage(hwnd, WM_ENDSESSION, TRUE, ShutdownData->uFlags & EWX_LOGOFF ? ENDSESSION_LOGOFF : 0);
 
 	ShutdownData->Result = 1;
@@ -112,9 +121,10 @@ BOOL CALLBACK EnumThreadsProc(DWORD dwThreadId, PSHUTDOWNDATA ShutdownData)
 	ShutdownData->Result = 1;
 	ShutdownData->dwThreadId = dwThreadId;
 
+	/* FIXME: Should we post a message to threads that doesn't have windows ? */
+
 	SetLastError(0);
 
-	/* FIXME: Should we post a message to threads that doesn't have windows ? */
 	EnumThreadWindows_nothunk(dwThreadId, EnumThreadWndProc, (LPARAM)ShutdownData);
 
 	if(ShutdownData->Result == 0)
@@ -210,7 +220,7 @@ ULONG GetUserProcessesCount(PSHUTDOWNDATA sa)
 		if(Process == pKernelProcess || Process == MprProcess)
 			continue;
 
-		/* Skip the shell process because he must be the last process running
+		/* Skip the shell process because it must be the last process running
 		   in the session */
 		if(pProcess[index] == sa->ShellProcessId)
 			continue;
@@ -364,12 +374,64 @@ int ProcessCompare(const void *elem1, const void *elem2)
 	return 0;
 }
 
+VOID __fastcall DestroyKernelWnd(PSHUTDOWNDATA ShutdownData)
+{
+	int i;
+
+	while(1)
+	{
+		DWORD wndThread = 0;
+		DWORD wndProcess = 0;
+		HWND hWnd = FindWindow("#32770", NULL);
+
+		if(fForceShutdown == TRUE)
+			return;
+
+		if(hWnd == NULL)
+			break;
+
+		wndThread = GetWindowThreadProcessId(hWnd, &wndProcess);
+
+		__try
+		{
+			if(wndProcess == dwKernelProcessId && wndThread != dwShutdownThreadId)
+			{
+				if(GetTickCount() - ShutdownData->StartShutdownTickCount < LogoffTimeout)
+					Sleep(TimeBetweenTermination);
+				else if(!ShutdownData->fLoggingOff)
+				{
+					fForceShutdown = TRUE;
+					return;
+				}
+				SendMessage(hWnd, WM_COMMAND, IDOK, 0);
+				EndDialog(hWnd, 1);
+			}
+		}
+		__except(EXCEPTION_EXECUTE_HANDLER)
+		{
+		}
+	}
+
+	for(i=0;i<=MAX_HARD_ERRORS;i++)
+	{
+		__try
+		{
+			kexFreeObject((PVOID)pHardErrorData[i]->lpHardErrorMessage);
+			kexFreeObject((PVOID)pHardErrorData[i]->lpHardErrorTitle);
+			kexFreeObject(pHardErrorData[i]);
+		}
+		__except(EXCEPTION_EXECUTE_HANDLER)
+		{
+		}
+		pHardErrorData[i] = NULL;
+	}
+}
+
 VOID __fastcall LogoffCurrentUser(PSHUTDOWNDATA ShutdownData)
 {
 	DWORD pProcess[1024];
 	DWORD Processes = 0;
 	ULONG i;
-	DWORD StartTickCount = GetTickCount();
 
 	__try
 	{
@@ -387,7 +449,7 @@ VOID __fastcall LogoffCurrentUser(PSHUTDOWNDATA ShutdownData)
 
 			for(i=0;i<=Processes;i++)
 			{
-				if(GetTickCount() - StartTickCount > LogoffTimeout)
+				if(GetTickCount() - ShutdownData->StartShutdownTickCount > LogoffTimeout && fForceShutdown == FALSE)
 				{
 					/* Force processes to terminate if the logoff time has raised the maximum logoff timeout */
 
@@ -395,6 +457,7 @@ VOID __fastcall LogoffCurrentUser(PSHUTDOWNDATA ShutdownData)
 					{
 						if(!(ShutdownData->uFlags & EWX_FORCE))
 							ShutdownData->uFlags |= EWX_FORCE;
+						Sleep(TimeBetweenTermination/4);
 					}
 					else
 					{
@@ -402,8 +465,8 @@ VOID __fastcall LogoffCurrentUser(PSHUTDOWNDATA ShutdownData)
 						return;
 					}
 				}
-
-				Sleep(100);
+				else
+					Sleep(TimeBetweenTermination);
 
 				if(pProcess[i] == 0)
 					continue;
@@ -417,6 +480,7 @@ VOID __fastcall LogoffCurrentUser(PSHUTDOWNDATA ShutdownData)
 			}
 
 			Processes = 0;
+			DestroyKernelWnd(ShutdownData);
 		} while(GetUserProcessesCount(ShutdownData) != 0 && !fAborted);
 	}
 	__except(EXCEPTION_EXECUTE_HANDLER)
@@ -454,6 +518,8 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 		}
 
 		fShutdown = TRUE;
+
+		SystemParametersInfo(SPI_SETSCREENSAVERRUNNING, TRUE, 0, 0);
 
 		RegOpenKeyEx(HKEY_CURRENT_USER,  "Control Panel\\Desktop", 0, KEY_ALL_ACCESS, &hKey);
 
@@ -506,6 +572,7 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 		sa.dwProcessId = 0;
 		sa.dwThreadId = 0;
 		sa.fEndServices = FALSE;
+		sa.StartShutdownTickCount = GetTickCount();
 
 		fLoggingOff = (sa.uFlags == EWX_LOGOFF || sa.uFlags == EWX_FORCEIFHUNG || sa.uFlags == EWX_FORCE);
 
@@ -534,8 +601,6 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 		{
 			HKEY hKey = NULL;
 
-			SystemParametersInfo(SPI_SETSCREENSAVERRUNNING, TRUE, 0, 0);
-
 			hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 			hThread = CreateThread(NULL, 0, CreateShutdownWindow, hEvent, 0, &tid);
 			WaitForSingleObject(hEvent, INFINITE);
@@ -559,7 +624,7 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 
 				kexErrorCodeToString(LastErr, (LPSTR)&lpString);
 				wsprintf(buffer, "%s (Error %d)", lpString, LastErr);
-				Win32RaiseHardError(buffer, "Shut down", MB_OK, TRUE);
+				Win32RaiseHardError(buffer, "Shut down", MB_OK, FALSE);
 			}
 
 			RegOpenKey(HKEY_LOCAL_MACHINE, "System\\CurrentControlSet\\Control", &hKey);
@@ -577,6 +642,7 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 			if(HardErrorThreadId != 0)
 			{
 				HANDLE hThread;
+				int count = 0;
 
 				hThread = OpenThread_new(THREAD_ALL_ACCESS, FALSE, HardErrorThreadId);
 
@@ -632,6 +698,7 @@ finished:
 		fLoggingOff = FALSE;
 		fForceShutdown = FALSE;
 		hwndGlobalText = NULL;
+		SystemParametersInfo(SPI_SETSCREENSAVERRUNNING, FALSE, 0, 0);
 
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
