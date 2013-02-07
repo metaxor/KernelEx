@@ -1,0 +1,386 @@
+KernelEx v4.5.3 Beta 1 by Ley0k
+Unknown release date
+
+added to ADVAPI32 :
+	- LogonUserA
+added to KERNEL32 :
+	- CreateRemoteThread (implemented)
+	- GetThreadId (implemented)
+	- GetProcessIdOfThread (implemented)
+	- HeapQueryInformation, HeapSetInformation and HeapValidate (all nearly implemented)
+	- HeapWalk (unimplemented)
+	- InitializeSListHead
+	- Interlocked*SList
+	- QueryDepthSList
+core: implemented new handle manager functions
+fixed in KERNEL32 :
+	- VirtualxxxEx functions : now creating a remote thread to the target process that allocate/free memory
+user32:
+	- implemented desktop and window stations functions, now support multiples desktops
+	- implemented GetShellWindow
+	- fixed ExitWindowsEx
+	- OPTIMIZATION: some APIs that don't need thunk down to USER.EXE were remake
+	  like those EnumWindows and EnumxxxWindows functions
+	- fixed LockWorkStation() RUNDLL no longer crash
+new DLL: NTDLL: implemented NtSuspendxxx and NtResumexxx, NtGet/SetContextThread, NtOpenxxx and NtTerminatexxx
+		and added some stubs
+some minor fixes
+Kernel32 process can't be now terminated (added the terminating flag to the process at init)
+
+---------------------------------------
+
+KernelEx v4.5.2 by Xeno86
+2011-11-14
+
+removed obsolete SETUPKEX project
+moved downgrade detection and detection of pre-4.0 KernelEx from SETUPKEX to the installer
+installer: show information about pending reboot before displaying the main window
+AppSettings: updated configuration for Firefox 4+ installers
+VKrnlEx: added IFSMgr fix, repairing the problem in accessing a locked file through file mapping object
+added "VKrnlEx" project which superseeds "SetupKex" project, VKrnlEx makes modification of kernel32.dll file on disk unnecessary by patching the image directly in memory from kernel space before the shell starts
+implemented KERNEL32.UnlockFileEx (required for Firefox 7)
+fix circular-reference problem in apihook initialization
+added SHELL32.IsUserAnAdmin ordinal export - some apps shouldn't complain about not having admin privileges anymore
+core: api configuration dump had improper ordinal numbers listed
+core: fixed crash if invalid handle was passed to kexGetProcAddress (fixes mysterious crash if UNICOWS.DLL could not be loaded)
+apihook/apilog: fixed bug in parameter logging, leading to crashes if resulting string exceeded buffer length
+AppSettings: Canon printing manager didn't appear to like working under NT mode
+
+---------------------------------------
+
+KernelEx v4.5.1 by Xeno86
+2011-05-06
+
+added kernel32.SetThreadUILanguage stub
+replaced some MSLU regkey APIs with custom implementation: advapi32.RegCreateKeyW, RegCreateKeyExW, RegDeleteKeyW, RegOpenKeyW, RegOpenKeyExW, RegSetValueExW
+replaced kernel32.GetLocaleInfoW (MSLU, error handling LOCALE_RETURN_NUMBER) with custom implementation (fixes Opera 11 download numbers)
+added advapi32.RegGetKeySecurity - allows Opera 11 uninstall to proceed further
+added redirection for 'All Users\Desktop' for SHGet*Follder* functions (allows Opera 11 installer to complete)
+fixed buffer length argument for wctomb in STACK_WtoA macro, added parentheses around macroes
+fixed advapi32.RegSetValueExA to allow null lpData pointer (allows Opera 11 setup to proceed further)
+added advapi32.GetNamedSecurityInfo (allows Opera 11 setup to proceed further)
+added GDI32.MaskBlt - fixes missing checkboxes in GTK apps - Pidgin and GIMP
+added api logging DLL + debug window for KernelEx API Hook infrastructure
+replaced old api logging with KernelEx API Hook infrastructure
+sdb: fixed google earth transform to work on non-english systems, added new product codes
+added missing configs for google earth exes
+
+---------------------------------------
+
+KernelEx v4.5 Final by Xeno86
+2010-12-30
+
+setup: Start Menu shortcuts, included Release Notes.txt
+verifier: new welcome screen
+core/setup: make KernelEx compatible with kernel32.dll updates: 
+- uninstalling KernelEx won't revert kernel32 updates anymore; 
+- KernelEx doesn't need to be reinstalled anymore if kernel32 is updated
+- kernel32 backup is now stored in sysbckup directory
+core: don't load api libraries if resolver failed to initialize
+SystemParametersInfo: fix SPI_GETCARETWIDTH erroneous zero caret width return
+kernel32.TlsFree(ext) fixes:
+- fixed a possible deadlock situation which could lead to system hang
+- return error if TLS index has already been freed
+- return 1 for success consistently for better compatibility
+comdlg32 GetOpen[Save]FileName: avoid HeapFree(null), changes last-error
+MSI shim database integration
+MSI shim database: transforms for office 2003; office 2007 converters; google earth 5.1,5.2,6.0b; acrobat reader 7
+settings: force Windows Installer into default configuration
+gdi32/textout: don't hold Win16Lock while calling GDI apis
+added Shim database create utility SDBcreate for MSI installer files patching
+settings: set GTAPI.DLL in Win2000 mode (Google Earth setup)
+implemented cryptui.CryptUIDlgViewContext (Google Earth 5.2)
+implemented kernel32.FindFirstFileExA/W (Opera)
+user32: per-thread keyboard state is now updated for left/right modifier keys (Qt 4.6+ hotkeys)
+user32: MapVirtualKey now maps left/right modifier key codes to AT keyboard scan codes.
+gdi32 unicode APIs: wrong conversion macros were used;
+gdi32: rewritten EnumFont*W APIs, FONTSIGNATURE is now passed to callback function; populated in registry cache (affects Qt 4.6+)
+DC objects are revalidated after text API calls
+replace MSLU's shell32.DragQueryFileW with custom implementation (fixes Foxit Reader 3.1 drag&drop crash)
+minor GDI text api fixes
+
+---------------------------------------
+
+KernelEx v4.5 RC 5 by Xeno86
+2010-11-02
+
+font UID is used instead of handle to identify fonts in cache (UIDs are unique, handles may be reused), 
+rewritten code to fix GDI objects leaking (improved stability, more leaks covered)
+RPC code is extended to support proxies with Win2k+ extensions (for MS Office 2007 converters)
+implemented OLE32.CoWaitForMultipleHandles with Wine code (for MS Office 2007 converters)
+use proper locking when accessing DC object in TextOut functions (improved stability)
+make GetTextExtentPoint32 threat negative string lengths as error (as NT does, fixes random Foxit Reader crashes during scrolling)
+make QueryInterface(CLSID_ShellLink,IID_IUnknown) prepare IShellLinkA interface for use (fixes "Easy Assembler Shell" installer)
+renamed "Compatibility" tab to "KernelEx" tab
+fix for USER32.LoadMenuA loading menus from LOAD_LIBRARY_AS_DATAFILE mmaped DLLs 
+replaced MSLU USER32.LoadMenuIndirectW with direct call 
+replaced buggy MSLU menu functions not checking flags with custom implementation: USER32.LoadMenuW, InsertMenuW, AppendMenuW, ChangeMenuW, ModifyMenuW
+fixed Akelpad incorrect national input + Office 2003 one-char-in-dialog-title ThUniLay bug
+fixed SetWindowTextW behaviour
+modified SHGetSpecialFolderPath fix for compatibility with win95 shell32
+added SHELL32.SHCreateDirectoryEx missing on Windows 98
+added KERNEL32.MapViewOfFile workaround for Word 2003
+added ADVAPI32 Lsa and DecryptFile/EncryptFile stubs (for Word 2003)
+added KERNEL32.SetDllDirectory stubs (for newer mpc-hc)
+Unicode applications receive Tahoma shell font (fixes Qt GUI problems)
+added protection against ExitProcess in DLL_PROCESS_DETACH which causes a crash on 9x
+set calling thread priority to the lowest possible in order to improve chance for thread which calls ExitProcess to finish latest and call dll process detach like NT (fixes OpenOffice.org shutdown crash)
+added a protection against SHFOLDER unloading by hostile programs (fixes VLC 1.1.4 DVD playback crash)
+terminate process if EnterCriticalSection is called on orphaned CS in DLL_PROCESS_DETACH - Vista behaviour (fixes OpenOffice.org shutdown crash)
+modified raw input stubs to return proper error codes and properly reset pointers
+replaced GetOpenFileNameW/GetSaveFileNameW MSLU wrapper with custom implementation
+fix: GetFileVersionInfoSizeW didn't return proper value on failure
+
+---------------------------------------
+
+KernelEx v4.5 RC 4 by Xeno86
+2010-09-21
+
+added kernel32.EncodePointer, DecodePointer, EncodeSystemPointer, DecodeSystemPointer
+SystemParametersInfo/SPI_GETHIGHCONTRAST call doesn't fail now when accessability pack is not installed or wrong uiParam parameter is passed (fixes Firefox 3.6.9/3.6.10)
+force usage of KernelEx's 'Known DLLs' when full system path is passed to LoadLibrary call
+fixed iGetProcAddress/kexGetProcAddress not taking into account relocation - fixes crashes revealed by RC 3
+
+---------------------------------------
+
+KernelEx v4.5 RC 3 by Xeno86
+2010-09-10
+
+added fix to prevent DLL circular-references
+
+---------------------------------------
+
+KernelEx v4.5 RC 2 by Xeno86
+2010-09-08
+
+ported SysLink COMCTL32 class (from Wine project, fixes Google Picasa options dialog)
+added kernel32.SystemTimeToTzSpecificLocalTime, TzSpecificLocalTimeToSystemTime (from Wine project, for Google Picasa 3.8)
+implemented shell32.SHBindToParent (needed by Maxthon 1.6.7) [Tihiy]
+fixed TlsExt pointer not zeroed after freeing
+added WS2_32.getaddrinfo, freeaddrinfo, getnameinfo implementation based on wspiapi.h
+added WINMM.waveInGetDevCapsW, waveOutGetDevCapsW (makes Flash Player 10.1 volume control work)
+added USER32.SetParent fix to forbid deadly circular references (fixes VLC 1.1.2 crash) [ported from RP9]
+fixed handling of lpOverlapped parameter in kernel32.PostQueuedCompletionStatus 
+restricted completion ports to NT only
+added kernel32.GetProcessId, CreateFiberEx
+replaced kernel32.ReadConsoleInputW from MSLU with custom implementation due to bugs in the former [Tihiy]
+
+---------------------------------------
+
+KernelEx v4.5 RC 1 by Xeno86
+2010-07-30
+
+implemented kernel32.RtlCaptureContext for Firefox 4.0 Beta 2
+reworked compatibility tab to allow resetting compatibility settings to default values
+compatibility tab is visible on all PE modules thus allowing to change compatibility options on per-module basis
+disallow resources with high ID (>32767) when KernelEx is disabled
+perform platform check when KernelEx is disabled
+added kernel32.GetComputerNameEx stubs which supposedly make Artweaver run
+simulate TrueType MS Sans Serif for VLC
+use ASCII table instead of ISO8859-1 for character conversion (fixes problem with national characters in paths)
+added ADVAPI32.FileEncryptionStatus stubs
+added get-post I/O completion ports functionality for Firefox 3.6.4
+added a bunch of new user32 stubs allowing to run newer MPC-HC, includes: DefRawInputProc, GetRawInputBuffer, GetRawInputData, GetRawInputDeviceList, GetRawInputDeviceInfoA, GetRawInputDeviceInfoW, GetRegisteredRawInputDevices, RegisterRawInputDevices, PrintWindow
+more accurate object owner check in DeleteObject
+fixed missing ScriptCache unlock in case of error
+fixed crash on displaying of error message in KernelEx Setup program
+added a simple protection against footer corruption in jemalloc heap
+excluded jemalloc from handling limited size heaps
+added "Disable custom heap" configuration
+added "Default mode" configuration
+fixed GTA:SA crash on game load
+fixed Rally Championship '99 crash
+removed shell32.SHGetDiskFreeSpaceW as there is no such function in WIN32 api
+implemented missing SHELL32.SHGetDiskFreeSpaceEx on Windows 98
+implemented SHELL32.SHGetDiskFreeSpaceW for Adobe Flash 10
+removed positive PIDs patch as it causes incompatibility with MSYS and propably other apps too
+
+---------------------------------------
+
+KernelEx v4.5 Beta 2 by Xeno86
+2010-02-14
+
+fixed incompatibility with Japanese WinME
+implemented USP font cache
+fix: kexFlushAppSettings didn't clear wildcard app settings
+fix: EnumFontFamiliesEx should only fill TEXTMETRIC structure if font is not TrueType
+FONTSIGNATURE sub-structure doesn't seem to contain valid information, accessing it could trigger a crash
+changed AddFontMemResourceEx and RemoveFontMemResourceEx stubs for Opera 10.50 beta compatibility
+implemented shell32.SHParseDisplayName [xp and above]
+implemented winspool.EnumPrintersW
+added advapi32.CreateProcessWithLogonW, InitiateSystemShutdownEx stubs
+replaced thread-pool implementation with custom code
+added timer-queue functions
+updated jemalloc to version from FF3.6
+added checks to alloc/realloc/free to make jemalloc more fault tolerant - better match Windows 9x behaviour
+kexCOM: LoadLibrary(self) trick to prevent premature unload in buggy programs
+
+---------------------------------------
+
+KernelEx v4.5 Beta 1 by Xeno86
+2010-01-18
+
+disable named/rcdata resource types mirroring
+
+changed obfuscator for non-negative PIDs
+
+fix crash when a process is created with '.exe' renamed to '.dll'
+
+added GDI anti-leaking code which forces NT destroying rules on font and bitmap objects.
+
+implemented extended TLS (Thread Local Storage), extends limit of 80 to ~1100 slots
+
+added Thunking Unicode Layer - set of user32 APIs
+which provides consistent Unicode window procedures conversion,
+allowing correct message conversion and mixture of window subclassing with NT-like rules.
+
+revamped non-shared api library loading process
+
+added jemalloc memory allocator, replacing standard Windows heap for applications
+
+fix: LoadShfolderProc could crash if shfolder.dll was unloaded by the application
+
+added USERENV library from Wine project
+
+changed module configuration settings storage - single module can now have different configurations under different processes (better accuracy, overriding is supported, recursive inheritance is supported, speed gains)
+
+change: Allow api library to be loaded even if some overridden modules aren't found (skips module tables)
+
+shell folder fix - display CSIDL_COMMON_* folders in start menu
+
+added support for environment variables in AppSettings database
+
+added kexCOM - implementing IShellLinkW and IExtractIconW interfaces for CLSID_ShellLink which are missing from Windows 98 shell
+
+Compatibility tab changes:
+* redesigned, added baloon tips
+* added option to disable configuration inheritance to child processes
+* added option to override module configuration with process'es configuration (debug only)
+* fixed COM implementation
+
+changes into the installer: 
+* enforce reboot after install/uninstall before subsequent installation, 
+* copy kernel32.bak to temporary file during uninstall before reboot
+* forbid direct downgrades
+
+API changes:
+
+fix GlobalLock and GlobalUnlock to work properly with HeapAlloc pointers
+make CreateFile ignore unsupported FILE_SHARE_DELETE flag
+make GetDiskFreeSpace, GetDiskFreeSpaceEx not fail on certain file paths
+implemented USERENV.GetUserProfileDirectory, GetAllUsersProfileDirectory, GetProfilesDirectory
+added various winspool unicode (unicows) apis and stubs
+added EnumServicesStatusEx stubs
+fix CreateDIBSection to behave consistently with NT
+fix GetTempFileName to behave consistently with NT
+make ExtCreatePen not fail on PS_USERSTYLE pen style
+replaced MSLU GetObjectW (bug: MSLU always returns full object size regardless of buffer size passed) with custom implementation
+replaced MSLU RegEnumValueW with custom implementation
+added support for REG_EXPAND_SZ and REG_MULTI_SZ in RegQueryValueExW
+fixed RegQueryValueExW not handling return values properly
+fix: win9x doesn't allow MB_ERR_INVALID_CHARS parameter to be set for UTF-7 or UTF-8 codepages in MultiByteToWideChar and WideCharToMultiByte calls
+fix: RegisterWaitForSingleObject should test object state once and return immediatelly when dwMiliseconds is zero
+implemented GDI32.GetCharABCWidthsI, ADVAPI32.RtlGenRandom, KERNEL32.GetModuleHandleEx
+fixed uxtheme return addresses
+implemented theme metric functions
+fix WTSGetActiveConsoleSessionId should return 0 = local session instead 0xffffffff = no session
+implemented kernel32.DelayLoadFailureHook, QueueUserWorkItem, RegisterWaitForSingleObject, RegisterWaitForSingleObjectEx, UnregisterWait, UnregisterWaitEx, IsWow64Process, ProcessIdToSessionId, WTSGetActiveConsoleSessionId, IsWow64Process
+removed shlwapi.StrCmpLogicalW (which is available with IE6-updated shlwapi)
+implemented advapi32.DeleteAce
+added stubs for advapi32.NotifyBootConfigStatus, QueryWindows31FilesMigration, SynchronizeWindows31FilesAndWindowsNTRegistry
+changed advapi32.CreateWellKnownSid
+change: logfont* is optional in gdi32.EnumFontFamiliesEx on NT but not on 9x
+added stubs for kernel32.HeapSetInformation, GetProcessIoCounters, RtlCaptureStackBackTrace
+support events signalling in ReadFile & WriteFile overlapped apis
+fixed system bug in user32.GetNextDlgTabItem - system crashes trying to get next control in dialog to tab when there is only one control on dialog
+fixed GetDefaultPrinterW
+replaced SHGetFolderLocation Wine implementation with custom implementation
+fix: custom SHGetFolderLocation shouldn't be enabled for shell32 >= 5.0 
+
+---------------------------------------
+
+KernelEx v4.0 Final 2 by Xeno86
+2009-08-20
+
+fixed handling of forwarded exports broken in revision 32
+fixed very rare crash which could occur at boot when module table pointer becomes invalid
+added algorithm similar to KnownDLLs for auxiliary libraries to be disabled when extensions are disabled
+perform stub upgrade on version mismatch, not only if it is lower than expected
+added SHLWAPI.StrCmpLogicalW
+added SHELL32.SHOpenFolderAndSelectItems stub
+fixed KERNEL32.lstrcpynW
+added kexAreExtensionsEnabled to SDK
+api logging should now work correctly
+
+---------------------------------------
+
+KernelEx v4.0 Final by Xeno86
+2009-07-23
+
+added option to select between enabling KernelEx extensions for all applications and disabling them
+added KernelEx installation verifier
+migration to PSDK 2003, compilation on MSVC 6 without PSDK not possible
+change: delay-load usp10.dll, comdlg32.dll, shell32.dll and winspool.drv in kexbasen
+fix: loading Unicows.dll altered FPU flags and caused certain programs to crash on first start
+added option to kexcontrol to kill all processes depending on KernelEx
+disable api override for shared modules
+change: services have disabled extended api by default - this should hopefully fix shutdown problems
+change: shared api libraries are now referenced by all processes that reference any of non-shared api libraries
+change: Core's critical sections are now global - it should continue to function even after hosting process is terminated
+removed all process lock during initialization
+don't load MSLU on initialization
+remember and restore last error on MSLU load
+enable overrides for MSVCRT.DLL
+disable overrides for SPOOL32.DLL process
+fix: preload not yet loaded shared system DLLs
+GetOpenFileName / GetSaveFileName fix for 98 shell - file choose dialog in flash applets should work now
+remove check in psapi.EnumProcessModules that conflicts with debuggers
+change: accept CP_THREAD_ACP flag for MultiByteToWideChar and WideCharToMultiByte
+added api logging window (in debug Core) - based on listview, filtering, saving log to file
+added kexIsDebugCore api to sdk
+change: compatibility tab shows api log checkbox under debug Core
+
+implemented worldtransform APIs for GTK+ Cairo (thanks Tihiy)
+implemented RPCRT4.RpcStringFreeW, UuidFromStringW, UuidToStringW
+replaced buggy Unicows GDI32.EnumFontFamiliesExW, EnumFontFamiliesW with custom implementation
+implemented KERNEL32.GetVolumePathNameA/W (semi-stub)
+implemented WINSPOOL.GetDefaultPrinterA/W
+replaced Unicows kernel32.CompareStringW, GetStringTypeExW, GetStringTypeW, LCMapStringW, lstrcmpW, lstrcmpiW with Wine implementation
+replaced Unicows kernel32.GetAtomNameW, GetModuleFileNameW, GetModuleHandleW, LoadLibraryExW, LoadLibraryW with custom implementation
+replaced Unicows user32.CharLowerBuffW, CharLowerW, CharNextW, CharPrevW, CharToOemBuffW, CharToOemW, CharUpperBuffW, CharUpperW, IsCharAlphaNumericW, IsCharAlphaW, IsCharLowerW, IsCharUpperW, OemToCharBuffW, OemToCharW with Wine implementation
+added kernel32.FoldStringA, FoldStringW from Wine
+fixed not-working kernel32.GetSystemWindowsDirectoryW, CommandLineToArgvW
+
+---------------------------------------
+
+KernelEx v4.0 RC 2 by Xeno86
+2009-03-21
+
+fixed uxtheme version check
+added compilation instructions
+fixed msimg32.AlphaBlend bug incorrectly calculating transparency
+added kernel32.GetVersionW to default configuration
+added advapi32.OpenSCManager stubs
+implemented kernel32.GetConsoleWindow
+modified CreateFile, ReadFile and WriteFile so that they now accept overlapped flag
+fixed non-working MoveFileWithProgressA
+fix: DirectX setup has disabled extensions
+added psapi.EmptyWorkingSet stub
+change: KernelEx will first load any other MPRServices before initializing
+added workaround for situation where some kernel driver hijacked system functions
+added missing disable resource check fix
+removed GetMessageW from kexbasen (already in kexbases)
+fixed issue where installer wouldn't complete on fresh system
+fixed BSOD or crashes on shutdown on certain configurations by preventing early unload
+fixed compatibility sheet not working properly for shortcuts
+implemented kernel32.IsProcessorFeaturePresent
+fix: check if last element in merge list does repeat
+fixed compilation issue with PSDK 2003
+fixed Core not displaying error messages correctly
+
+---------------------------------------
+
+KernelEx v4.0 RC 1 by Xeno86
+2009-03-10
+
+First public release of KernelEx rewritten from scratch and based on new architecture
