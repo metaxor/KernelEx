@@ -4,26 +4,43 @@ Unknown release date
 added to ADVAPI32 :
 	- LogonUserA
 added to KERNEL32 :
+	- AttachConsole
 	- CreateRemoteThread (implemented)
 	- GetThreadId (implemented)
 	- GetProcessIdOfThread (implemented)
+	- GetProcessShutdownParameters
 	- HeapQueryInformation, HeapSetInformation and HeapValidate (all nearly implemented)
 	- HeapWalk (unimplemented)
 	- InitializeSListHead
 	- Interlocked*SList
 	- QueryDepthSList
+	- SetProcessShutdownParameters
 core: implemented new handle manager functions
 fixed in KERNEL32 :
-	- VirtualxxxEx functions : now creating a remote thread to the target process that allocate/free memory
+	- VirtualxxxEx functions : now creating a remote thread to the target process that will allocate/free memory
 user32:
 	- implemented desktop and window stations functions, now support multiples desktops
-	- implemented GetShellWindow
+	- implemented GetShellWindow and GetLastInputInfo
 	- fixed ExitWindowsEx
 	- OPTIMIZATION: some APIs that don't need thunk down to USER.EXE were remake
 	  like those EnumWindows and EnumxxxWindows functions
 	- fixed LockWorkStation() RUNDLL no longer crash
-new DLL: NTDLL: implemented NtSuspendxxx and NtResumexxx, NtGet/SetContextThread, NtOpenxxx and NtTerminatexxx
-		and added some stubs
+shell32:
+	- DllInstall (stub to Win98)
+	- DllRegisterServer (stub to Win98)
+	- DllUnregisterServer (stub to Win98)
+
+new DLL: NTDLL:
+	- NtClose (implemented)
+	- NtDuplicateObject (implemented)
+	- NtGetContextThread (implemented)
+	- NtOpenxxx (implemented)
+	- NtRaiseHardError (implemented)
+	- NtResumexxx (implemented)
+	- NtSetContextThread (implemented)
+	- NtSuspendxxx (implemented)
+	- NtTerminatexxx (implemented)
+
 some minor fixes
 Kernel32 process can't be now terminated (added the terminating flag to the process at init)
 
