@@ -1,5 +1,6 @@
+//Microsoft Developer Studio generated resource script.
+//
 #include "resource.h"
-#include "version.h"
 
 #define APSTUDIO_READONLY_SYMBOLS
 /////////////////////////////////////////////////////////////////////////////
@@ -53,8 +54,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION RCVERSION
- PRODUCTVERSION RCVERSION
+ FILEVERSION 4,5,12,0
+ PRODUCTVERSION 4,5,12,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -72,14 +73,14 @@ BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "Xeno86\0"
             VALUE "FileDescription", "KernelEx Base Shared Api Library\0"
-            VALUE "FileVersion", _RCVERSION_ "\0"
+            VALUE "FileVersion", "4, 5, 12, 0\0"
             VALUE "InternalName", "kexbases\0"
             VALUE "LegalCopyright", "Copyright © 2009-2010, Xeno86\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "kexbases.dll\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "KernelEx\0"
-            VALUE "ProductVersion", VERSION_STR "\0"
+            VALUE "ProductVersion", "4.5.3 Beta 1\0"
             VALUE "SpecialBuild", "\0"
         END
     END
@@ -92,6 +93,42 @@ END
 #endif    // !_MAC
 
 #endif    // Polish resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.K.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENG)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_UK
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ENDTASK DIALOG DISCARDABLE  20, 20, 200, 134
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "<unknown>"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT           "This Windows application cannot respond to the End Task request.  It may be busy, waiting for a response from you, or it may have stopped executing.",
+                    IDT_STATIC1,6,7,190,32
+    LTEXT           "o  Press Cancel to cancel and return to Windows.",
+                    IDT_STATIC1,6,39,190,16
+    LTEXT           "o  Press End Task to close this application immediately.  You will lose any unsaved information in this application.",
+                    IDT_STATIC1,6,57,190,24
+    LTEXT           "o  Press Wait to give the application %d seconds to finish what it is doing and then try to close the application again.",
+                    IDT_STATIC2,6,81,190,24
+    PUSHBUTTON      "&Wait",IDC_WAITTASK,18,112,45,14
+    PUSHBUTTON      "&End Task",IDC_ENDTASK,78,112,45,14
+    PUSHBUTTON      "Cancel",IDCANCEL,138,112,45,14
+END
+
+#endif    // English (U.K.) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
