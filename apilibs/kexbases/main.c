@@ -24,6 +24,7 @@
 #include "ntstatus.h"
 #define WIN32_NO_STATUS
 #include "common.h"
+#include "user32/desktop.h"
 #include "kernel32/_kernel32_apilist.h"
 #include "gdi32/_gdi32_apilist.h"
 #include "user32/_user32_apilist.h"
@@ -172,6 +173,9 @@ BOOL APIENTRY DllMain(HINSTANCE instance, DWORD reason, BOOL load_static)
 {
 	PPDB98 Process = get_pdb();
 	PTDB98 Thread = get_tdb();
+
+	if(Process == pKernelProcess)
+		return TRUE;
 
 	switch (reason) 
 	{
