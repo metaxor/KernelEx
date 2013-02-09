@@ -23,6 +23,11 @@
 #include <stdlib.h>
 #include <shlwapi.h>
 #include "desktop.h"
+#include "resource.h"
+
+#define ET_CANCEL	1
+#define ET_WAIT		2
+#define ET_ENDTASK	3
 
 BOOL fShutdown = FALSE;
 BOOL fLoggingOff = FALSE;
@@ -71,6 +76,111 @@ typedef struct _SHUTDOWNDATA
    BroadcastSystemMessage API...
 */
 
+INT_PTR CALLBACK EndTaskDialogProc(HWND hwndDlg,
+	UINT uMsg,
+	WPARAM wParam,
+	LPARAM lParam
+)
+{
+	HWND hWnd = NULL;
+	CHAR buffer[255];
+	CHAR Text[255];
+	CHAR NewText[255];
+	PCHAR Temp = NULL;
+	DWORD dwVersion = 0;
+	PCHAR pch = NULL;
+
+	switch(uMsg)
+	{
+		case WM_INITDIALOG:
+			hWnd = (HWND)lParam;
+
+			GetWindowText(hWnd, buffer, sizeof(buffer));
+			SetWindowText(hwndDlg, buffer);
+
+			dwVersion = kexGetVersion();
+
+			Temp = "Unknown";
+
+			if(dwVersion == 0xc0000a04)
+				Temp = "98";
+			else if(dwVersion == 0xc0005a04)
+				Temp = "ME";
+
+/* wsprintf doesn't edit %s */
+#if 0
+			memset(Text, 0, sizeof(Text));
+			memset(NewText, 0, sizeof(NewText));
+			GetDlgItemText(hwndDlg, IDT_STATIC1, Text, sizeof(Text));
+			wsprintf(NewText, Text, Temp);
+			SetDlgItemText(hwndDlg, IDT_STATIC1, NewText);
+#endif
+
+			memset(Text, 0, sizeof(Text));
+			memset(NewText, 0, sizeof(NewText));
+			GetDlgItemText(hwndDlg, IDT_STATIC2, Text, sizeof(Text));
+			wsprintf(NewText, Text, WaitToKillAppTimeout / 1000);
+			SetDlgItemText(hwndDlg, IDT_STATIC2, NewText);
+
+			/* The end task dialog should be the top window */
+			SetWindowPos(hwndDlg, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+
+			break;
+
+		case WM_COMMAND:
+			switch(LOWORD(wParam))
+			{
+				case IDC_WAITTASK:
+					ShowWindow(hwndDlg, SW_HIDE);
+					EndDialog(hwndDlg, ET_WAIT);
+					break;
+
+				case IDC_ENDTASK:
+					ShowWindow(hwndDlg, SW_HIDE);
+					EndDialog(hwndDlg, ET_ENDTASK);
+					break;
+
+				case IDCANCEL:
+					ShowWindow(hwndDlg, SW_HIDE);
+					EndDialog(hwndDlg, ET_CANCEL);
+					break;
+			}
+			break;
+	}
+
+	return 0;
+}
+
+ULONG __fastcall ShowEndTaskDialog(HWND hwnd)
+{
+	ULONG result = FALSE;
+	CHAR Directory[255];
+	CHAR Path[255];
+	HMODULE hModule = NULL;
+
+	memset(Directory, 0, sizeof(Directory));
+	memset(Path, 0, sizeof(Path));
+
+	kexGetKernelExDirectory(Directory, sizeof(Directory));
+
+	wsprintf(Path, "%sKEXBASES.DLL", Directory);
+
+	TRACE("Path = %s\n", Path);
+
+	/* We have to load kexbases.dll because KERNEL32.DLL doesn't have it loaded in memory */
+	hModule = LoadLibrary(Path);
+
+	result = DialogBoxParam(hModule,
+						MAKEINTRESOURCE(IDD_ENDTASK),
+						NULL,
+						EndTaskDialogProc,
+						(LPARAM)hwnd);
+
+	FreeLibrary(hModule);
+
+	return result;
+}
+
 BOOL CALLBACK EnumThreadWndProc(HWND hwnd, LPARAM lParam)
 {
 	PSHUTDOWNDATA ShutdownData = (PSHUTDOWNDATA)lParam;
@@ -85,6 +195,7 @@ BOOL CALLBACK EnumThreadWndProc(HWND hwnd, LPARAM lParam)
 	if(IS_SYSTEM_HWND(hwnd))
 		return TRUE;
 
+begining:
 	fHung = IsHungThread_pfn(ShutdownData->dwThreadId);
 
 	smt = SendMessageTimeout(hwnd,
@@ -99,8 +210,17 @@ BOOL CALLBACK EnumThreadWndProc(HWND hwnd, LPARAM lParam)
 	   and EWX_FORCE flag is not specified/the application is not hung */
 	if(!smt || !dwResult)
 	{
+		DWORD RetVal = 0;
+
 		if((ShutdownData->uFlags & EWX_FORCE) || (ShutdownData->uFlags & EWX_FORCEIFHUNG)
 			|| (ShutdownData->fEndServices) || fHung || (ppi != NULL && ppi->ShutdownFlags == SHUTDOWN_NORETRY))
+			goto _continue;
+
+		RetVal = ShowEndTaskDialog(hwnd);
+
+		if(RetVal == ET_WAIT)
+			goto begining;
+		else if(RetVal == ET_ENDTASK)
 			goto _continue;
 
 		ShutdownData->Result = 0;
@@ -377,12 +497,15 @@ int ProcessCompare(const void *elem1, const void *elem2)
 VOID __fastcall DestroyKernelWnd(PSHUTDOWNDATA ShutdownData)
 {
 	int i;
+	int count = 0;
 
-	while(1)
+	while(count <= 65536)
 	{
 		DWORD wndThread = 0;
 		DWORD wndProcess = 0;
 		HWND hWnd = FindWindow("#32770", NULL);
+
+		count++;
 
 		if(fForceShutdown == TRUE)
 			return;
