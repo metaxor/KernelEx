@@ -503,6 +503,10 @@ SOURCE=.\shell32\shexec.c
 
 SOURCE=.\shell32\shexit.c
 # End Source File
+# Begin Source File
+
+SOURCE=.\shell32\shmain.c
+# End Source File
 # End Group
 # Begin Group "comctl32"
 
