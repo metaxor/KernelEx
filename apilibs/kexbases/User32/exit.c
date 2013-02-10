@@ -34,6 +34,7 @@ BOOL fLoggingOff = FALSE;
 BOOL fAborted = FALSE;
 BOOL fForceShutdown = FALSE;
 DWORD dwShutdownThreadId = 0;
+DWORD ShutdownThreadWndId = 0;
 
 int WaitToKillAppTimeout = 20000;
 int HungAppTimeout = 5000;
@@ -517,7 +518,7 @@ VOID __fastcall DestroyKernelWnd(PSHUTDOWNDATA ShutdownData)
 
 		__try
 		{
-			if(wndProcess == dwKernelProcessId && wndThread != dwShutdownThreadId)
+			if(wndProcess == dwKernelProcessId && wndThread != dwShutdownThreadId && wndThread != ShutdownThreadWndId)
 			{
 				if(GetTickCount() - ShutdownData->StartShutdownTickCount < LogoffTimeout)
 					Sleep(TimeBetweenTermination);
@@ -618,7 +619,6 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 	SHUTDOWNDATA sa;
 	HANDLE hProcess = NULL;
 	HKEY hKey = NULL;
-	DWORD tid = 0;
 	HANDLE hThread = NULL;
 	HANDLE hEvent = NULL;
 	REGREMAPPREDEFKEY RegRemapPreDefKey = (REGREMAPPREDEFKEY)GetProcAddress(GetModuleHandle("ADVAPI32.DLL"), "RegRemapPreDefKey");
@@ -725,7 +725,7 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 			HKEY hKey = NULL;
 
 			hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
-			hThread = CreateThread(NULL, 0, CreateShutdownWindow, hEvent, 0, &tid);
+			hThread = CreateThread(NULL, 0, CreateShutdownWindow, hEvent, 0, &ShutdownThreadWndId);
 			WaitForSingleObject(hEvent, INFINITE);
 			SetWindowText(hwndGlobalText, "Please wait while the system is logging off.");
 			CloseHandle(hEvent);
