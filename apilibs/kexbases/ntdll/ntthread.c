@@ -54,27 +54,28 @@ NTSTATUS NTAPI ZwSuspendResumeThread(
 	return STATUS_SUCCESS;
 }
 
-/* MAKE_EXPORT ZwSetContextThread=NtSetContextThread */
-/* MAKE_EXPORT ZwSetContextThread=ZwSetContextThread */
-NTSTATUS NTAPI ZwSetContextThread(IN HANDLE ThreadHandle,
-	IN PCONTEXT Context
+
+/* MAKE_EXPORT ZwCreateThread=NtCreateThread */
+/* MAKE_EXPORT ZwCreateThread=ZwCreateThread */
+NTSTATUS NTAPI ZwCreateThread(OUT PHANDLE ThreadHandle,
+	IN ACCESS_MASK DesiredAccess,
+	IN POBJECT_ATTRIBUTES ObjectAttributes OPTIONAL,
+	IN HANDLE ProcessHandle,
+	OUT PCLIENT_ID ClientId,
+	IN PCONTEXT ThreadContext,
+	IN PINITIAL_TEB InitialTeb,
+	IN BOOLEAN CreateSuspended
 )
 {
-	BOOL result;
+	*ThreadHandle = CreateRemoteThread(ProcessHandle,
+							NULL,
+							(DWORD)InitialTeb->StackCommitMax,
+							(LPTHREAD_START_ROUTINE)ThreadContext->Eip,
+							(LPVOID)*(DWORD*)ThreadContext->Ebp,
+							CreateSuspended ? CREATE_SUSPENDED : 0,
+							&ClientId->UniqueThreadId);
 
-	if(ThreadHandle == NULL || Context == NULL)
-		return STATUS_INVALID_PARAMETER;
-
-	__try
-	{
-		result = SetThreadContext(ThreadHandle, Context);
-	}
-	__except(EXCEPTION_EXECUTE_HANDLER)
-	{
-		return STATUS_INVALID_PARAMETER;
-	}
-
-	if(!result)
+	if(*ThreadHandle == NULL)
 		return STATUS_INVALID_PARAMETER;
 
 	return STATUS_SUCCESS;
@@ -94,6 +95,32 @@ NTSTATUS NTAPI ZwGetContextThread(IN HANDLE ThreadHandle,
 	__try
 	{
 		result = GetThreadContext(ThreadHandle, pContext);
+	}
+	__except(EXCEPTION_EXECUTE_HANDLER)
+	{
+		return STATUS_INVALID_PARAMETER;
+	}
+
+	if(!result)
+		return STATUS_INVALID_PARAMETER;
+
+	return STATUS_SUCCESS;
+}
+
+/* MAKE_EXPORT ZwSetContextThread=NtSetContextThread */
+/* MAKE_EXPORT ZwSetContextThread=ZwSetContextThread */
+NTSTATUS NTAPI ZwSetContextThread(IN HANDLE ThreadHandle,
+	IN PCONTEXT Context
+)
+{
+	BOOL result;
+
+	if(ThreadHandle == NULL || Context == NULL)
+		return STATUS_INVALID_PARAMETER;
+
+	__try
+	{
+		result = SetThreadContext(ThreadHandle, Context);
 	}
 	__except(EXCEPTION_EXECUTE_HANDLER)
 	{
