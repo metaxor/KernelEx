@@ -21,6 +21,31 @@
 
 #include "_ntdll_apilist.h"
 
+/* MAKE_EXPORT ZwClose=NtClose */
+/* MAKE_EXPORT ZwClose=ZwClose */
+NTSTATUS NTAPI ZwClose(IN HANDLE Handle)
+{
+	BOOL result;
+
+	if(Handle == NULL)
+		return STATUS_INVALID_HANDLE;
+
+	/* Try to close the handle */
+	result = CloseHandle(Handle);
+
+	if(!result)
+	{
+		/* The handle could be a system handle */
+		result = CloseSystemHandle(Handle);
+	}
+
+	if(!result)
+		return GetLastError();
+
+	return STATUS_SUCCESS;
+}
+
+
 /* MAKE_EXPORT ZwDuplicateObject=NtDuplicateObject */
 /* MAKE_EXPORT ZwDuplicateObject=ZwDuplicateObject */
 NTSTATUS NTAPI ZwDuplicateObject(IN HANDLE SourceProcessHandle,
@@ -58,26 +83,12 @@ NTSTATUS NTAPI ZwDuplicateObject(IN HANDLE SourceProcessHandle,
 	return STATUS_SUCCESS;
 }
 
-/* MAKE_EXPORT ZwClose=NtClose */
-/* MAKE_EXPORT ZwClose=ZwClose */
-NTSTATUS NTAPI ZwClose(IN HANDLE Handle)
+/* MAKE_EXPORT ZwWaitForSingleObject=NtWaitForSingleObject */
+/* MAKE_EXPORT ZwWaitForSingleObject=ZwWaitForSingleObject */
+NTSTATUS WINAPI ZwWaitForSingleObject(IN HANDLE Handle,
+	IN BOOLEAN Alertable,
+	IN PLARGE_INTEGER Timeout
+)
 {
-	BOOL result;
-
-	if(Handle == NULL)
-		return STATUS_INVALID_HANDLE;
-
-	/* Try to close the handle */
-	result = CloseHandle(Handle);
-
-	if(!result)
-	{
-		/* The handle could be a system handle */
-		result = CloseSystemHandle(Handle);
-	}
-
-	if(!result)
-		return GetLastError();
-
-	return STATUS_SUCCESS;
+	return WaitForSingleObjectEx(Handle, (DWORD)Timeout->QuadPart, Alertable);
 }
