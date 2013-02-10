@@ -24,6 +24,23 @@
 #include "common.h"
 #include "_kernel32_apilist.h"
 
+BOOL CALLBACK GetConsoleWindowEnum(HWND hwnd, LPARAM lparam)
+{
+	char name[5];
+	if (GetClassName(hwnd, name, sizeof(name)) == (sizeof("tty")-1) 
+			&& !strcmp(name, "tty"))
+	{
+		DWORD pid;
+		GetWindowThreadProcessId(hwnd, &pid);
+		if (pid == GetCurrentProcessId())
+		{
+			*(HWND*) lparam = hwnd;
+			return FALSE;
+		}
+	}
+	return TRUE;
+}
+
 DWORD WINAPI AllocConsole_caller(PVOID lParam)
 {
 	DWORD ret;
@@ -92,4 +109,12 @@ BOOL WINAPI AttachConsole_new(DWORD dwProcessId)
 	CloseHandle(hThread);
 
 	return dwExitCode;
+}
+
+/* MAKE_EXPORT GetConsoleWindow_new=GetConsoleWindow */
+HWND WINAPI GetConsoleWindow_new()
+{
+	HWND window = NULL;
+	EnumWindows(GetConsoleWindowEnum, (LPARAM) &window);
+	return window;
 }
