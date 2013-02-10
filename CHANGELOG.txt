@@ -22,17 +22,20 @@ user32:
 	- implemented desktop and window stations functions, now support multiples desktops
 	- implemented GetShellWindow and GetLastInputInfo
 	- fixed ExitWindowsEx
-	- OPTIMIZATION: some APIs that don't need thunk down to USER.EXE were remake
-	  like those EnumWindows and EnumxxxWindows functions
-	- fixed LockWorkStation() RUNDLL no longer crash
+	- OPTIMIZATION: some APIs that don't need thunk down to USER.EXE were remade
+	- fixed LockWorkStation(): RUNDLL no longer crash
 shell32:
 	- DllInstall (stub to Win98)
 	- DllRegisterServer (stub to Win98)
 	- DllUnregisterServer (stub to Win98)
+	- ShellExec_RunDLL (implemented)
 
-new DLL: NTDLL:
+ntdll:
+	- NtAllocateVirtualMemory (implemented)
 	- NtClose (implemented)
+	- NtCreateThread (nearly implemented)
 	- NtDuplicateObject (implemented)
+	- NtFreeVirtualMemory (implemented)
 	- NtGetContextThread (implemented)
 	- NtOpenxxx (implemented)
 	- NtRaiseHardError (implemented)
@@ -40,6 +43,7 @@ new DLL: NTDLL:
 	- NtSetContextThread (implemented)
 	- NtSuspendxxx (implemented)
 	- NtTerminatexxx (implemented)
+	- NtWaitForSingleObject (implemented)
 
 some minor fixes
 Kernel32 process can't be now terminated (added the terminating flag to the process at init)
