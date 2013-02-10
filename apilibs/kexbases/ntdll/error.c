@@ -27,6 +27,8 @@ ULONG NTAPI RtlNtStatusToDosError(NTSTATUS Status)
 	return K32_RtlNtStatusToDosError(Status);
 }
 
+
+/* MAKE_EXPORT NtRaiseHardError=ZwDuplicateObject */
 /* MAKE_EXPORT NtRaiseHardError=NtRaiseHardError */
 NTSTATUS NTAPI NtRaiseHardError(IN NTSTATUS ErrorStatus,
 		IN ULONG NumberOfParameters,
