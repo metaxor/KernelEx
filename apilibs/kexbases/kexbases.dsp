@@ -125,10 +125,6 @@ SOURCE=.\Kernel32\file.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Kernel32\GetConsoleWindow.c
-# End Source File
-# Begin Source File
-
 SOURCE=.\Kernel32\GetModuleHandleEx.c
 # End Source File
 # Begin Source File
