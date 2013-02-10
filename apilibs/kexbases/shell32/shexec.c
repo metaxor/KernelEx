@@ -24,6 +24,20 @@
 #include <shellapi.h>
 #include "../kernel32/_kernel32_apilist.h"
 
+void ShellExec_RunDLLA(HWND hwnd, HINSTANCE hinst, LPSTR lpszCmdLine, int nCmdShow)
+{
+	ShellExecute(hwnd, "open", lpszCmdLine, NULL, NULL, nCmdShow);
+}
+
+void ShellExec_RunDLLW(HWND hwnd, HINSTANCE hinst, LPWSTR lpszCmdLine, int nCmdShow)
+{
+	LPSTR lpszCmdLineA;
+
+	STACK_WtoA(lpszCmdLine, lpszCmdLineA);
+
+	ShellExec_RunDLLA(hwnd, hinst, lpszCmdLineA, nCmdShow);
+}
+
 /*  ShellExecuteExA_fix=ShellExecuteExA */
 BOOL WINAPI ShellExecuteExA_fix(LPSHELLEXECUTEINFOA lpExecInfo)
 {
