@@ -46,12 +46,11 @@ HANDLE WINAPI CreateRemoteThread_new(HANDLE hProcess,
 	LPDWORD lpThreadId
 )
 {
-    PPDB98  Process, LocalProcess = NULL;
+    PPDB98  Process;
     PTDB98  Thread = NULL;
     DWORD   dwThreadId, dwProcessId;
     HANDLE  hThread = NULL;
     BOOL    bInheritHandle = FALSE;
-    DWORD   fLocal = 0;
     DWORD   fFlags = fGrowableStack;
     DWORD   StackSize = 0;
 	DWORD	dwObsfucator = (DWORD)get_tdb() ^ GetCurrentThreadId();
@@ -73,6 +72,9 @@ HANDLE WINAPI CreateRemoteThread_new(HANDLE hProcess,
     if (!(Process = (PPDB98)kexGetProcess(dwProcessId)))
         return NULL;
 
+	if(Process == get_pdb())
+		return CreateThread_fix(lpThreadAttributes, dwStackSize, lpStartAddress, lpParameter, dwCreationFlags, lpThreadId);
+
 	/* Make sure the current process isn't terminating */
     if (Process->Flags & INVALID_FLAGS)
     {
@@ -80,45 +82,35 @@ HANDLE WINAPI CreateRemoteThread_new(HANDLE hProcess,
         return NULL;
     }
 
-    if (!(LocalProcess = get_pdb()))
-        return NULL;
+	if (dwStackSize == 0)
+		StackSize = -(int)0x3000;
+	else
+		StackSize = -(int)dwStackSize;
 
-    fLocal = Process == LocalProcess;
+	fFlags |= fCreateSuspended;
 
-    if (!fLocal)
-    {
-        if (dwStackSize == 0)
-            StackSize = -(int)0x3000;
-        else
-            StackSize = -(int)dwStackSize;
-    }
-    else
-        StackSize = dwStackSize;
+	if (dwCreationFlags & CREATE_SILENT)
+		fFlags |= 0x10; // Suppress DLL_THREAD_ATTACH notification if the process is not initialized
 
-    fFlags |= fCreateSuspended;
+	kexGrabLocks();
 
-    if (dwCreationFlags & CREATE_SILENT)
-        fFlags |= 0x10; // Suppress DLL_THREAD_ATTACH notification if the process is not initialized
-
-    kexGrabLocks();
-
-    Thread = kexCreateRemoteThread(Process,
+	Thread = kexCreateRemoteThread(Process,
 								StackSize,
 								lpStartAddress,
 								lpParameter,
 								fFlags);
 
-    kexReleaseLocks();
+	kexReleaseLocks();
 
-    dwThreadId = (DWORD)Thread ^ dwObsfucator;
+	dwThreadId = (DWORD)Thread ^ dwObsfucator;
 
-    if (!IsBadWritePtr(lpThreadId, sizeof(DWORD)))
-        *lpThreadId = dwThreadId;
+	if (!IsBadWritePtr(lpThreadId, sizeof(DWORD)))
+		*lpThreadId = dwThreadId;
 
-    hThread = kexOpenThread(THREAD_ALL_ACCESS, bInheritHandle, dwThreadId);
+	hThread = OpenThread_new(THREAD_ALL_ACCESS, bInheritHandle, dwThreadId);
 
-    if (!(dwCreationFlags & CREATE_SUSPENDED))
-        ResumeThread(hThread);
+	if (!(dwCreationFlags & CREATE_SUSPENDED))
+		ResumeThread(hThread);
 
     return hThread;
 }
@@ -135,8 +127,11 @@ HANDLE WINAPI CreateThread_fix(
 )
 {
 	DWORD dummy;
-	if ( !lpThreadId ) lpThreadId = &dummy;
-	return CreateThread( lpThreadAttributes, dwStackSize, lpStartAddress, lpParameter, dwCreationFlags, lpThreadId );
+
+	if (IsBadWritePtr(lpThreadId, sizeof(DWORD)))
+		lpThreadId = &dummy;
+
+	return CreateThread(lpThreadAttributes, dwStackSize, lpStartAddress, lpParameter, dwCreationFlags, lpThreadId);
 }
 
 /* MAKE_EXPORT GetProcessIdOfThread_new=GetProcessIdOfThread */
