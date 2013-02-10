@@ -549,11 +549,19 @@ SOURCE=.\ntdll\handle.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\ntdll\ntmem.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\ntdll\ntprocess.c
 # End Source File
 # Begin Source File
 
 SOURCE=.\ntdll\ntthread.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ntdll\rtl.c
 # End Source File
 # Begin Source File
 
@@ -694,6 +702,10 @@ SOURCE=..\..\common\k32ord.h
 # Begin Source File
 
 SOURCE=.\main.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\common\ntstatus.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"
