@@ -33,6 +33,12 @@ LONG WINAPI RegOpenCurrentUser_new(REGSAM access, PHKEY retkey)
 	return RegOpenKeyExA(HKEY_CURRENT_USER, NULL, 0, access, retkey);
 }
 
+/* MAKE_EXPORT RegOpenUserClassesRoot_new=RegOpenUserClassesRoot */
+LONG WINAPI RegOpenUserClassesRoot_new(HANDLE hToken, DWORD dwOptions, REGSAM samDesired, PHKEY phkResult)
+{
+	return RegOpenKeyExA(HKEY_CURRENT_USER, "Software\\Classes", dwOptions, samDesired, phkResult);
+}
+
 /* MAKE_EXPORT RegSetValueExA_fix=RegSetValueExA */
 LONG WINAPI RegSetValueExA_fix(
 	HKEY hKey,

@@ -73,6 +73,7 @@ DWORD WINAPI LsaRetrievePrivateData_new(IN HANDLE PolicyHandle, IN PVOID KeyName
 DWORD WINAPI LsaStorePrivateData_new(IN HANDLE PolicyHandle, IN PVOID KeyName, IN PVOID PrivateData);
 BOOL WINAPI RegDisablePredefinedCache_new();
 LONG WINAPI RegOpenCurrentUser_new(REGSAM access, PHKEY retkey);
+LONG WINAPI RegOpenUserClassesRoot_new(HANDLE hToken, DWORD dwOptions, REGSAM samDesired, PHKEY phkResult);
 LONG WINAPI RegSetValueExA_fix(HKEY hKey, LPCSTR lpValueName, DWORD Reserved, DWORD dwType, CONST BYTE *lpData, DWORD cbData);
 BOOL WINAPI OpenProcessToken_new(HANDLE ProcessHandle, DWORD DesiredAccess, HANDLE *TokenHandle);
 BOOL WINAPI OpenThreadToken_new(HANDLE ThreadHandle, DWORD DesiredAccess, BOOL OpenAsSelf, HANDLE *TokenHandle);

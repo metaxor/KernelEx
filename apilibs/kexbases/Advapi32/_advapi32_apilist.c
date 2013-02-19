@@ -124,6 +124,7 @@ static const apilib_named_api advapi32_named_apis[] =
 	DECL_API("RegOpenCurrentUser", RegOpenCurrentUser_new),
 	DECL_API("RegOpenKeyExW", RegOpenKeyExW_new),
 	DECL_API("RegOpenKeyW", RegOpenKeyW_new),
+	DECL_API("RegOpenUserClassesRoot", RegOpenUserClassesRoot_new),
 	DECL_API("RegOverridePredefKey", RegOverridePredefKey_stub),
 	DECL_API("RegQueryValueExW", RegQueryValueExW_new),
 	DECL_API("RegSetValueExA", RegSetValueExA_fix),
