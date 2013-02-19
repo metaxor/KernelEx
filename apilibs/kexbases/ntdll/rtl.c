@@ -21,3 +21,115 @@
 
 #include "_ntdll_apilist.h"
 
+/* MAKE_EXPORT RtlDeleteCriticalSection=RtlDeleteCriticalSection */
+NTSTATUS NTAPI RtlDeleteCriticalSection(
+	RTL_CRITICAL_SECTION *crit
+)
+{
+	__try
+	{
+		DeleteCriticalSection_fix(crit);
+	}
+	__except(EXCEPTION_EXECUTE_HANDLER)
+	{
+		return STATUS_INVALID_ADDRESS;
+	}
+
+	return STATUS_SUCCESS;
+}
+
+/* MAKE_EXPORT RtlEnterCriticalSection=RtlEnterCriticalSection */
+NTSTATUS NTAPI RtlEnterCriticalSection(
+	RTL_CRITICAL_SECTION *crit
+)
+{
+	__try
+	{
+		EnterCriticalSection_fix(crit);
+	}
+	__except(EXCEPTION_EXECUTE_HANDLER)
+	{
+		return STATUS_INVALID_ADDRESS;
+	}
+
+	return STATUS_SUCCESS;
+}
+
+/* MAKE_EXPORT RtlInitializeCriticalSection=RtlInitializeCriticalSection */
+NTSTATUS NTAPI RtlInitializeCriticalSection(
+	RTL_CRITICAL_SECTION *crit
+)
+{
+	__try
+	{
+		InitializeCriticalSection(crit);
+	}
+	__except(EXCEPTION_EXECUTE_HANDLER)
+	{
+		return STATUS_INVALID_ADDRESS;
+	}
+
+	return STATUS_SUCCESS;
+}
+
+/* MAKE_EXPORT RtlInitializeCriticalSectionAndSpinCount=RtlInitializeCriticalSectionAndSpinCount */
+NTSTATUS NTAPI RtlInitializeCriticalSectionAndSpinCount(
+	RTL_CRITICAL_SECTION *crit,
+	ULONG spincount
+)
+{
+	__try
+	{
+		InitializeCriticalSectionAndSpinCount_new(crit, spincount);
+	}
+	__except(EXCEPTION_EXECUTE_HANDLER)
+	{
+		return STATUS_INVALID_ADDRESS;
+	}
+
+	return STATUS_SUCCESS;
+}
+
+/* MAKE_EXPORT RtlInitializeCriticalSectionEx=RtlInitializeCriticalSectionEx */
+NTSTATUS NTAPI RtlInitializeCriticalSectionEx(
+	RTL_CRITICAL_SECTION *crit,
+	ULONG spincount,
+	ULONG flags
+)
+{
+	return RtlInitializeCriticalSectionAndSpinCount(crit, spincount);
+}
+
+/* MAKE_EXPORT RtlLeaveCriticalSection=RtlLeaveCriticalSection */
+NTSTATUS NTAPI RtlLeaveCriticalSection(
+	RTL_CRITICAL_SECTION *crit
+)
+{
+	__try
+	{
+		LeaveCriticalSection(crit);
+	}
+	__except(EXCEPTION_EXECUTE_HANDLER)
+	{
+		return STATUS_INVALID_ADDRESS;
+	}
+
+	return STATUS_SUCCESS;
+}
+
+/* MAKE_EXPORT RtlTryEnterCriticalSection=RtlTryEnterCriticalSection */
+NTSTATUS NTAPI RtlTryEnterCriticalSection(
+	RTL_CRITICAL_SECTION *crit
+)
+{
+	__try
+	{
+		TryEnterCriticalSection_new(crit);
+	}
+	__except(EXCEPTION_EXECUTE_HANDLER)
+	{
+		return STATUS_INVALID_ADDRESS;
+	}
+
+	return STATUS_SUCCESS;
+}
