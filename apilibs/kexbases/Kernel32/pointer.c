@@ -38,10 +38,15 @@ static LONG get_pointer_obfuscator(void)
 	return obfuscator;
 }
 
-/* FIXME: EncodePointer/DecodePointer should use per-process obfuscator */
+/* MAKE_EXPORT XorPointerProcess=EncodePointer */
+/* MAKE_EXPORT XorPointerProcess=DecodePointer */
+PVOID WINAPI XorPointerProcess(PVOID ptr)
+{
+	/* Using process's database structure to xor the pointer */
+	LONG ptrval = (LONG) ptr;
+	return (PVOID)(ptrval ^ (LONG)get_pdb());
+}
 
-/* MAKE_EXPORT XorPointer=EncodePointer */
-/* MAKE_EXPORT XorPointer=DecodePointer */
 /* MAKE_EXPORT XorPointer=EncodeSystemPointer */
 /* MAKE_EXPORT XorPointer=DecodeSystemPointer */
 PVOID WINAPI XorPointer(PVOID ptr)
