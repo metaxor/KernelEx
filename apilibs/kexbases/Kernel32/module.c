@@ -22,8 +22,87 @@
 #undef _WIN32_WINNT
 #define _WIN32_WINNT 0x0600
 
-#include <windows.h>
 #include "common.h"
+#include "_kernel32_apilist.h"
+#include <Tlhelp32.h>
+
+/* MAKE_EXPORT GetModuleFileNameExA_new=GetModuleFileNameExA */
+DWORD WINAPI GetModuleFileNameExA_new(
+	HANDLE hProcess,
+	HMODULE hModule,
+	LPSTR lpFilename,
+	DWORD nSize
+)
+{
+	HANDLE hSnap = INVALID_HANDLE_VALUE;
+	DWORD dwProcessId = GetProcessId_new(hProcess);
+	MODULEENTRY32 me32;
+	DWORD strSize = 0;
+
+	if(dwProcessId == 0 || IsBadStringPtr(lpFilename, nSize))
+	{
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return 0;
+	}
+
+	hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, GetProcessId_new(hProcess));
+
+	if(hSnap == INVALID_HANDLE_VALUE)
+		return 0;
+
+	memset(&me32, 0, sizeof(MODULEENTRY32));
+
+	me32.dwSize = sizeof(MODULEENTRY32);
+	me32.th32ProcessID = dwProcessId;
+
+	Module32First(hSnap, &me32);
+
+	do
+	{
+		if(me32.hModule == hModule)
+		{
+			strncpy(lpFilename, me32.szModule, nSize);
+			strSize = strlen(lpFilename);
+			break;
+		}
+
+	} while(Module32Next(hSnap, &me32));
+
+
+	CloseHandle(hSnap);
+	return strSize;
+}
+
+/* MAKE_EXPORT GetModuleFileNameExW_new=GetModuleFileNameExW */
+DWORD WINAPI GetModuleFileNameExW_new(
+	HANDLE hProcess,
+	HMODULE hModule,
+	LPWSTR lpFilename,
+	DWORD nSize
+)
+{
+	PCHAR lpBuffer = (PCHAR)malloc(nSize);
+	LPWSTR lpBufferW = NULL;
+	DWORD dwRet = 0;
+	DWORD i;
+
+	memset(lpBuffer, 0, nSize);
+	dwRet = GetModuleFileNameExA_new(hProcess, hModule, lpBuffer, nSize);
+
+	if(dwRet == 0)
+	{
+		free(lpBuffer);
+		return 0;
+	}
+
+	STACK_AtoW(lpBuffer, lpBufferW);
+
+	for(i=0;i<=nSize;i++)
+		lpFilename[i] = lpBufferW[i];
+
+	free(lpBuffer);
+	return dwRet;
+}
 
 /* MAKE_EXPORT GetModuleHandleExA_new=GetModuleHandleExA */
 BOOL WINAPI GetModuleHandleExA_new(
