@@ -125,10 +125,6 @@ SOURCE=.\Kernel32\file.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Kernel32\GetModuleHandleEx.c
-# End Source File
-# Begin Source File
-
 SOURCE=.\Kernel32\inter.c
 # End Source File
 # Begin Source File
@@ -174,6 +170,10 @@ SOURCE=.\Kernel32\locale_wctype.c
 # Begin Source File
 
 SOURCE=.\Kernel32\mem.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\Kernel32\module.c
 # End Source File
 # Begin Source File
 
@@ -546,6 +546,10 @@ SOURCE=.\ntdll\error.c
 # Begin Source File
 
 SOURCE=.\ntdll\handle.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ntdll\ldr.c
 # End Source File
 # Begin Source File
 
