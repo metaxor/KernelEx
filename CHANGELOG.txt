@@ -3,9 +3,11 @@ Unknown release date
 
 added to ADVAPI32 :
 	- LogonUserA
+	- RegOpenUserClassesRoot
 added to KERNEL32 :
 	- AttachConsole
 	- CreateRemoteThread (implemented)
+	- GetModuleFileName (implemented)
 	- GetThreadId (implemented)
 	- GetProcessIdOfThread (implemented)
 	- GetProcessShutdownParameters
@@ -29,8 +31,9 @@ shell32:
 	- DllRegisterServer (stub to Win98)
 	- DllUnregisterServer (stub to Win98)
 	- ShellExec_RunDLL (implemented)
-
 ntdll:
+	- LdrLoadDll (implemented)
+	- LdrUnloadDll (implemented)
 	- NtAllocateVirtualMemory (implemented)
 	- NtClose (implemented)
 	- NtCreateThread (nearly implemented)
@@ -44,9 +47,10 @@ ntdll:
 	- NtSuspendxxx (implemented)
 	- NtTerminatexxx (implemented)
 	- NtWaitForSingleObject (implemented)
+	- Rtl*CriticalSection (implemented)
 
 some minor fixes
-Kernel32 process can't be now terminated (added the terminating flag to the process at init)
+Kernel32 process can't be terminated from now (added the terminating flag to the process at init)
 
 ---------------------------------------
 
