@@ -151,6 +151,7 @@ begin
     MsgBox('Detected unfinished previous installation.'#13'You have to restart the system in order to complete it before you can proceed further.', mbError, MB_OK);
     result := false;
   end;
+  result := true;
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
