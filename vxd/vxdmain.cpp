@@ -48,7 +48,6 @@ _Declare_Virtual_Device(VKRNLEX, V_MAJOR, V_MINOR, ControlDispatcher, UNDEFINED_
 
 DWORD ( _stdcall *VKernelEx_W32_Proc[] )(DWORD, PDIOCPARAMETERS) = {
         VKernelEx_IOCTL_Connect,
-		VKernelEx_ShutdownSystem
 };
 
 #define MAX_VKERNELEX_W32_API (sizeof(VKernelEx_W32_Proc)/sizeof(DWORD))
