@@ -214,58 +214,6 @@ BOOL _stdcall VKernelEx_Begin_PM_App(HVM hVM)
 	return TRUE;
 }
 
-#define ShutdownNoReboot	0
-#define ShutdownReboot		1
-#define ShutdownPowerOff	2
-
-DWORD _stdcall VKernelEx_ShutdownSystem(DWORD hDevice, PDIOCPARAMETERS lpDIOCParms)
-{
-	HVM SysVM;
-	HVM CurVM;
-	DWORD Action;
-
-	Action = *(DWORD*)lpDIOCParms->lpvInBuffer;
-
-	switch(Action)
-	{
-	case ShutdownNoReboot:
-
-		CurVM = Get_Cur_VM_Handle();
-		
-		__asm mov eax, BEGIN_MESSAGE_MODE
-		__asm mov ebx,[CurVM]
-		__asm mov esi, 0
-		__asm mov edi, 0
-		__asm mov edx, 0
-		VMMCall(System_Control);
-		VDD_Msg_ClrScrn(CurVM, 0);
-		DisplayString("It is now safe to turn off your computer.");
-		Fatal_Error_Handler(NULL, 1);
-		for(;;){
-			__asm cli
-			__asm hlt
-		}
-		break;
-
-	case ShutdownReboot:
-		SysVM = Get_Sys_VM_Handle();
-
-		/* Should we use Nuke_VM instead ? */
-		__asm mov	eax, 10000
-		__asm mov	ebx, [SysVM]
-		__asm mov	ecx, 0
-		VMMCall(Close_VM);
-		break;
-
-	case ShutdownPowerOff:
-		break;
-	}
-
-    lpDIOCParms->lpvOutBuffer = 1;
-	lpDIOCParms->lpcbBytesReturned = sizeof(DWORD);
-	return(VXD_SUCCESS);
-}
-
 BOOL _stdcall VKernelEx_Dynamic_Exit(void)
 {
     DBGPRINTF(("Exit"));
