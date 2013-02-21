@@ -30,6 +30,7 @@ BOOL WINAPI CreateProcessA_fix(LPCSTR lpApplicationName, LPSTR lpCommandLine, LP
     PTDB98 Thread = get_tdb();
 	PPDB98 Process = get_pdb();
 	PCHAR pszDesktop = NULL;
+	BOOL result = FALSE;
 
     if(IsBadWritePtr(lpStartupInfo, sizeof(STARTUPINFO)) || IsBadWritePtr(lpProcessInformation, sizeof(PROCESS_INFORMATION)))
         return FALSE;
@@ -72,7 +73,7 @@ BOOL WINAPI CreateProcessA_fix(LPCSTR lpApplicationName, LPSTR lpCommandLine, LP
 
 	lpStartupInfo->lpDesktop = pszDesktop;
 
-	return CreateProcessA(lpApplicationName,
+	result = CreateProcessA(lpApplicationName,
 						 lpCommandLine,
 						 lpProcessAttributes,
 						 lpThreadAttributes,
@@ -82,6 +83,14 @@ BOOL WINAPI CreateProcessA_fix(LPCSTR lpApplicationName, LPSTR lpCommandLine, LP
 						 lpCurrentDirectory,
 						 lpStartupInfo,
 						 lpProcessInformation);
+
+	if(!result)
+	{
+		free(pszDesktop);
+		return FALSE;
+	}
+
+	return TRUE;
 }
 
 /* MAKE_EXPORT CreateProcessAsUserA_new=CreateProcessAsUserA*/
