@@ -642,7 +642,7 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 
 		fShutdown = TRUE;
 
-		SystemParametersInfo(SPI_SETSCREENSAVERRUNNING, TRUE, 0, 0);
+		//SystemParametersInfo(SPI_SETSCREENSAVERRUNNING, TRUE, 0, 0);
 
 		RegOpenKeyEx(HKEY_CURRENT_USER,  "Control Panel\\Desktop", 0, KEY_ALL_ACCESS, &hKey);
 
@@ -821,7 +821,7 @@ finished:
 		fLoggingOff = FALSE;
 		fForceShutdown = FALSE;
 		hwndGlobalText = NULL;
-		SystemParametersInfo(SPI_SETSCREENSAVERRUNNING, FALSE, 0, 0);
+		//SystemParametersInfo(SPI_SETSCREENSAVERRUNNING, FALSE, 0, 0);
 
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
