@@ -29,8 +29,6 @@
 #include "../kernel32/_kernel32_apilist.h"
 #include "../user32/_user32_apilist.h"
 
-#define KEXSHUTDOWNSYSTEM	2
-
 DWORD __fastcall VKernelExCall(DWORD command, DWORD param1);
 
 typedef PLSA_OBJECT_ATTRIBUTES POBJECT_ATTRIBUTES;

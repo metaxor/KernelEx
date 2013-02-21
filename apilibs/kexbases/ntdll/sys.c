@@ -44,12 +44,12 @@ NTSTATUS NTAPI ZwShutdownSystem(IN SHUTDOWN_ACTION Action)
 	switch(Action)
 	{
 	case ShutdownNoReboot:
-		VKernelExCall(KEXSHUTDOWNSYSTEM, Action);
+		ExitWindowsEx(EWX_SHUTDOWN | EWX_FORCE, 0);
 		return STATUS_SUCCESS;
 		break;
 
 	case ShutdownReboot:
-		VKernelExCall(KEXSHUTDOWNSYSTEM, Action);
+		ExitWindowsEx(EWX_REBOOT | EWX_FORCE, 0);
 		return STATUS_SUCCESS;
 		break;
 
