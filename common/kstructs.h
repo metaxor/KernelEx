@@ -48,6 +48,16 @@
 // Hidden flag for DuplicateHandle
 #define DUPLICATE_GLOBAL              0x80000000  // Make the duplicated handle global
 
+// Flags for the Attributes field in the OBJECT_ATTRIBUTES structure
+#define OBJ_INHERIT					0x00000002L
+#define OBJ_PERMANENT				0x00000010L
+#define OBJ_EXCLUSIVE				0x00000020L
+#define OBJ_CASE_INSENSITIVE		0x00000040L
+#define OBJ_OPENIF					0x00000080L
+#define OBJ_OPENLINK				0x00000100L
+#define OBJ_KERNEL_HANDLE			0x00000200L
+#define OBJ_VALID_ATTRIBUTES		0x000003F2L 
+
 // Process Database flags (WIN95)
 #define fDebugSingle                  0x00000001  // Set if process is being debugged
 #define fCreateProcessEvent           0x00000002  // Set in debugged process after starting
