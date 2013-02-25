@@ -22,6 +22,4 @@
 #include "common.h"
 
 UNIMPL_FUNC(NtCreateProcess, 8);
-UNIMPL_FUNC(NtCreateThread, 8);
 UNIMPL_FUNC(ZwCreateProcess, 8);
-UNIMPL_FUNC(ZwCreateThread, 8);
