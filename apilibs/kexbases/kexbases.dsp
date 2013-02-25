@@ -553,6 +553,10 @@ SOURCE=.\ntdll\ldr.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\ntdll\ntfile.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\ntdll\ntmem.c
 # End Source File
 # Begin Source File
@@ -570,6 +574,10 @@ SOURCE=.\ntdll\rtl.c
 # Begin Source File
 
 SOURCE=.\ntdll\sys.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ntdll\token.c
 # End Source File
 # End Group
 # Begin Source File
