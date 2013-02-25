@@ -20,6 +20,7 @@
  */
 
 #include "_ntdll_apilist.h"
+#include <limits.h>
 
 /* MAKE_EXPORT RtlDeleteCriticalSection=RtlDeleteCriticalSection */
 NTSTATUS NTAPI RtlDeleteCriticalSection(
@@ -52,6 +53,59 @@ NTSTATUS NTAPI RtlEnterCriticalSection(
 		return STATUS_INVALID_ADDRESS;
 	}
 
+	return STATUS_SUCCESS;
+}
+
+/* MAKE_EXPORT RtlInitAnsiString=RtlInitAnsiString */
+VOID NTAPI RtlInitAnsiString(
+  IN OUT	PANSI_STRING DestinationString,
+  IN		PCSZ SourceString
+)
+{
+    SIZE_T Size;
+
+	if (SourceString)
+	{
+		Size = strlen(SourceString);
+		if (Size > (USHRT_MAX - sizeof(CHAR)))
+			Size = USHRT_MAX - sizeof(CHAR);
+
+		DestinationString->Length = (USHORT)Size;
+		DestinationString->MaximumLength = (USHORT)Size + sizeof(CHAR);
+	}
+	else
+	{
+		DestinationString->Length = 0;
+		DestinationString->MaximumLength = 0;
+	}
+
+	DestinationString->Buffer = (PCHAR)SourceString;
+}
+
+/* MAKE_EXPORT RtlInitAnsiStringEx=RtlInitAnsiStringEx */
+NTSTATUS NTAPI RtlInitAnsiStringEx(
+  IN OUT	PANSI_STRING DestinationString,
+  IN		PCSZ SourceString
+)
+{
+    SIZE_T Size;
+
+	if (SourceString)
+	{
+		Size = strlen(SourceString);
+		if (Size > (USHRT_MAX - sizeof(CHAR)))
+			return STATUS_NAME_TOO_LONG;
+
+		DestinationString->Length = (USHORT)Size;
+		DestinationString->MaximumLength = (USHORT)Size + sizeof(CHAR);
+	}
+	else
+	{
+		DestinationString->Length = 0;
+		DestinationString->MaximumLength = 0;
+	}
+
+	DestinationString->Buffer = (PCHAR)SourceString;
 	return STATUS_SUCCESS;
 }
 
