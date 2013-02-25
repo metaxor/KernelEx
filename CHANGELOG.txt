@@ -36,11 +36,14 @@ ntdll:
 	- LdrUnloadDll (implemented)
 	- NtAllocateVirtualMemory (implemented)
 	- NtClose (implemented)
+	- NtCreateProcess (unimplemented)
 	- NtCreateThread (nearly implemented)
 	- NtDuplicateObject (implemented)
 	- NtFreeVirtualMemory (implemented)
 	- NtGetContextThread (implemented)
-	- NtOpenxxx (implemented)
+	- NtOpenFile (nearly implemented)
+	- NtOpenProcess (implemented)
+	- NtOpenThread (implemented
 	- NtRaiseHardError (implemented)
 	- NtResumexxx (implemented)
 	- NtSetContextThread (implemented)
@@ -48,6 +51,8 @@ ntdll:
 	- NtTerminatexxx (implemented)
 	- NtWaitForSingleObject (implemented)
 	- Rtl*CriticalSection (implemented)
+	- RtlInitAnsiString (implemented)
+	- RtlInitAnsiStringEx (implemented)
 
 some minor fixes
 Kernel32 process can't be terminated from now (added the terminating flag to the process at init)
