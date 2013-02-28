@@ -83,6 +83,12 @@ PVOID kexAllocObject(size_t size)
 	return ptr;
 }
 
+PVOID kexReAllocObject(PVOID Object, size_t size)
+{
+	void* ptr = realloc(Object, size);
+	return ptr;
+}
+
 LPSTR kexAllocObjectName(PVOID Object, LPCSTR lpName)
 {
 	return AllocObjectName(Object, lpName);
