@@ -95,75 +95,6 @@ LINK32=link.exe
 # Begin Group "kernel32"
 
 # PROP Default_Filter ""
-# Begin Group "jemalloc"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=.\kernel32\jemalloc\jemalloc.c
-
-!IF  "$(CFG)" == "KernelEx Base NonShared - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "KernelEx Base NonShared - Win32 Debug"
-
-# PROP Exclude_From_Build 1
-
-!ENDIF 
-
-# End Source File
-# Begin Source File
-
-SOURCE=.\kernel32\jemalloc\jemalloc.h
-
-!IF  "$(CFG)" == "KernelEx Base NonShared - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "KernelEx Base NonShared - Win32 Debug"
-
-# PROP Exclude_From_Build 1
-
-!ENDIF 
-
-# End Source File
-# Begin Source File
-
-SOURCE=.\kernel32\jemalloc\ql.h
-
-!IF  "$(CFG)" == "KernelEx Base NonShared - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "KernelEx Base NonShared - Win32 Debug"
-
-# PROP Exclude_From_Build 1
-
-!ENDIF 
-
-# End Source File
-# Begin Source File
-
-SOURCE=.\kernel32\jemalloc\qr.h
-
-!IF  "$(CFG)" == "KernelEx Base NonShared - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "KernelEx Base NonShared - Win32 Debug"
-
-# PROP Exclude_From_Build 1
-
-!ENDIF 
-
-# End Source File
-# Begin Source File
-
-SOURCE=.\kernel32\jemalloc\rb.h
-
-!IF  "$(CFG)" == "KernelEx Base NonShared - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "KernelEx Base NonShared - Win32 Debug"
-
-# PROP Exclude_From_Build 1
-
-!ENDIF 
-
-# End Source File
-# End Group
 # Begin Source File
 
 SOURCE=.\kernel32\_kernel32_apilist.c
@@ -175,13 +106,6 @@ SOURCE=.\kernel32\_kernel32_apilist.h
 # Begin Source File
 
 SOURCE=.\kernel32\allocator.c
-
-!IF  "$(CFG)" == "KernelEx Base NonShared - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "KernelEx Base NonShared - Win32 Debug"
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
@@ -466,35 +390,14 @@ SOURCE=.\cryptui\CryptUIDlgViewContext.c
 # Begin Source File
 
 SOURCE=.\ntdll\_ntdll_apilist.c
-
-!IF  "$(CFG)" == "KernelEx Base NonShared - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "KernelEx Base NonShared - Win32 Debug"
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
 SOURCE=.\ntdll\_ntdll_apilist.h
-
-!IF  "$(CFG)" == "KernelEx Base NonShared - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "KernelEx Base NonShared - Win32 Debug"
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
 SOURCE=.\ntdll\_ntdll_stubs.c
-
-!IF  "$(CFG)" == "KernelEx Base NonShared - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "KernelEx Base NonShared - Win32 Debug"
-
-!ENDIF 
-
 # End Source File
 # End Group
 # Begin Source File
