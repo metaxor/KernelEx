@@ -301,6 +301,23 @@ DWORD WINAPI GetProcessImageFileNameW(
 	return GetModuleSuperName(hProcess,NULL,(LPTSTR)lpImageFileName,nSize,TRUE,TRUE);
 }
 
+DWORD GetDeviceDriverFileNameA(
+  LPVOID ImageBase,
+  LPTSTR lpFilename,
+  DWORD nSize
+)
+{
+	return GetModuleSuperName(GetCurrentProcess(),(HMODULE)ImageBase,lpFilename,nSize,FALSE,TRUE);
+}
+
+DWORD GetDeviceDriverFileNameW(
+  LPVOID ImageBase,
+  LPTSTR lpFilename,
+  DWORD nSize
+)
+{
+	return GetModuleSuperName(GetCurrentProcess(),(HMODULE)ImageBase,lpFilename,nSize,TRUE,TRUE);
+}
 
 //rewrite those somehow, please...
 BOOL WINAPI GetProcessMemoryInfo(
@@ -328,6 +345,16 @@ BOOL WINAPI QueryWorkingSetEx( HANDLE process, LPVOID buffer, DWORD size )
 BOOL WINAPI InitializeProcessForWsWatch( HANDLE hProcess )
 {
 	return TRUE;
+}
+
+BOOL EnumDeviceDrivers(
+  LPVOID* lpImageBase,
+  DWORD cb,
+  LPDWORD lpcbNeeded
+)
+{
+	SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+	return FALSE;
 }
 
 BOOL WINAPI EnumPageFilesA( PVOID callback, LPVOID context )
