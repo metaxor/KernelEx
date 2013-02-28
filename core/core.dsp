@@ -44,7 +44,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "KERNELEX_EXPORTS" /YX /FD /c
-# ADD CPP /nologo /W3 /O2 /I "." /I "../common" /FI"msvc_quirks.h" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "KEXCORE_EXPORTS" /FR /YX /FD /GF /c
+# ADD CPP /nologo /W3 /O2 /I "." /I "../common" /FI"msvc_quirks.h" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "KEXCORE_EXPORTS" /YX /FD /GF /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x415 /d "NDEBUG"
@@ -54,8 +54,14 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:I386
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib advapi32.lib comctl32.lib ..\kexcrt\kexcrt.lib libc.lib /nologo /entry:"PreDllMain@12" /dll /map /machine:I386 /nodefaultlib /out:"../output-i386/Release/KernelEx.dll" /implib:"../common/KernelEx.lib" /ignore:4092 /OPT:NOWIN98
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib advapi32.lib comctl32.lib ..\kexcrt\kexcrt.lib libc.lib /nologo /entry:"PreDllMain@12" /dll /map /machine:I386 /nodefaultlib /out:"Release/KernelEx.dll" /ignore:4092 /OPT:NOWIN98
 # SUBTRACT LINK32 /pdb:none
+# Begin Special Build Tool
+OutDir=.\Release
+WkspDir=.
+SOURCE="$(InputPath)"
+PostBuild_Cmds=copy /Y "$(OutDir)\KernelEx.lib" "$(WkspDir)\common\"
+# End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "Core - Win32 Debug"
 
@@ -71,7 +77,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "KERNELEX_EXPORTS" /YX /FD /GZ /c
-# ADD CPP /nologo /ML /W3 /Gm /Zi /Od /I "." /I "../common" /FI"msvc_quirks.h" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "KEXCORE_EXPORTS" /D "_ENABLE_APIHOOK" /FR /YX /FD /GF /c
+# ADD CPP /nologo /ML /W3 /Gm /Zi /Od /I "." /I "../common" /FI"msvc_quirks.h" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "KEXCORE_EXPORTS" /D "_ENABLE_APIHOOK" /YX /FD /GZ /GF /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x415 /d "_DEBUG"
@@ -81,8 +87,14 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib advapi32.lib comctl32.lib ..\kexcrt\kexcrt.lib libc.lib /nologo /entry:"PreDllMain@12" /dll /incremental:no /map /debug /machine:I386 /nodefaultlib /out:"../output-i386/Debug/KernelEx.dll" /implib:"../common/KernelEx.lib" /ignore:4092 /OPT:NOWIN98
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib advapi32.lib comctl32.lib ..\kexcrt\kexcrt.lib libc.lib /nologo /entry:"PreDllMain@12" /dll /incremental:no /map /debug /machine:I386 /nodefaultlib /out:"Debug/KernelEx.dll" /ignore:4092 /OPT:NOWIN98
 # SUBTRACT LINK32 /pdb:none
+# Begin Special Build Tool
+OutDir=.\Debug
+WkspDir=.
+SOURCE="$(InputPath)"
+PostBuild_Cmds=copy /Y "$(OutDir)\KernelEx.lib" "$(WkspDir)\common\"
+# End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "Core - Win32 Release APIHOOK"
 
@@ -99,7 +111,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /O2 /I "." /I "../common" /FI"msvc_quirks.h" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "KEXCORE_EXPORTS" /YX /FD /GF /c
-# ADD CPP /nologo /W3 /O2 /I "." /I "../common" /FI"msvc_quirks.h" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "KEXCORE_EXPORTS" /D "_ENABLE_APIHOOK" /FR /YX /FD /GF /c
+# ADD CPP /nologo /W3 /O2 /I "." /I "../common" /FI"msvc_quirks.h" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "KEXCORE_EXPORTS" /D "_ENABLE_APIHOOK" /YX /FD /GF /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x415 /i "../common" /d "NDEBUG"
@@ -110,8 +122,14 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib advapi32.lib comctl32.lib ..\kexcrt\kexcrt.lib libc.lib /nologo /entry:"PreDllMain@12" /dll /map /machine:I386 /nodefaultlib /out:"Release_APIHOOK/KernelEx.dll" /implib:"../common/KernelEx.lib" /ignore:4092 /OPT:NOWIN98
 # SUBTRACT BASE LINK32 /pdb:none
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib advapi32.lib comctl32.lib ..\kexcrt\kexcrt.lib libc.lib /nologo /entry:"PreDllMain@12" /dll /map /machine:I386 /nodefaultlib /out:"../output-i386/Release_APIHOOK/KernelEx.dll" /implib:"../common/KernelEx.lib" /ignore:4092 /OPT:NOWIN98
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib advapi32.lib comctl32.lib ..\kexcrt\kexcrt.lib libc.lib /nologo /entry:"PreDllMain@12" /dll /map /machine:I386 /nodefaultlib /out:"Release_APIHOOK/KernelEx.dll" /ignore:4092 /OPT:NOWIN98
 # SUBTRACT LINK32 /pdb:none
+# Begin Special Build Tool
+OutDir=.\Release_APIHOOK
+WkspDir=.
+SOURCE="$(InputPath)"
+PostBuild_Cmds=copy /Y "$(OutDir)\KernelEx.lib" "$(WkspDir)\common\"
+# End Special Build Tool
 
 !ENDIF 
 
