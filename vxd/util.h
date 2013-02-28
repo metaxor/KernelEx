@@ -34,7 +34,7 @@
 
 #define EXTERNC extern "C"
 
-int CurrentLine = 0;
+extern int CurrentLine;
 
 #define	_Declare_Virtual_Device(name, ver_major, ver_minor, ctrl_proc, device_num, init_order, V86_proc, PM_proc, ref_data) \
 BOOL __stdcall ControlDispatcher(DWORD, DWORD, DWORD, DWORD, DWORD, DWORD); \
@@ -134,7 +134,8 @@ VDD_Msg_TextOut(HVM hvm, int row, int msglength, int column, PCHAR pszMessage)
     VxDCall(VDD_Msg_TextOut);
 }
 
-VOID _stdcall ReplaceLine(int Line, PCHAR String)
+VOID VXDINLINE
+ReplaceLine(int Line, PCHAR String)
 {
 	HVM CurVM = Get_Cur_VM_Handle();
     ULONG Length = 0;
@@ -154,7 +155,8 @@ _return:
     VDD_Msg_SetCursPos(CurVM, Line, Length);
 }
 
-int _stdcall DisplayString(PCHAR String)
+int VXDINLINE
+DisplayString(PCHAR String)
 {
 	HVM CurVM = Get_Cur_VM_Handle();
     ULONG Length = 0;
