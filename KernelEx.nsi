@@ -1,6 +1,8 @@
-  !define _VERSION '4.5.3 Beta 1'
-  !define _VERSION_CODE 0x04050300
-  
+  !define _VERSION '4.6.0 Beta 1'
+  !define _VERSION_CODE 0x04060248
+
+  !define _DEBUG
+
   !ifndef _DEBUG
     !define FLAVOUR 'Release'
     !define VERSION '${_VERSION}'
@@ -25,7 +27,8 @@
   ;Name and file
   Name "KernelEx"
   Caption "KernelEx ${VERSION} Setup"
-  OutFile "output-i386\Setup\KernelEx-4.5.3-Beta1Dev.exe"
+  !System "md output-i386\Setup"
+  OutFile "output-i386\Setup\KernelEx-4.5.3-Beta1-Debug.exe"
 
   ;Default installation folder
   InstallDir "$WINDIR\KernelEx"
