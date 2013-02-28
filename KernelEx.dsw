@@ -3,30 +3,6 @@ Microsoft Developer Studio Workspace File, Format Version 6.00
 
 ###############################################################################
 
-Project: "kexcrt"=.\kexcrt\kexcrt.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
-Project: "prep"=.\util\prep\prep.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
 Project: "Core"=.\core\core.dsp - Package Owner=<4>
 
 Package=<5>
@@ -63,6 +39,18 @@ Package=<4>
 
 ###############################################################################
 
+Project: "VxD"=.\vxd\vxd.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
 Project: "auxiliary"=.\auxiliary\auxiliary.dsp - Package Owner=<4>
 
 Package=<5>
@@ -71,6 +59,9 @@ Package=<5>
 
 Package=<4>
 {{{
+    Begin Project Dependency
+    Project_Dep_Name Core
+    End Project Dependency
 }}}
 
 ###############################################################################
@@ -99,6 +90,42 @@ Package=<4>
 
 ###############################################################################
 
+Project: "kexcrt"=.\kexcrt\kexcrt.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "prep"=.\util\prep\prep.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "sdbcreate"=.\util\sdbcreate\sdbcreate.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
 Project: "sheet"=.\sheet\sheet.dsp - Package Owner=<4>
 
 Package=<5>
@@ -112,30 +139,6 @@ Package=<4>
 ###############################################################################
 
 Project: "verify"=.\verify\verify.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
-Project: "VxD"=.\vxd\vxd.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
-Project: "sdbcreate"=.\util\sdbcreate\sdbcreate.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
