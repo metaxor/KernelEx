@@ -174,6 +174,30 @@ HANDLE WINAPI FindFirstFileW_new(LPCWSTR strW, LPWIN32_FIND_DATAW dataW)
 	return ret;
 }
 
+//MAKE_EXPORT FindFirstVolumeW_new=FindFirstVolumeW
+HANDLE WINAPI FindFirstVolumeW_new(LPWSTR lpszVolumeName, DWORD cchBufferLength)
+{
+	LPSTR buffer = NULL;
+	HANDLE hVolume = NULL;
+
+	buffer = (LPSTR)HeapAlloc(GetProcessHeap(), 0, cchBufferLength * sizeof(CHAR));
+
+	if(!buffer)
+	{
+		SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+		return (HANDLE)ERROR_INVALID_HANDLE;
+	}
+
+	hVolume = FindFirstVolumeA_new(buffer, cchBufferLength);
+
+	if (hVolume != INVALID_HANDLE_VALUE)
+		STACK_AtoW(buffer, lpszVolumeName)
+
+	HeapFree(GetProcessHeap(), 0, buffer);
+
+	return hVolume;
+}
+
 //MAKE_EXPORT FindNextFileW_new=FindNextFileW
 BOOL WINAPI FindNextFileW_new(HANDLE handle, LPWIN32_FIND_DATAW dataW)
 {
@@ -191,6 +215,31 @@ BOOL WINAPI FindNextFileW_new(HANDLE handle, LPWIN32_FIND_DATAW dataW)
 		file_AtoW(cFileName, sizeof(dataW->cFileName) / sizeof(WCHAR));
 		file_AtoW(cAlternateFileName, sizeof(dataW->cAlternateFileName) / sizeof(WCHAR));
 	}
+	return ret;
+}
+
+//MAKE_EXPORT FindNextVolumeW_new=FindNextVolumeW
+BOOL WINAPI FindNextVolumeW_new(HANDLE hFindVolume, LPWSTR lpszVolumeName, DWORD cchBufferLength)
+{
+	LPSTR buffer = NULL;
+	HANDLE hVolume = NULL;
+	BOOL ret;
+
+	buffer = (LPSTR)HeapAlloc(GetProcessHeap(), 0, cchBufferLength * sizeof(CHAR));
+
+	if(!buffer)
+	{
+		SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+		return FALSE;
+	}
+
+	ret = FindNextVolumeA_new(hFindVolume, buffer, cchBufferLength);
+
+	if (ret != FALSE)
+		STACK_AtoW(buffer, lpszVolumeName)
+
+	HeapFree(GetProcessHeap(), 0, buffer);
+
 	return ret;
 }
 
@@ -555,6 +604,62 @@ DWORD WINAPI GetTempPathW_new(DWORD nBufferLength, LPWSTR lpBufferW)
 			if (ret) ret--;
 		}
 	}
+	return ret;
+}
+
+//MAKE_EXPORT GetVolumeNameForVolumeMountPointW_new=GetVolumeNameForVolumeMountPointW
+BOOL WINAPI GetVolumeNameForVolumeMountPointW_new(LPCWSTR lpszVolumeMountPoint, LPWSTR lpszVolumeName, DWORD cchBufferLength)
+{
+	LPSTR buffer = NULL;
+	LPSTR volume = NULL;
+	HANDLE hVolume = NULL;
+	BOOL ret;
+
+	buffer = (LPSTR)HeapAlloc(GetProcessHeap(), 0, cchBufferLength * sizeof(CHAR));
+
+	if(!buffer)
+	{
+		SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+		return FALSE;
+	}
+
+	STACK_WtoA(lpszVolumeMountPoint, volume);
+
+	ret = GetVolumeNameForVolumeMountPointA_new(volume, buffer, cchBufferLength);
+
+	if (ret != FALSE)
+		STACK_AtoW(buffer, lpszVolumeName);
+
+	HeapFree(GetProcessHeap(), 0, buffer);
+
+	return ret;
+}
+
+//MAKE_EXPORT GetVolumePathNamesForVolumeNameW_new=GetVolumePathNamesForVolumeNameW
+BOOL WINAPI GetVolumePathNamesForVolumeNameW_new(LPCWSTR lpszVolumeName, LPWSTR lpszVolumePathNames, DWORD cchBufferLength, PDWORD lpcchReturnLength)
+{
+	LPSTR buffer = NULL;
+	LPSTR volume = NULL;
+	HANDLE hVolume = NULL;
+	BOOL ret;
+
+	buffer = (LPSTR)HeapAlloc(GetProcessHeap(), 0, cchBufferLength * sizeof(CHAR));
+
+	if(!buffer)
+	{
+		SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+		return FALSE;
+	}
+
+	STACK_WtoA(lpszVolumeName, volume);
+
+	ret = GetVolumePathNamesForVolumeNameA_new(volume, buffer, cchBufferLength, lpcchReturnLength);
+
+	if (ret != FALSE)
+		STACK_AtoW(buffer, lpszVolumePathNames);
+
+	HeapFree(GetProcessHeap(), 0, buffer);
+
 	return ret;
 }
 
