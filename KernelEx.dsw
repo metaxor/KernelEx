@@ -27,6 +27,18 @@ Package=<4>
 
 ###############################################################################
 
+Project: "prep"=.\util\prep\prep.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
 Project: "KernelEx Base NonShared"=.\apilibs\kexbasen\kexbasen.dsp - Package Owner=<4>
 
 Package=<5>
@@ -91,18 +103,6 @@ Package=<4>
 ###############################################################################
 
 Project: "kexcontrol"=.\kexcontrol\kexcontrol.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
-Project: "prep"=.\util\prep\prep.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
