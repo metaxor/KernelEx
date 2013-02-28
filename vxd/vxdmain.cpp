@@ -41,6 +41,8 @@ extern "C" {
 #include "patch_ifsmgr.h"
 #include "interface.h"
 
+int CurrentLine = 0;
+
 #define V_MAJOR		1
 #define V_MINOR		0
 
