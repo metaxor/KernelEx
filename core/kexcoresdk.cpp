@@ -69,6 +69,9 @@ HANDLE kexAllocHandle(PVOID TargetProcess, PVOID Object, DWORD dwDesiredAccess)
 {
 	HANDLE hObject;
 
+	if(TargetProcess == NULL)
+		TargetProcess = get_pdb();
+
 	hObject = AllocHandle((PDB98*)TargetProcess, Object, dwDesiredAccess);
 
 	return hObject == INVALID_HANDLE_VALUE ? NULL : hObject;
