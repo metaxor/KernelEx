@@ -1,11 +1,11 @@
-KernelEx v4.5.3 Beta 1 by Ley0k
+KernelEx v4.6.0 Beta 1 by Ley0k
 Unknown release date
 
 added to ADVAPI32 :
-	- LogonUserA
-	- RegOpenUserClassesRoot
+	- LogonUserA (implemented)
+	- RegOpenUserClassesRoot (implemented)
 added to KERNEL32 :
-	- AttachConsole
+	- AttachConsole (implemented)
 	- CreateRemoteThread (implemented)
 	- GetModuleFileName (implemented)
 	- GetThreadId (implemented)
@@ -13,18 +13,19 @@ added to KERNEL32 :
 	- GetProcessShutdownParameters
 	- HeapQueryInformation, HeapSetInformation and HeapValidate (all nearly implemented)
 	- HeapWalk (unimplemented)
-	- InitializeSListHead
-	- Interlocked*SList
-	- QueryDepthSList
-	- SetProcessShutdownParameters
+	- InitializeSListHead (implemented)
+	- Interlocked*SList (some unimplemented)
+	- QueryDepthSList (implemented)
+	- SetProcessShutdownParameters (implemented)
 core: implemented new handle manager functions
 fixed in KERNEL32 :
 	- VirtualxxxEx functions : now creating a remote thread to the target process that will allocate/free memory
 user32:
 	- implemented desktop and window stations functions, now support multiples desktops
 	- implemented GetShellWindow and GetLastInputInfo
-	- fixed ExitWindowsEx
-	- OPTIMIZATION: some APIs that don't need thunk down to USER.EXE were remade
+	- new ExitWindowsEx function for Win9x : properly log off the current user and able to close
+						 other apps will the system is interrogating an app to log off
+	- OPTIMIZATION: some APIs that don't need thunk down to USER.EXE were remade like EnableWindow, GetParent, and some others...
 	- fixed LockWorkStation(): RUNDLL no longer crash
 shell32:
 	- DllInstall (stub to Win98)
