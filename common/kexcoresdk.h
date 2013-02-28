@@ -117,6 +117,7 @@ _KEXCOREIMP LPSTR kexAllocObjectName(PVOID Object, LPCSTR lpName);
 _KEXCOREIMP VOID kexFreeObject(PVOID Object);
 
 /** kexAllocHandle - alloc an handle for the specified process
+ * @param TargetProcess - Target process to allocate the handle, NULL means the current process
  * @param Object - should contains type (offset 0x00), a ref (offset 0x02), object must be located at shared memory
  * (kexAllocObject return a pointer to shared memory), otherwise other process will have problems accessing to this object
  * @param dwDesiredAccess - desired access to the object, can have HF_INHERIT
