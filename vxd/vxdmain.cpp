@@ -30,7 +30,6 @@ extern "C" {
 #include <shell.h>
 #include <vxdwraps.h>
 #include <vwin32.h>
-#include <vkd.h>
 };
 #include <winerror.h>
 #include "vxdmain.h"
