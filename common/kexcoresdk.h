@@ -102,6 +102,14 @@ typedef const apilib_api_table* (* fgat_t)();
  */
 _KEXCOREIMP PVOID kexAllocObject(size_t size);
 
+/** kexReAllocObject - (re)allocate an object in shared memory
+ * @param Object - Previous object
+ * @param Size - size of the object
+ * @return a pointer to the reallocated object located in shared memory, the new object keeps
+ * the previous object's content
+ */
+_KEXCOREIMP PVOID kexReAllocObject(PVOID Object, size_t size);
+
 /** kexAllocObjectName - allocate a shared name so that it can be found by kexOpenObjectByName
  * actually, names are allocated internally in the KERNEL32.DLL's names list
  * @param Object - object will be linked to the name
