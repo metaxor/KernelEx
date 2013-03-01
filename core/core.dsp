@@ -54,7 +54,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:I386
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib advapi32.lib comctl32.lib ..\kexcrt\kexcrt.lib libc.lib /nologo /entry:"PreDllMain@12" /dll /map /machine:I386 /nodefaultlib /out:"Release/KernelEx.dll" /ignore:4092 /OPT:NOWIN98
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib advapi32.lib comctl32.lib ..\kexcrt\kexcrt.lib libc.lib /nologo /entry:"PreDllMain@12" /dll /map /machine:I386 /nodefaultlib /out:"../output-i386/Release/KernelEx.dll" /ignore:4092 /OPT:NOWIN98
 # SUBTRACT LINK32 /pdb:none
 # Begin Special Build Tool
 OutDir=.\Release
@@ -87,7 +87,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib advapi32.lib comctl32.lib ..\kexcrt\kexcrt.lib libc.lib /nologo /entry:"PreDllMain@12" /dll /incremental:no /map /debug /machine:I386 /nodefaultlib /out:"Debug/KernelEx.dll" /ignore:4092 /OPT:NOWIN98
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib advapi32.lib comctl32.lib ..\kexcrt\kexcrt.lib libc.lib /nologo /entry:"PreDllMain@12" /dll /incremental:no /map /debug /machine:I386 /nodefaultlib /out:"../output-i386/Debug/KernelEx.dll" /ignore:4092 /OPT:NOWIN98
 # SUBTRACT LINK32 /pdb:none
 # Begin Special Build Tool
 OutDir=.\Debug
@@ -122,7 +122,7 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib advapi32.lib comctl32.lib ..\kexcrt\kexcrt.lib libc.lib /nologo /entry:"PreDllMain@12" /dll /map /machine:I386 /nodefaultlib /out:"Release_APIHOOK/KernelEx.dll" /implib:"../common/KernelEx.lib" /ignore:4092 /OPT:NOWIN98
 # SUBTRACT BASE LINK32 /pdb:none
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib advapi32.lib comctl32.lib ..\kexcrt\kexcrt.lib libc.lib /nologo /entry:"PreDllMain@12" /dll /map /machine:I386 /nodefaultlib /out:"Release_APIHOOK/KernelEx.dll" /ignore:4092 /OPT:NOWIN98
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib advapi32.lib comctl32.lib ..\kexcrt\kexcrt.lib libc.lib /nologo /entry:"PreDllMain@12" /dll /map /machine:I386 /nodefaultlib /out:"../output-i386/Release_APIHOOK/KernelEx.dll" /ignore:4092 /OPT:NOWIN98
 # SUBTRACT LINK32 /pdb:none
 # Begin Special Build Tool
 OutDir=.\Release_APIHOOK
