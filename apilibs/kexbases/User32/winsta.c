@@ -348,9 +348,25 @@ BOOL WINAPI GetUserObjectSecurity_new(HANDLE hObj, PSECURITY_INFORMATION pSIRequ
 /* MAKE_EXPORT LockWindowStation_new=LockWindowStation */
 BOOL WINAPI LockWindowStation_new(HWINSTA hWinSta)
 {
-	/* always return FALSE because there is no logon process */
-	SetLastError(ERROR_ACCESS_DENIED);
-	return FALSE;
+	PWINSTATION_OBJECT pwinsta = NULL;
+
+	if(GetCurrentProcessId() != gpidMpr)
+	{
+		SetLastError(ERROR_ACCESS_DENIED);
+		return FALSE;
+	}
+
+	if(!IntValidateWindowStationHandle(hWinSta, &pwinsta))
+	{ 
+		SetLastError(ERROR_INVALID_HANDLE);
+		return FALSE;
+	}
+
+	pwinsta->Flags |= WSS_LOCKED;
+
+	kexDereferenceObject(pwinsta);
+
+	return TRUE;
 }
 
 /* MAKE_EXPORT OpenWindowStationA_new=OpenWindowStationA */
@@ -382,6 +398,27 @@ HWINSTA WINAPI OpenWindowStationA_new(LPSTR lpszWinSta, BOOL fInherit, ACCESS_MA
 	}
 
 	return WindowStation;
+}
+
+/* MAKE_EXPORT RegisterLogonProcess_new=RegisterLogonProcess */
+BOOL WINAPI RegisterLogonProcess_new(DWORD dwProcessId, BOOL fUnknown)
+{
+	if(gpidMpr != 0)
+	{
+		TRACE("The logon process is already registered ! (pid=0x%X, fUnknown=0x%X", dwProcessId, fUnknown);
+		SetLastError(ERROR_ACCESS_DENIED);
+		return FALSE;
+	}
+
+	gpidMpr = dwProcessId;
+	return TRUE;
+}
+
+/* MAKE_EXPORT SetLogonNotifyWindow_new=SetLogonNotifyWindow */
+BOOL WINAPI SetLogonNotifyWindow_new(HWINSTA hWinSta, HWND hWnd)
+{
+	SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+	return FALSE;
 }
 
 /* MAKE_EXPORT SetProcessWindowStation_new=SetProcessWindowStation */
@@ -429,6 +466,23 @@ BOOL WINAPI SetUserObjectSecurity_new(HANDLE hObj, PSECURITY_INFORMATION pSIRequ
 /* MAKE_EXPORT UnlockWindowStation_new=UnlockWindowStation */
 BOOL WINAPI UnlockWindowStation_new(HWINSTA hWinSta)
 {
-	SetLastError(ERROR_ACCESS_DENIED);
-	return FALSE;
+	PWINSTATION_OBJECT pwinsta = NULL;
+
+	if(GetCurrentProcessId() != gpidMpr)
+	{
+		SetLastError(ERROR_ACCESS_DENIED);
+		return FALSE;
+	}
+
+	if(!IntValidateWindowStationHandle(hWinSta, &pwinsta))
+	{ 
+		SetLastError(ERROR_INVALID_HANDLE);
+		return FALSE;
+	}
+
+	pwinsta->Flags &= ~WSS_LOCKED;
+
+	kexDereferenceObject(pwinsta);
+
+	return TRUE;
 }

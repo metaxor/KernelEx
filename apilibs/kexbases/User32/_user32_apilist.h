@@ -57,6 +57,7 @@ typedef struct _HARDERRORDATA
 
 extern PPDB98 Msg32Process;
 extern PPDB98 MprProcess;
+extern DWORD gpidMpr;
 
 extern PTDB98 pHardErrorThread;
 extern DWORD HardErrorThreadId;
@@ -219,6 +220,8 @@ BOOL WINAPI GetUserObjectInformationA_new(HANDLE hObj, int nIndex, PVOID pvInfo,
 BOOL WINAPI GetUserObjectSecurity_new(HANDLE hObj, PSECURITY_INFORMATION pSIRequested, PSECURITY_DESCRIPTOR pSD, DWORD nLength, LPDWORD lpnLengthNeeded);
 BOOL WINAPI LockWindowStation_new(HWINSTA hWinSta);
 HWINSTA WINAPI OpenWindowStationA_new(LPSTR lpszWinSta, BOOL fInherit, ACCESS_MASK dwDesiredAccess);
+BOOL WINAPI RegisterLogonProcess_new(DWORD dwProcessId, BOOL fUnknown);
+BOOL WINAPI SetLogonNotifyWindow_new(HWINSTA hWinSta, HWND hWnd);
 BOOL WINAPI SetProcessWindowStation_new(HWINSTA hWinSta);
 BOOL WINAPI SetUserObjectInformationA_new(HANDLE hObj, int nIndex, PVOID pvInfo, DWORD nLength);
 BOOL WINAPI SetUserObjectSecurity_new(HANDLE hObj, PSECURITY_INFORMATION pSIRequested, PSECURITY_DESCRIPTOR pSD);

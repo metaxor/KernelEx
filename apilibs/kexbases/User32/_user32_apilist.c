@@ -32,6 +32,7 @@ DrawCaptionTempA_t DrawCaptionTempA_pfn;
 
 PPDB98 Msg32Process = NULL;
 PPDB98 MprProcess = NULL;
+DWORD gpidMpr = 0;
 
 PTDB98 pHardErrorThread = NULL;
 DWORD HardErrorThreadId = 0;
@@ -195,6 +196,7 @@ BOOL init_user32()
 	PROCESS_INFORMATION pi;
 
 	MprProcess = get_pdb();
+	gpidMpr = GetCurrentProcessId();
 
 	/* Get MSGSRV32 */
 	Msg32Process = MprProcess->ParentPDB->ParentPDB;
@@ -480,6 +482,7 @@ static const apilib_named_api user32_named_apis[] =
 	DECL_API("RealGetWindowClassW", RealGetWindowClassW_new),
 	DECL_API("RegisterClassExW", RegisterClassExW_NEW),
 	DECL_API("RegisterClassW", RegisterClassW_NEW),
+	DECL_API("RegisterLogonProcess", RegisterLogonProcess_new),
 	DECL_API("RegisterRawInputDevices", RegisterRawInputDevices_new),
 	DECL_API("RegisterServicesProcess", RegisterServicesProcess_stub),
 	DECL_API("RegisterShellHookWindow", IsWindow),
@@ -493,6 +496,7 @@ static const apilib_named_api user32_named_apis[] =
 	DECL_API("SetDlgItemTextW", SetDlgItemTextW_NEW),
 	DECL_API("SetForegroundWindow", SetForegroundWindow_fix),
 	DECL_API("SetLayeredWindowAttributes", SetLayeredWindowAttributes_stub),
+	DECL_API("SetLogonNotifyWindow", SetLogonNotifyWindow_new),
 	DECL_API("SetParent", SetParent_fix),
 	DECL_API("SetProcessWindowStation", SetProcessWindowStation_new),
 	DECL_API("SetThreadDesktop", SetThreadDesktop_new),
