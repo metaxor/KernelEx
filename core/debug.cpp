@@ -23,8 +23,10 @@
 #include <stdarg.h>
 #include <windows.h>
 #include "debug.h"
+#include "kexcoresdk.h"
 
 //#define USECOMPORT
+//#define WRITETOLOG
 
 BOOL fCommInitialized = FALSE;
 
@@ -133,17 +135,54 @@ void WriteToComm(LPCSTR lpBuffer, DWORD dwBufferSize)
 	CloseHandle(hFile);
 }
 
+void WriteToLogFile(LPCSTR lpBuffer, DWORD dwBufferSize, BOOL fCarriageReturn)
+{
+	CHAR Directory[255];
+	CHAR Path[255];
+	DWORD dwBytesWritten = 0;
+	CHAR NewLine[] = "\r\n";
+	HANDLE hFile = NULL;
+
+	if(!kexGetKernelExDirectory(Directory, sizeof(Directory)))
+		return;
+
+	sprintf(Path, "%sKernelEx.log", Directory);
+	hFile = CreateFile(Path,
+						GENERIC_WRITE,
+						FILE_SHARE_READ|FILE_SHARE_WRITE,
+						NULL,
+						OPEN_ALWAYS,
+						FILE_ATTRIBUTE_NORMAL,
+						NULL);
+
+	if(hFile == INVALID_HANDLE_VALUE)
+		return;
+
+	SetFilePointer(hFile, 0, NULL, FILE_END);
+
+	WriteFile(hFile, lpBuffer, dwBufferSize, &dwBytesWritten, NULL);
+
+	if(fCarriageReturn)
+		WriteFile(hFile, &NewLine, 2, &dwBytesWritten, NULL);
+
+	CloseHandle(hFile);
+}
+
 void dbgvprintf(const char* format, void* _argp)
 {
 	char msg[DEBUGMSG_MAXLEN];
+#ifndef WRITETOLOG
 	char msg2[DEBUGMSG_MAXLEN];
+#endif
 	DWORD dwBytes = 0;
 	BOOL fCarriageReturn = FALSE;
 	int cnt = 0;
 	va_list argp = (va_list) _argp;
 
 	memset(&msg, '\0', sizeof(msg));
+#ifndef WRITETOLOG
 	memset(&msg2, '\0', sizeof(msg2));
+#endif
 
 	__try
 	{
@@ -154,15 +193,28 @@ void dbgvprintf(const char* format, void* _argp)
 		return;
 	}
 
-	if(strpbrk(msg, "\n") != NULL)
+#ifdef WRITETOLOG
+	if(strrchr(msg, '\n') != NULL)
 	{
+		PCHAR Character = strrchr(msg, '\n');
+		if(Character != NULL)
+			Character[0] = '\0';
+			Character[1] = '\0';
+#else
+	if(strrchr(msg, '\n') != NULL && strrchr(msg, '\n') == NULL)
+	{
+#endif
 		fCarriageReturn = TRUE;
+#ifndef WRITETOLOG
 		sprintf(msg2, "%s\r", msg);
 		cnt++;
+#endif
 	}
 
-#ifdef USECOMPORT
+#if defined(USECOMPORT)
 	WriteToComm(fCarriageReturn ? msg2 : msg, cnt);
+#elif defined(WRITETOLOG)
+	WriteToLogFile(msg, cnt, fCarriageReturn);
 #else
 	OutputDebugString(fCarriageReturn ? msg2 : msg);
 #endif
