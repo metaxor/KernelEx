@@ -237,7 +237,7 @@ BOOL WINAPI VerifyVersionInfoW_VISTA(LPOSVERSIONINFOEXW lpVersionInfo, DWORD dwT
 BOOL WINAPI VerifyVersionInfoA_WIN2K8(LPOSVERSIONINFOEXA lpVersionInfo, DWORD dwTypeMask, DWORDLONG dwlConditionMask);
 BOOL WINAPI VerifyVersionInfoW_WIN2K8(LPOSVERSIONINFOEXW lpVersionInfo, DWORD dwTypeMask, DWORDLONG dwlConditionMask);
 HANDLE WINAPI FindFirstVolumeA_new(LPSTR lpszVolumeName, DWORD cchBufferLength);
-BOOL WINAPI FindNextVolumeA_new(HANDLE hFindVolume, LPTSTR lpszVolumeName, DWORD cchBufferLength);
+BOOL WINAPI FindNextVolumeA_new(HANDLE hFindVolume, LPSTR lpszVolumeName, DWORD cchBufferLength);
 BOOL WINAPI FindVolumeClose_new(HANDLE hFindVolume);
 BOOL WINAPI GetVolumePathNamesForVolumeNameA_new(LPCSTR lpszVolumeName, LPSTR lpszVolumePathNames, DWORD cchBufferLength, PDWORD lpcchReturnLength);
 BOOL WINAPI GetVolumeNameForVolumeMountPointA_new(LPCSTR lpszVolumeMountPoint, LPSTR lpszVolumeName, DWORD cchBufferLength);
