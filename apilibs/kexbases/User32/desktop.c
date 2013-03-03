@@ -1137,9 +1137,7 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
 
     if(InputWindowStation != NULL)
     {
-		// FIXME: MPREXE must be allowed to switch desktop even if the
-		// input window station is locked
-        if(InputWindowStation->Flags & WSS_LOCKED)
+        if(InputWindowStation->Flags & WSS_LOCKED && GetCurrentProcessId() != gpidMpr)
         {
 			SetLastError(ERROR_ACCESS_DENIED);
 			TRACE("Switching to desktop 0x%X denied because the current window station is locked !\n", hDesktop);
