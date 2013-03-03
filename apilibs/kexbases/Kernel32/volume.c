@@ -43,7 +43,7 @@ HANDLE WINAPI FindFirstVolumeA_new(LPSTR lpszVolumeName, DWORD cchBufferLength)
 	LPSTR SVolumeName = NULL;
 	LPSTR SDriveName = NULL;
 
-	/* Retrieves the volume name */
+	/* Retrieve the volume name */
 	Result = GetVolumeInformation("A:\\",
 						lpszVolumeName,
 						cchBufferLength,
@@ -113,7 +113,7 @@ HANDLE WINAPI FindFirstVolumeA_new(LPSTR lpszVolumeName, DWORD cchBufferLength)
 }
 
 /* MAKE_EXPORT FindNextVolumeA_new=FindNextVolumeA */
-BOOL WINAPI FindNextVolumeA_new(HANDLE hFindVolume, LPTSTR lpszVolumeName, DWORD cchBufferLength)
+BOOL WINAPI FindNextVolumeA_new(HANDLE hFindVolume, LPSTR lpszVolumeName, DWORD cchBufferLength)
 {
 	PVOLUME pVol = (PVOLUME)kexGetHandleObject(hFindVolume, K32OBJ_VOLUME, 0);
 	BOOL Result = FALSE;
@@ -163,6 +163,7 @@ BOOL WINAPI FindVolumeClose_new(HANDLE hFindVolume)
 	if(pVol->cReferences < 1)
 	{
 		kexFreeObject(pVol->lpName);
+		kexFreeObject(pVol->lpCurrentDrive);
 		kexFreeObject(pVol);
 	}
 
