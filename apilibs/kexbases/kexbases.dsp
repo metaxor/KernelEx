@@ -125,6 +125,10 @@ SOURCE=.\Kernel32\file.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\Kernel32\handle.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\Kernel32\inter.c
 # End Source File
 # Begin Source File
@@ -549,15 +553,15 @@ SOURCE=.\ntdll\error.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\ntdll\handle.c
-# End Source File
-# Begin Source File
-
 SOURCE=.\ntdll\ldr.c
 # End Source File
 # Begin Source File
 
 SOURCE=.\ntdll\ntfile.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ntdll\nthandle.c
 # End Source File
 # Begin Source File
 
