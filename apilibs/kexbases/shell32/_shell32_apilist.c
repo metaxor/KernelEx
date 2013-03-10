@@ -24,11 +24,6 @@
 #include "_shell32_apilist.h"
 #include "../kernel32/_kernel32_apilist.h"
 
-BOOL init_shell32()
-{
-	return TRUE;
-}
-
 /*
  * MAKE_EXPORT GetDiskFreeSpaceExA_fix=SHGetDiskFreeSpaceA
  * MAKE_EXPORT GetDiskFreeSpaceExA_fix=SHGetDiskFreeSpaceExA
