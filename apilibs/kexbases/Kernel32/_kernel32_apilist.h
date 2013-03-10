@@ -70,6 +70,7 @@ BOOL WINAPI ReadFile_fix(HANDLE hFile, LPVOID lpBuffer, DWORD nNumberOfBytesToRe
 BOOL WINAPI SetFilePointerEx_new(HANDLE hFile, LARGE_INTEGER liDistanceToMove, PLARGE_INTEGER lpNewFilePointer, DWORD dwMoveMethod);
 BOOL WINAPI UnlockFileEx_new(HANDLE hFile, DWORD dwReserved, DWORD nNumberOfBytesToUnlockLow, DWORD nNumberOfBytesToUnlockHigh, LPOVERLAPPED lpOverlapped);
 BOOL WINAPI WriteFile_fix(HANDLE hFile, LPCVOID lpBuffer, DWORD nNumberOfBytesToWrite, LPDWORD lpNumberOfBytesWritten, LPOVERLAPPED lpOverlapped);
+BOOL WINAPI DuplicateHandle_fix(HANDLE hSourceProcessHandle, HANDLE hSourceHandle, HANDLE hTargetProcessHandle, LPHANDLE lpTargetHandle, DWORD dwDesiredAccess, BOOL bInheritHandle, DWORD dwOptions);
 PSLIST_ENTRY WINAPI InterlockedFlushSList_new(PSLIST_HEADER ListHead);
 PSLIST_ENTRY WINAPI InterlockedPopEntrySList_new(PSLIST_HEADER ListHead);
 void WINAPI InitializeSListHead_new(PSLIST_HEADER ListHead);

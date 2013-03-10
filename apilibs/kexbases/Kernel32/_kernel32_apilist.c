@@ -69,6 +69,7 @@ static const apilib_named_api kernel32_named_apis[] =
 	DECL_API("DefineDosDeviceW", DefineDosDeviceW_new),
 	DECL_API("DeleteCriticalSection", DeleteCriticalSection_fix),
 	DECL_API("DeleteFileW", DeleteFileW_new),
+	DECL_API("DuplicateHandle", DuplicateHandle_fix),
 	DECL_API("EncodePointer", XorPointerProcess),
 	DECL_API("EncodeSystemPointer", XorPointer),
 	DECL_API("EnterCriticalSection", EnterCriticalSection_fix),
