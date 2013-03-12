@@ -21,6 +21,24 @@
 
 #include "_ntdll_apilist.h"
 
+/* MAKE_EXPORT RtlGetVersion=RtlGetVersion */
+NTSTATUS NTAPI RtlGetVersion(
+	OUT	PRTL_OSVERSIONINFOW lpVersionInformation
+)
+{
+	return GetVersionExW_ORIG(lpVersionInformation);
+}
+
+/* MAKE_EXPORT RtlVerifyVersionInfo=RtlVerifyVersionInfo */
+NTSTATUS NTAPI RtlVerifyVersionInfo(
+  IN	PRTL_OSVERSIONINFOEXW VersionInfo,
+  IN	ULONG TypeMask,
+  IN	ULONGLONG ConditionMask
+)
+{
+	return VerifyVersionInfoW_WINXP(VersionInfo, TypeMask, ConditionMask);
+}
+
 /* MAKE_EXPORT ZwQuerySystemInformation=NtQuerySystemInformation */
 /* MAKE_EXPORT ZwQuerySystemInformation=ZwQuerySystemInformation */
 NTSTATUS NTAPI ZwQuerySystemInformation(
