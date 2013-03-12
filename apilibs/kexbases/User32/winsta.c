@@ -118,11 +118,11 @@ HWINSTA WINAPI CreateWindowStationA_new(LPCSTR lpwinsta, DWORD dwFlags, ACCESS_M
     PCHAR WindowStationPath;
     PPDB98 Process = NULL;
 	DWORD flags;
+	HANDLE hEvent;
 
 	if(IsBadStringPtr(lpwinsta, -1))
 		return NULL;
 
-    GrabWin16Lock();
     Process = get_pdb();
 
 	if(!IsBadReadPtr(lpsa, sizeof(SECURITY_ATTRIBUTES)) && lpsa->bInheritHandle == TRUE)
@@ -141,7 +141,6 @@ HWINSTA WINAPI CreateWindowStationA_new(LPCSTR lpwinsta, DWORD dwFlags, ACCESS_M
 	if((WindowStation = (HWINSTA)OpenWindowStationA_new((LPTSTR)lpwinsta, flags & HF_INHERIT, dwDesiredAccess)) != NULL)
 	{
 		SetLastError(ERROR_ALREADY_EXISTS);
-		ReleaseWin16Lock();
 		return WindowStation;
 	}
 
@@ -150,7 +149,6 @@ HWINSTA WINAPI CreateWindowStationA_new(LPCSTR lpwinsta, DWORD dwFlags, ACCESS_M
 	if(WindowStationObject == NULL)
 	{
 		SetLastError(ERROR_NOT_ENOUGH_MEMORY);
-		ReleaseWin16Lock();
 		return NULL;
 	}
 
@@ -177,10 +175,23 @@ HWINSTA WINAPI CreateWindowStationA_new(LPCSTR lpwinsta, DWORD dwFlags, ACCESS_M
 
 	WindowStation = (HWINSTA)kexAllocHandle(Process, WindowStationObject, dwDesiredAccess | flags);
 
+	SetLastError(0);
 	/* Create the desktop switch event */
-	CreateEvent(NULL, FALSE, FALSE, "WinSta0_DesktopSwitch");
+	hEvent = CreateEvent(NULL, FALSE, FALSE, "WinSta0_DesktopSwitch");
 
-    ReleaseWin16Lock();
+	if(hEvent == NULL)
+		WARN("(error %d) Cannot create the desktop switch event !\n", GetLastError());
+	else if(GetLastError() == ERROR_ALREADY_EXISTS)
+	{
+		TRACE_OUT("Desktop switch event already created, skipping.\n");
+		CloseHandle(hEvent);
+	}
+	else
+	{
+		/* Store the handle in the system process so that it is never closed */
+		ConvertToGlobalHandle(hEvent);
+		CloseHandle(hEvent);
+	}
 
     return WindowStation;
 }
@@ -387,8 +398,6 @@ HWINSTA WINAPI OpenWindowStationA_new(LPSTR lpszWinSta, BOOL fInherit, ACCESS_MA
 
 	sprintf(WindowStationPath, "%s\\%s", WINSTA_ROOT_NAME, WindowStationName);
 
-	Sleep(1);
-
 	WindowStation = (HWINSTA)kexOpenObjectByName(WindowStationPath, K32OBJ_WINSTATION, dwDesiredAccess | flags);
 
 	if(WindowStation == NULL)
@@ -428,11 +437,14 @@ BOOL WINAPI SetProcessWindowStation_new(HWINSTA hWinSta)
 	PPROCESSINFO ppi = NULL;
 	PWINSTATION_OBJECT WindowStationObject = NULL;
 
+	GrabWin16Lock();
+
 	Process = get_pdb();
 
 	if(Process == NULL || Process->Win32Process == NULL)
 	{
 		SetLastError(ERROR_ACCESS_DENIED);
+		ReleaseWin16Lock();
 		return FALSE;
 	}
 
@@ -441,6 +453,7 @@ BOOL WINAPI SetProcessWindowStation_new(HWINSTA hWinSta)
 	if(!IntValidateWindowStationHandle(hWinSta, &WindowStationObject))
 	{
 		SetLastError(ERROR_INVALID_HANDLE);
+		ReleaseWin16Lock();
 		return FALSE;
 	}
 
@@ -448,6 +461,8 @@ BOOL WINAPI SetProcessWindowStation_new(HWINSTA hWinSta)
 	ppi->hwinsta = hWinSta;
 
 	kexDereferenceObject(WindowStationObject);
+
+	ReleaseWin16Lock();
 	return TRUE;
 }
 
