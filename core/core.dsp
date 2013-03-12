@@ -77,7 +77,7 @@ PostBuild_Cmds=copy /Y "$(OutDir)\KernelEx.lib" "..\common\"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "KERNELEX_EXPORTS" /YX /FD /GZ /c
-# ADD CPP /nologo /ML /W3 /Gm /Zi /Od /I "." /I "../common" /FI"msvc_quirks.h" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "KEXCORE_EXPORTS" /D "_ENABLE_APIHOOK" /YX /FD /GZ /GF /c
+# ADD CPP /nologo /ML /W3 /Gm /Zi /Od /I "." /I "../common" /FI"msvc_quirks.h" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "KEXCORE_EXPORTS" /D "_ENABLE_APIHOOK" /FR /YX /FD /GZ /GF /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x415 /d "_DEBUG"
@@ -91,8 +91,7 @@ LINK32=link.exe
 # SUBTRACT LINK32 /pdb:none
 # Begin Special Build Tool
 OutDir=.\Debug
-WkspDir=.
-SOURCE="$(InputPath)"
+WkspDir=.SOURCE="$(InputPath)"
 PostBuild_Cmds=copy /Y "$(OutDir)\KernelEx.lib" "..\common\"
 # End Special Build Tool
 
