@@ -201,7 +201,7 @@ void dbgvprintf(const char* format, void* _argp)
 			Character[0] = '\0';
 			Character[1] = '\0';
 #else
-	if(strrchr(msg, '\n') != NULL && strrchr(msg, '\n') == NULL)
+	if(strrchr(msg, '\n') != NULL && strrchr(msg, '\r') == NULL)
 	{
 #endif
 		fCarriageReturn = TRUE;
