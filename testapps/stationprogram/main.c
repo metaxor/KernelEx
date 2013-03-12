@@ -59,6 +59,9 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd,
 
     GetWindowThreadProcessId(hwnd, &dwProcessId);
 
+	if(dwProcessId == GetCurrentProcessId())
+		return TRUE;
+
 	if(lParam & EWX_FORCE)
 		goto _terminate;
 
@@ -76,6 +79,7 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd,
 _terminate:
 	hProcess = OpenProcess(PROCESS_TERMINATE, FALSE, dwProcessId);
 	TerminateProcess(hProcess, 0);
+	CloseHandle(hProcess);
 
 	Sleep(100);
     return TRUE;
