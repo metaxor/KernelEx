@@ -589,11 +589,14 @@ BOOL WINAPI CloseDesktop_new(HDESK hDesktop)
 	UINT index = 0;
 	BOOL result = FALSE;
 
+	GrabWin16Lock();
+
 	// Make sure the object type is K32OBJ_DESKTOP
 	if(!IntValidateDesktopHandle(hDesktop, &DesktopObject))
 	{
 		TRACE_OUT("hDesktop is invalid!\n");
 		SetLastError(ERROR_ACCESS_DENIED);
+		ReleaseWin16Lock();
 		return FALSE;
 	}
 
@@ -601,7 +604,10 @@ BOOL WINAPI CloseDesktop_new(HDESK hDesktop)
 	ppi = get_pdb()->Win32Process;
 
 	if(pti == NULL || ppi == NULL)
+	{
+		ReleaseWin16Lock();
 		return FALSE;
+	}
 
 	/* Fail if the desktop is the startup desktop */
 	if(ppi->rpdeskStartup == DesktopObject)
@@ -609,6 +615,7 @@ BOOL WINAPI CloseDesktop_new(HDESK hDesktop)
 		TRACE_OUT("Can't close the startup desktop ! \n");
 		kexDereferenceObject(DesktopObject);
 		SetLastError(ERROR_ACCESS_DENIED);
+		ReleaseWin16Lock();
 		return FALSE;
 	}
 
@@ -632,6 +639,7 @@ BOOL WINAPI CloseDesktop_new(HDESK hDesktop)
 			TRACE("Can't close desktop 0x%X because thread 0x%X is using it !!!\n", DesktopObject, Thread);
 			kexDereferenceObject(DesktopObject);
 			SetLastError(ERROR_ACCESS_DENIED);
+			ReleaseWin16Lock();
 			return FALSE;
 		}
 	}
@@ -832,33 +840,39 @@ BOOL WINAPI EnumDesktopsA_new(HWINSTA hwinsta, DESKTOPENUMPROCA lpEnumFunc, LPAR
 
 BOOL CALLBACK EnumDesktopWindowsProc(HWND hWnd, LPARAM lParam)
 {
-	DWORD *ParamArray = (DWORD*)lParam;
-	PTDB98 Thread = NULL;
-	PTHREADINFO pti = NULL;
-	PDESKTOP DesktopObject = (PDESKTOP)ParamArray[0];
-	WNDENUMPROC lpfn = (WNDENUMPROC)ParamArray[1];
-	LPARAM lpParam = ParamArray[2];
-	PWND pWnd = HWNDtoPWND(hWnd);
-	PMSGQUEUE pQueue = GetWindowQueue(pWnd);
-	DWORD dwThreadId = 0;
+	__try
+	{
+		DWORD *ParamArray = (DWORD*)lParam;
+		PTDB98 Thread = NULL;
+		PTHREADINFO pti = NULL;
+		PDESKTOP DesktopObject = (PDESKTOP)ParamArray[0];
+		WNDENUMPROC lpfn = (WNDENUMPROC)ParamArray[1];
+		LPARAM lpParam = ParamArray[2];
+		PWND pWnd = HWNDtoPWND(hWnd);
+		PMSGQUEUE pQueue = GetWindowQueue(pWnd);
+		DWORD dwThreadId = 0;
 
-	if(pQueue == NULL)
-		return TRUE;
+		if(pQueue == NULL)
+			return TRUE;
 
-	dwThreadId = pQueue->threadId;
+		dwThreadId = pQueue->threadId;
 
-	Thread = (PTDB98)kexGetThread(dwThreadId);
+		Thread = (PTDB98)kexGetThread(dwThreadId);
 
-	if(Thread == NULL)
-		return TRUE;
+		if(Thread == NULL)
+			return TRUE;
 
-	pti = Thread->Win32Thread;
+		pti = Thread->Win32Thread;
 
-	if(pti == NULL)
-		return TRUE;
+		if(pti->rpdesk == NULL)
+			return TRUE;
 
-	if(pti->rpdesk == DesktopObject)
-		return (*lpfn)(hWnd, lpParam);
+		if(pti->rpdesk == DesktopObject)
+			return (*lpfn)(hWnd, lpParam);
+	}
+	__except(EXCEPTION_EXECUTE_HANDLER)
+	{
+	}
 
 	return TRUE;
 }
@@ -880,14 +894,7 @@ BOOL WINAPI EnumDesktopWindows_new(HDESK hDesktop, WNDENUMPROC lpfn, LPARAM lPar
 	if(!IntValidateDesktopHandle(hDesktop, &DesktopObject))
 		return FALSE;
 
-	__try
-	{
-		result = EnumWindows(EnumDesktopWindowsProc, (LPARAM)ParamArray);
-	}
-	__except(EXCEPTION_EXECUTE_HANDLER)
-	{
-		result = FALSE;
-	}
+	result = EnumWindows(EnumDesktopWindowsProc, (LPARAM)ParamArray);
 
 	kexDereferenceObject(DesktopObject);
 	return result;
@@ -896,6 +903,7 @@ BOOL WINAPI EnumDesktopWindows_new(HDESK hDesktop, WNDENUMPROC lpfn, LPARAM lPar
 /* MAKE_EXPORT GetInputDesktop_new=GetInputDesktop */
 HDESK WINAPI GetInputDesktop_new(VOID)
 {
+	/* This function is provided for compatibility */
 	/* It seems to always return an handle of the input desktop found in the process */
 	/* return NULL if there is no handle to the current desktop in the process */
 	PPDB98 Process = get_pdb();
@@ -913,16 +921,25 @@ HDESK WINAPI GetThreadDesktop_new(DWORD dwThreadId)
 	PTDB98 Thread = NULL;
 	PTHREADINFO pti = NULL;
 
+	GrabWin16Lock();
+
 	Thread = (PTDB98)kexGetThread(dwThreadId);
 
 	if(Thread == NULL)
+	{
+		ReleaseWin16Lock();
 		return NULL;
+	}
 
 	pti = Thread->Win32Thread;
 
 	if(pti == NULL)
+	{
+		ReleaseWin16Lock();
 		return NULL;
+	}
 
+	ReleaseWin16Lock();
 	return pti->hdesk;
 }
 
@@ -998,6 +1015,8 @@ HDESK WINAPI OpenInputDesktop_new(DWORD dwFlags, BOOL fInherit, ACCESS_MASK dwDe
 	PPDB98 Process;
 	DWORD flags;
 
+	GrabWin16Lock();
+
 	Process = get_pdb();
 
 	if(fInherit)
@@ -1006,7 +1025,9 @@ HDESK WINAPI OpenInputDesktop_new(DWORD dwFlags, BOOL fInherit, ACCESS_MASK dwDe
 	/* OpenInputDesktop allocate an handle of the input desktop */
 	hDesktop = (HDESK)kexAllocHandle(Process, gpdeskInputDesktop, dwDesiredAccess | flags);
 
-	return NULL;
+	ReleaseWin16Lock();
+
+	return hDesktop;
 }
 
 /* MAKE_EXPORT SetThreadDesktop_new=SetThreadDesktop */
@@ -1017,12 +1038,15 @@ BOOL WINAPI SetThreadDesktop_new(HDESK hDesktop)
 	PDESKTOP DesktopObject;
 	GUITHREADINFO gti;
 
+	GrabWin16Lock();
+
 	pti = get_tdb()->Win32Thread;
 	ppi = get_pdb()->Win32Process;
 
 	if(pti == NULL)
 	{
 		SetLastError(ERROR_ACCESS_DENIED);
+		ReleaseWin16Lock();
 		return FALSE;
 	}
 
@@ -1032,12 +1056,14 @@ BOOL WINAPI SetThreadDesktop_new(HDESK hDesktop)
 	if(!IntValidateDesktopHandle(hDesktop, &DesktopObject))
 	{
 		SetLastError(ERROR_INVALID_HANDLE);
+		ReleaseWin16Lock();
 		return FALSE;
 	}
 
 	if(pti->rpdesk == DesktopObject)
 	{
 		kexDereferenceObject(DesktopObject);
+		ReleaseWin16Lock();
 		return TRUE;
 	}
 
@@ -1057,6 +1083,7 @@ BOOL WINAPI SetThreadDesktop_new(HDESK hDesktop)
 		TRACE("Cannot set thread 0x%X to desktop handle 0x%X (object 0x%X) because it has windows !\n", GetCurrentThreadId(), hDesktop, DesktopObject);
 		kexDereferenceObject(DesktopObject);
 		SetLastError(ERROR_BUSY);
+		ReleaseWin16Lock();
 		return FALSE;
 	}
 
@@ -1072,20 +1099,13 @@ _skipwndcheck:
 	}
 
 	kexDereferenceObject(DesktopObject);
+	ReleaseWin16Lock();
 	return TRUE;
 }
 
 /* MAKE_EXPORT SwitchDesktop_new=SwitchDesktop */
 BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
 {
-	// FIXME: There should be a thread looping on every windows and check if the window's thread
-	// match the current desktop, if not, hide the window, so 1) should we use a normal thread
-	// (in MPREXE) or 2) a KERNEL thread (an endless thread in KERNEL process, there is an API called
-	// CreateKernelThread in KERNEL32.DLL), a kernel thread would be better
-	// because if MPREXE terminates, everything will blow up
-
-	// FIXME2: We could even use CreateDC API, but where is stored the DC in the _WND structure?
-
     PDESKTOP DesktopObject = NULL;
     PWINSTATION_OBJECT WindowStationObject = NULL;
     HWINSTA hWinSta = GetProcessWindowStation_new();
@@ -1137,6 +1157,8 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
 
     if(InputWindowStation != NULL)
     {
+		/* Don't allow desktop switch if the input window station is locked and the process
+		   isn't mpr process */
         if(InputWindowStation->Flags & WSS_LOCKED && GetCurrentProcessId() != gpidMpr)
         {
 			SetLastError(ERROR_ACCESS_DENIED);
@@ -1147,8 +1169,10 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
             return FALSE;
         }
 
-		InputWindowStation->ActiveDesktop = NULL;
+		InputWindowStation->ActiveDesktop = NULL; /* Should it be NULL ? */
     }
+
+	/* FIXME: Should we use input device ? */
 
 	TRACE("Switching to desktop object 0x%X\n", DesktopObject);
 	fParent = (DesktopObject->rpwinstaParent == InputWindowStation);
@@ -1156,16 +1180,19 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
 	if(fParent == FALSE)
 	{
 		TRACE_OUT("new desktop's parent window station is different than the current one, Disabling OEM layer...\n");
-		DisableOEMLayer();
+		DisableOEMLayer(); /* FIXME: We should have a reason of calling this */
 	}
 
 	pdev = DesktopObject->pdev;
 	polddev = gpdeskInputDesktop == NULL ? DesktopObject->pdev : gpdeskInputDesktop->pdev;
 
+	/* Set the global state */
 	gpdeskInputDesktop = DesktopObject;
 
+	/* Assign the desktop's winsta parent to the input window station */
 	InputWindowStation = gpdeskInputDesktop->rpwinstaParent;
 
+	/* Set the window station's active desktop */
 	InputWindowStation->ActiveDesktop = gpdeskInputDesktop;
 
 	if(pdev->dmBitsPerPel != polddev->dmBitsPerPel || pdev->dmPelsWidth != polddev->dmPelsWidth
@@ -1173,6 +1200,7 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
 		|| pdev->dmDisplayFrequency != polddev->dmDisplayFrequency || pdev->dmPosition.x != polddev->dmPosition.x
 		|| pdev->dmPosition.y != polddev->dmPosition.y)
 	{
+		/* Set the new display setting if the new desktop's display setting is different than the current one */
 		TRACE("DesktopObject 0x%X has different display setting than the input desktop, changing display settings...\n", DesktopObject);
 		ChangeDisplaySettings(DesktopObject->pdev, CDS_UPDATEREGISTRY);
 	}
