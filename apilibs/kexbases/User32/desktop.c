@@ -31,7 +31,11 @@
    sometimes have messed up scrollbars */
 /* NOTE4: Hung threads will appear on any desktop (logically) */
 
+/* Desktops */
 PDESKTOP gpdeskInputDesktop = NULL;
+PDESKTOP gpdeskScreenSaver = NULL;
+PDESKTOP gpdeskWinlogon = NULL;
+
 PTDB98 pDesktopThread = NULL;
 DWORD dwDesktopThreadId = NULL;
 BOOL fNewDesktop = FALSE;
@@ -139,7 +143,9 @@ VOID APIENTRY RedrawDesktop()
 BOOL WINAPI CreateWindowStationAndDesktops()
 {
 	SECURITY_ATTRIBUTES sa;
-	HDESK hDesktop;
+	HDESK hDefault;
+	HDESK hWinlogon;
+	HDESK hScreenSaver;
 	HWINSTA hWindowStation;
 
 	sa.nLength = sizeof(SECURITY_ATTRIBUTES);
@@ -155,15 +161,17 @@ BOOL WINAPI CreateWindowStationAndDesktops()
 	if(!SetProcessWindowStation_new(hWindowStation))
 		return FALSE;
 
-	hDesktop = CreateDesktopA_new("Default", NULL, NULL, 0, GENERIC_ALL, &sa);
+	hDefault = CreateDesktopA_new("Default", NULL, NULL, 0, GENERIC_ALL, &sa);
+	hWinlogon = CreateDesktopA_new("Winlogon", NULL, NULL, 0, GENERIC_ALL, &sa);
+	hScreenSaver = CreateDesktopA_new("Screen-Saver", NULL, NULL, 0, GENERIC_ALL, &sa);
 
-	if(hDesktop == NULL)
+	if(!hDefault || !hWinlogon || !hScreenSaver)
 		return FALSE;
 
-	if(!SetThreadDesktop_new(hDesktop))
+	if(!SetThreadDesktop_new(hDefault))
 		return FALSE;
 
-	if(!SwitchDesktop_new(hDesktop))
+	if(!SwitchDesktop_new(hDefault))
 		return FALSE;
 
 	return TRUE;
@@ -785,6 +793,11 @@ HDESK WINAPI CreateDesktopA_new(LPCSTR lpszDesktop, LPCSTR lpszDevice, LPDEVMODE
 
 	hDesktop = (HDESK)kexAllocHandle(Process, DesktopObject, dwDesiredAccess | flags);
 
+	if(strcmp(lpszDesktop, "Winlogon") == 0 && gpdeskWinlogon == NULL)
+		gpdeskWinlogon = DesktopObject;
+	else if(strcmp(lpszDesktop, "Screen-Saver") == 0 && gpdeskScreenSaver == NULL)
+		gpdeskScreenSaver = DesktopObject;
+
 	ReleaseWin16Lock();
     return hDesktop;
 }
@@ -1115,6 +1128,8 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
 	BOOL fParent = FALSE;
 	PDEVMODE pdev = NULL;
 	PDEVMODE polddev = NULL;
+	PVOID Object = NULL;
+	PPDB98 Process = get_pdb();
 
     GrabWin16Lock();
 
@@ -1139,7 +1154,7 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
 
 	if(!(kexGetHandleAccess(hDesktop) & DESKTOP_SWITCHDESKTOP))
 	{
-		TRACE("hDesktop 0x%X doesn't have the DESKTOP_SWITCHDESKTOP access right !\n", hDesktop);
+		ERR("hDesktop 0x%X doesn't have the DESKTOP_SWITCHDESKTOP access right !\n", hDesktop);
 		kexDereferenceObject(DesktopObject);
 		SetLastError(ERROR_ACCESS_DENIED);
 		ReleaseWin16Lock();
@@ -1148,12 +1163,22 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
 
     if(!IntValidateWindowStationHandle(hWinSta, &WindowStationObject))
     {
-		TRACE_OUT("Window station is invalid ! Maybe the process doesn't have one ?\n");
+		ERR_OUT("Window station is invalid ! Maybe the process doesn't have one ?\n");
 		SetLastError(ERROR_INVALID_HANDLE);
 		kexDereferenceObject(DesktopObject);
         ReleaseWin16Lock();
         return FALSE;
     }
+
+	/* Check if the process is associated with a secured desktop (Winlogon or Screen-Saver) */
+	if((kexFindObjectHandle(Process, gpdeskWinlogon, K32OBJ_DESKTOP, &Object) ||
+		kexFindObjectHandle(Process, gpdeskScreenSaver, K32OBJ_DESKTOP, &Object)) && Process != MprProcess)
+	{
+		ERR("Process 0x%X is associated with a secured desktop !!\n", Process);
+		kexDereferenceObject(DesktopObject);
+		ReleaseWin16Lock();
+		return FALSE;
+	}
 
     if(InputWindowStation != NULL)
     {
@@ -1162,7 +1187,7 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
         if(InputWindowStation->Flags & WSS_LOCKED && GetCurrentProcessId() != gpidMpr)
         {
 			SetLastError(ERROR_ACCESS_DENIED);
-			TRACE("Switching to desktop 0x%X denied because the current window station is locked !\n", hDesktop);
+			ERR("Switching to desktop 0x%X denied because the current window station is locked !\n", hDesktop);
 			kexDereferenceObject(DesktopObject);
 			kexDereferenceObject(WindowStationObject);
             ReleaseWin16Lock();
@@ -1172,6 +1197,7 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
 		InputWindowStation->ActiveDesktop = NULL; /* Should it be NULL ? */
     }
 
+	/* FIXME: Disable DirectDraw while switching desktop */
 	/* FIXME: Should we use input device ? */
 
 	TRACE("Switching to desktop object 0x%X\n", DesktopObject);
@@ -1189,7 +1215,7 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
 	/* Set the global state */
 	gpdeskInputDesktop = DesktopObject;
 
-	/* Assign the desktop's winsta parent to the input window station */
+	/* Set the current window station to the desktop's parent */
 	InputWindowStation = gpdeskInputDesktop->rpwinstaParent;
 
 	/* Set the window station's active desktop */
