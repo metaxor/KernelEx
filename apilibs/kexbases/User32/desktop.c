@@ -546,9 +546,8 @@ DWORD WINAPI DesktopThread(PVOID lParam)
 		{
 			EnumWindows_nothunk(EnumWindowsProc, 0);
 			EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, gpdeskInputDesktop->pdev);
-			if(fNewDesktop == TRUE)
+			if(InterlockedExchange((volatile long *)&fNewDesktop, FALSE) == TRUE)
 			{
-				fNewDesktop = FALSE;
 				TRACE_OUT("Input desktop has changed, redrawing screen... ");
 				RepaintScreen();
 				RedrawDesktop();
@@ -790,6 +789,9 @@ HDESK WINAPI CreateDesktopA_new(LPCSTR lpszDesktop, LPCSTR lpszDevice, LPDEVMODE
 	DesktopObject->rpwinstaParent = Process->Win32Process->rpwinsta;
 	DesktopObject->pdev = pdev;
 	DesktopObject->DesktopWindow = GetDesktopWindow();
+
+	DesktopObject->pheapDesktop = g_UserBase; // Using USER32's Heap for each desktop
+	DesktopObject->ulHeapSize = 4194304; // USER32's Heap size
 
 	hDesktop = (HDESK)kexAllocHandle(Process, DesktopObject, dwDesiredAccess | flags);
 
@@ -1243,9 +1245,9 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
 	kexDereferenceObject(DesktopObject);
 	kexDereferenceObject(WindowStationObject);
 
-	fNewDesktop = TRUE;
-
 	ReleaseWin16Lock();
+
+	InterlockedExchange((volatile long *)&fNewDesktop, TRUE);
 
 	/* Signal the desktop switch event */
 	hEvent = OpenEvent(EVENT_MODIFY_STATE, FALSE, "WinSta0_DesktopSwitch");
