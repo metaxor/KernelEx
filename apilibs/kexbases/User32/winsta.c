@@ -281,9 +281,17 @@ BOOL WINAPI GetUserObjectInformationA_new(HANDLE hObj, int nIndex, PVOID pvInfo,
 			break;
 
 		case UOI_HEAPSIZE:
-			/* Should we return USER32's heap size ? */
-			SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
-			result = FALSE;
+			/* Retrieves the size of the desktop heap in bytes */
+			if(Desktop != NULL)
+			{
+				pvData = (PVOID)Desktop->ulHeapSize;
+				result = TRUE;
+			}
+			else
+			{
+				pvData = NULL;
+				result = FALSE;
+			}
 			break;
 
 		case UOI_NAME:
