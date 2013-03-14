@@ -25,6 +25,7 @@
 #include "debug.h"
 #include "kexcoresdk.h"
 
+//#define USEWDEB
 //#define USECOMPORT
 //#define WRITETOLOG
 
@@ -211,11 +212,13 @@ void dbgvprintf(const char* format, void* _argp)
 #endif
 	}
 
-#if defined(USECOMPORT)
+#ifdef USECOMPORT
 	WriteToComm(fCarriageReturn ? msg2 : msg, cnt);
-#elif defined(WRITETOLOG)
+#endif
+#ifdef WRITETOLOG
 	WriteToLogFile(msg, cnt, fCarriageReturn);
-#else
+#endif
+#ifdef USEWDEB
 	OutputDebugString(fCarriageReturn ? msg2 : msg);
 #endif
 }
