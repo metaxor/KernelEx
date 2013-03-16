@@ -412,7 +412,6 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
 		PWINSTATION_OBJECT WindowStationObject = NULL;
 		PDESKTOP DesktopObject = NULL;
 
-		TRACE_OUT("ppi is NULL ! Creating a new one... \n");
 		__try
 		{
 			WindowStationObject = Process->ParentPDB->Win32Process->rpwinsta;
@@ -448,18 +447,17 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
 		ppi->rpdeskStartup = DesktopObject;
 		ppi->hdeskStartup = hDesktop;
 
-		TRACE("ppi 0x%X created !\n", ppi);
+		TRACE("Created ppi %p for Process %p because it was NULL\n", ppi, Process);
 	}
 
 	if(pti == NULL)
 	{
-		TRACE_OUT("pti is NULL ! About to allocate a new one... \n");
 		pti_init(Thread);
 		/* Set the thread's desktop to the process's startup desktop */
 		pti = Thread->Win32Thread;
 		pti->rpdesk = ppi->rpdeskStartup;
 		pti->hdesk = ppi->hdeskStartup;
-		TRACE_OUT("pti 0x%X created !\n", pti);
+		TRACE("Created pti %p for Thread %p because it was NULL\n", pti, Thread);
 	}
 
 	if(IsBadReadPtr(pti, sizeof(THREADINFO)) || IsBadReadPtr(ppi, sizeof(PROCESSINFO)))
@@ -1066,7 +1064,10 @@ BOOL WINAPI SetThreadDesktop_new(HDESK hDesktop)
 	}
 
 	if(pti->hdesk == hDesktop)
+	{
+		ReleaseWin16Lock();
 		return TRUE;
+	}
 
 	if(!IntValidateDesktopHandle(hDesktop, &DesktopObject))
 	{
