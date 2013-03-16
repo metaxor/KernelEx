@@ -413,7 +413,8 @@ HWND WINAPI CreateWindowExA_fix(DWORD dwExStyle,
 	if(pti == NULL)
 		return hwnd;
 
-	TRACE("Window hwnd 0x%X object 0x%X created\n", hwnd, pwnd);
+	TRACE("Window hwnd 0x%X object ", hwnd);
+	DBGPRINTF(("%p created\n", pwnd));
 	if(pti != NULL && pti->rpdesk != gpdeskInputDesktop && pwnd->style & WS_VISIBLE)
 	{
 		if(!(pwnd->style & WS_CHILD))
