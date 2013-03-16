@@ -321,6 +321,9 @@ ULONG GetUserProcessesCount(PSHUTDOWNDATA sa)
 	ULONG index = 0;
 	PPDB98 Process = NULL;
 
+	if(sa->fEndServices == 1)
+		ProcessCount = -1; // Windows ME has one hidden unkillable process
+
 	kexEnumProcesses(pProcess, sizeof(pProcess), &cbProcesses);
 
 	cbProcesses /= sizeof(DWORD);
@@ -348,6 +351,9 @@ ULONG GetUserProcessesCount(PSHUTDOWNDATA sa)
 
 		ProcessCount++;
 	}
+
+	if(ProcessCount == -1)
+		ProcessCount = 0;
 
 	return ProcessCount;
 }
@@ -605,7 +611,7 @@ VOID __fastcall LogoffCurrentUser(PSHUTDOWNDATA ShutdownData)
 
 			Processes = 0;
 			DestroyKernelWnd(ShutdownData);
-		} while(GetUserProcessesCount(ShutdownData) != 0 && !fAborted);
+		} while(GetUserProcessesCount(ShutdownData) > 0 && !fAborted);
 	}
 	__except(EXCEPTION_EXECUTE_HANDLER)
 	{
