@@ -38,6 +38,8 @@ void* __cdecl recalloc(void* ptr, size_t size);
 typedef int __stdcall STUB(void);
 typedef int __stdcall FWDPROC(void);
 
+#define FASTCALL __fastcall
+
 extern int acp_mcs;
 BOOL common_init(void);
 char* file_fixWprefix(char* in);
