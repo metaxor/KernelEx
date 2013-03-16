@@ -220,7 +220,7 @@ begining:
 		RetVal = ShowEndTaskDialog(hwnd);
 
 		if(RetVal == ET_WAIT)
-			goto begining;
+			goto begining; // Using goto to prevent the stack to overflow
 		else if(RetVal == ET_ENDTASK)
 			goto _continue;
 
@@ -621,8 +621,8 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 	HKEY hKey = NULL;
 	HANDLE hThread = NULL;
 	HANDLE hEvent = NULL;
-	REGREMAPPREDEFKEY RegRemapPreDefKey = (REGREMAPPREDEFKEY)GetProcAddress(GetModuleHandle("ADVAPI32.DLL"), "RegRemapPreDefKey");
-	BYEBYEGDI ByeByeGDI = (BYEBYEGDI)GetProcAddress(GetModuleHandle("GDI32.DLL"), "ByeByeGDI");
+	REGREMAPPREDEFKEY RegRemapPreDefKey = (REGREMAPPREDEFKEY)kexGetProcAddress(GetModuleHandle("ADVAPI32.DLL"), "RegRemapPreDefKey");
+	BYEBYEGDI ByeByeGDI = (BYEBYEGDI)kexGetProcAddress(GetModuleHandle("GDI32.DLL"), "ByeByeGDI");
 
 	dwShutdownThreadId = GetCurrentThreadId();
 
