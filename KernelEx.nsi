@@ -28,7 +28,7 @@
   Name "KernelEx"
   Caption "KernelEx ${VERSION} Setup"
   !System "md output-i386\Setup"
-  OutFile "output-i386\Setup\KernelEx-4.5.3-Beta1-Debug.exe"
+  OutFile "output-i386\Setup\KernelEx-dev.exe"
 
   ;Default installation folder
   InstallDir "$WINDIR\KernelEx"
