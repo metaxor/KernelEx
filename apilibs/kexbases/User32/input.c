@@ -2,6 +2,7 @@
  *  KernelEx
  *  Copyright (C) 2008, Xeno86
  *  Copyright (C) 2010, Tihiy
+ *	Copyright (C) 2013, Ley0k
  *
  *  This file is part of KernelEx source code.
  *
@@ -20,7 +21,10 @@
  *
  */
 
-#include <windows.h>
+#include "input.h"
+#include "desktop.h"
+
+PINPUTDATA pInputData = NULL;
 
 /* MapVirtualKey translation types */
 #define MAPVK_VK_TO_VSC     0
@@ -81,22 +85,84 @@ static inline int NoLeftRightVK(int nVirtKey)
 	return nVirtKey;
 }
 
-/* MAKE_EXPORT GetLastInputInfo_new=GetLastInputInfo */
-BOOL WINAPI GetLastInputInfo_new(PLASTINPUTINFO plii)
+BOOL FASTCALL InitInputSegment(void)
 {
-	__try
-	{
-		if(plii->cbSize != sizeof(LASTINPUTINFO))
-			return FALSE;
+	HINSTANCE hUser16 = (HINSTANCE)LoadLibrary16("user");
+	WORD *InputSegment = NULL;
 
-		plii->dwTime = GetTickCount();
-	}
-	__except(EXCEPTION_EXECUTE_HANDLER)
+	if((DWORD)hUser16 < 32)
+		return FALSE;
+
+	InputSegment = (WORD*)MapSL(GetProcAddress16(hUser16, "GETASYNCKEYSTATE") + 6);
+
+	if(InputSegment == NULL)
 	{
+		FreeLibrary16(hUser16);
 		return FALSE;
 	}
 
-	return FALSE;
+	pInputData = (PINPUTDATA)MapSL((DWORD)*InputSegment << 16);
+
+	if(pInputData == NULL)
+	{
+		FreeLibrary16(hUser16);
+		return FALSE;
+	}
+
+	FreeLibrary16(hUser16);
+	return TRUE;
+}
+
+/* MAKE_EXPORT GetAsyncKeyState_nothunk=GetAsyncKeyState */
+SHORT WINAPI GetAsyncKeyState_nothunk(int vKey)
+{
+	PTDB98 Thread = get_tdb();
+	UINT cState = 0;
+	BYTE* pKeyState = pInputData->pKeyState;
+
+	if(Thread->Win32Thread != NULL && Thread->Win32Thread->rpdesk != gpdeskInputDesktop)
+		return 0;
+
+	vKey = vKey & 0Xff;
+	pKeyState = pKeyState + (vKey >> 2);
+
+	if (*pKeyState & (1 << ((vKey & 3)*2)))
+		cState = 0x8000;
+	
+	pKeyState = pInputData->pKeyRecentDown[vKey >> 3];
+
+	if (*pKeyState & (1 << (vKey & 7)))
+	{
+		*pKeyState = *pKeyState & ~(1 << (vKey & 7));
+		cState |= 1;		
+	}
+	return (SHORT)cState;
+}
+
+/* MAKE_EXPORT GetCursorPos_nothunk=GetCursorPos */
+BOOL WINAPI GetCursorPos_nothunk( LPPOINT lpPoint )
+{
+	if (lpPoint == NULL || IsBadReadPtr(lpPoint , sizeof(POINT)))
+		return FALSE;
+
+	lpPoint->x = *pInputData->MouseX;
+	lpPoint->y = *pInputData->MouseY;
+
+	return TRUE;
+}
+
+/* MAKE_EXPORT GetLastInputInfo_new=GetLastInputInfo */
+BOOL WINAPI GetLastInputInfo_new(PLASTINPUTINFO plii)
+{
+	if(plii == NULL || IsBadReadPtr(plii, sizeof(LASTINPUTINFO)))
+		return FALSE;
+
+	if(plii->cbSize != sizeof(LASTINPUTINFO))
+		return FALSE;
+
+	plii->dwTime = GetTickCount();
+
+	return TRUE;
 }
 
 /* MAKE_EXPORT MapVirtualKeyA_new=MapVirtualKeyA */
