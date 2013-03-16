@@ -19,6 +19,7 @@
  *
  */
 
+#include "common.h"
 #include "unifwd.h"
 
 FORWARD_TO_UNICOWS(BuildCommDCBAndTimeoutsW);
@@ -29,7 +30,6 @@ FORWARD_TO_UNICOWS(CreateEventW);
 FORWARD_TO_UNICOWS(CreateFileMappingW);
 FORWARD_TO_UNICOWS(CreateMailslotW);
 FORWARD_TO_UNICOWS(CreateMutexW);
-FORWARD_TO_UNICOWS(CreateProcessW);
 FORWARD_TO_UNICOWS(CreateSemaphoreW);
 FORWARD_TO_UNICOWS(CreateWaitableTimerW);
 FORWARD_TO_UNICOWS(EnumCalendarInfoExW);
@@ -64,7 +64,6 @@ FORWARD_TO_UNICOWS(GetProfileSectionW);
 FORWARD_TO_UNICOWS(GetProfileStringW);
 FORWARD_TO_UNICOWS(GetTimeFormatW);
 FORWARD_TO_UNICOWS(GetVolumeInformationW);
-FORWARD_TO_UNICOWS(IsBadStringPtrW);
 FORWARD_TO_UNICOWS(OpenEventW);
 FORWARD_TO_UNICOWS(OpenFileMappingW);
 FORWARD_TO_UNICOWS(OpenMutexW);
@@ -92,3 +91,11 @@ FORWARD_TO_UNICOWS(WritePrivateProfileStringW);
 FORWARD_TO_UNICOWS(WritePrivateProfileStructW);
 FORWARD_TO_UNICOWS(WriteProfileSectionW);
 FORWARD_TO_UNICOWS(WriteProfileStringW);
+
+/* MAKE_EXPORT IsBadStringPtrW_new=IsBadStringPtrW */
+BOOL WINAPI IsBadStringPtrW_new(LPCWSTR lpszW, UINT_PTR ucchMax)
+{
+	ALLOC_WtoA(lpsz);
+
+	return IsBadStringPtrA(lpszA, ucchMax);
+}
