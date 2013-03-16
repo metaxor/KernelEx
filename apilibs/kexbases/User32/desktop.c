@@ -447,7 +447,8 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
 		ppi->rpdeskStartup = DesktopObject;
 		ppi->hdeskStartup = hDesktop;
 
-		TRACE("Created ppi %p for Process %p because it was NULL\n", ppi, Process);
+		TRACE("Created ppi %p for Process ", ppi);
+		DBGPRINTF(("%p because it was NULL\n", Process));
 	}
 
 	if(pti == NULL)
@@ -457,7 +458,8 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
 		pti = Thread->Win32Thread;
 		pti->rpdesk = ppi->rpdeskStartup;
 		pti->hdesk = ppi->hdeskStartup;
-		TRACE("Created pti %p for Thread %p because it was NULL\n", pti, Thread);
+		TRACE("Created pti %p for Thread ", pti);
+		DBGPRINTF(("%p because it was NULL\n", Thread));
 	}
 
 	if(IsBadReadPtr(pti, sizeof(THREADINFO)) || IsBadReadPtr(ppi, sizeof(PROCESSINFO)))
