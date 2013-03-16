@@ -102,6 +102,8 @@ LONG WINAPI ChangeDisplaySettingsA_fix(LPDEVMODE lpDevMode, DWORD dwflags);
 BOOL WINAPI EnumDisplaySettingsA_fix(LPCSTR lpszDeviceName, DWORD iModeNum, LPDEVMODE lpDevMode);
 BOOL WINAPI EnumDisplaySettingsExA_fix(LPCSTR lpszDeviceName, DWORD iModeNum, LPDEVMODE lpDevMode, DWORD dwFlags);
 BOOL WINAPI ExitWindowsEx_fix(UINT uFlags, DWORD dwReserved);
+SHORT WINAPI GetAsyncKeyState_nothunk(int vKey);
+BOOL WINAPI GetCursorPos_nothunk(LPPOINT lpPoint);
 BOOL WINAPI GetLastInputInfo_new(PLASTINPUTINFO plii);
 UINT WINAPI MapVirtualKeyA_new(UINT uCode, UINT uMapType);
 UINT WINAPI MapVirtualKeyExA_new(UINT uCode, UINT uMapType, HKL dwhkl);
