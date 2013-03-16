@@ -54,6 +54,8 @@ ntdll:
 	- Rtl*CriticalSection (implemented)
 	- RtlInitAnsiString (implemented)
 	- RtlInitAnsiStringEx (implemented)
+	- RtlGetVersion (implemented)
+	- RtlVerifyVersionInfo (implemented)
 
 some minor fixes
 Kernel32 process can't be terminated from now (added the terminating flag to the process at init)
