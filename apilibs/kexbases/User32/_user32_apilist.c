@@ -22,6 +22,7 @@
 
 #include "common.h"
 #include "desktop.h"
+#include "input.h"
 #include "kexcoresdk.h"
 #include "_user32_apilist.h"
 #include "../kernel32/_kernel32_apilist.h"
@@ -191,6 +192,7 @@ BOOL init_user32()
 	HANDLE hThread = NULL;
 	HANDLE hThread2 = NULL;
 	HANDLE hThread3 = NULL;
+	BOOL fInputResult = FALSE;
 	DWORD dwThreadId = 0;
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
@@ -204,6 +206,8 @@ BOOL init_user32()
 	IsHungThread_pfn = (IsHungThread_t)kexGetProcAddress(hUser32, "IsHungThread");
 	DrawCaptionTempA_pfn = (DrawCaptionTempA_t)kexGetProcAddress(hUser32, "DrawCaptionTempA");
 	GetMouseMovePoints_pfn = (GetMouseMovePoints_t)kexGetProcAddress(hUser32, "GetMouseMovePoints");
+
+	fInputResult = InitInputSegment();
 
 	if(gpdeskInputDesktop == NULL)
 		if(!CreateWindowStationAndDesktops())
@@ -255,7 +259,7 @@ BOOL init_user32()
 #endif
 
 	return IsHungThread_pfn && DrawCaptionTempA_pfn && GetMouseMovePoints_pfn
-			&& InitUniThunkLayer() && hThread && hThread2 && hThread3;
+			&& InitUniThunkLayer() && hThread && hThread2 && hThread3 && fInputResult;
 }
 
 BOOL thread_user32_init(PTDB98 Thread)
@@ -417,9 +421,11 @@ static const apilib_named_api user32_named_apis[] =
 	DECL_API("ExitWindowsEx", ExitWindowsEx_fix),
 	DECL_API("GetAltTabInfoA", GetAltTabInfo),
 	DECL_API("GetAncestor", GetAncestor_fix),
+	DECL_API("GetAsyncKeyState", GetAsyncKeyState_nothunk),
 	DECL_API("GetClassInfoExW", GetClassInfoExW_NEW),
 	DECL_API("GetClassInfoW", GetClassInfoW_NEW),
 	DECL_API("GetClassLongW", GetClassLongW_NEW),
+	DECL_API("GetCursorPos", GetCursorPos_nothunk),
 	DECL_API("GetDlgItemTextW", GetDlgItemTextW_NEW),
 	DECL_API("GetForegroundWindow", GetForegroundWindow_fix),
 	DECL_API("GetInputDesktop", GetInputDesktop_new),
