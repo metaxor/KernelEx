@@ -118,22 +118,28 @@ SHORT WINAPI GetAsyncKeyState_nothunk(int vKey)
 {
 	PTDB98 Thread = get_tdb();
 	UINT cState = 0;
-	BYTE* pKeyState = pInputData->pKeyState;
+	BYTE pKeyState = pInputData->pKeyState;
 
 	if(Thread->Win32Thread != NULL && Thread->Win32Thread->rpdesk != gpdeskInputDesktop)
 		return 0;
 
+	if(vKey >= 0x100)
+	{
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return 0;
+	}
+
 	vKey = vKey & 0Xff;
 	pKeyState = pKeyState + (vKey >> 2);
 
-	if (*pKeyState & (1 << ((vKey & 3)*2)))
+	if (pKeyState & (1 << ((vKey & 3)*2)))
 		cState = 0x8000;
 	
 	pKeyState = pInputData->pKeyRecentDown[vKey >> 3];
 
-	if (*pKeyState & (1 << (vKey & 7)))
+	if (pKeyState & (1 << (vKey & 7)))
 	{
-		*pKeyState = *pKeyState & ~(1 << (vKey & 7));
+		pKeyState = pKeyState & ~(1 << (vKey & 7));
 		cState |= 1;		
 	}
 	return (SHORT)cState;
@@ -145,8 +151,8 @@ BOOL WINAPI GetCursorPos_nothunk( LPPOINT lpPoint )
 	if (lpPoint == NULL || IsBadReadPtr(lpPoint , sizeof(POINT)))
 		return FALSE;
 
-	lpPoint->x = *pInputData->MouseX;
-	lpPoint->y = *pInputData->MouseY;
+	lpPoint->x = pInputData->MouseX;
+	lpPoint->y = pInputData->MouseY;
 
 	return TRUE;
 }
