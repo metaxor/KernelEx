@@ -400,6 +400,30 @@ SOURCE=.\ntdll\_ntdll_apilist.h
 SOURCE=.\ntdll\_ntdll_stubs.c
 # End Source File
 # End Group
+# Begin Group "netapi32"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\netapi32\_netapi32_apilist.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\netapi32\_netapi32_apilist.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\netapi32\netalert.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\netapi32\netbuffer.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\netapi32\netshare.c
+# End Source File
+# End Group
 # Begin Source File
 
 SOURCE=..\..\common\common.c

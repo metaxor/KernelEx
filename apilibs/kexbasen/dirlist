@@ -12,3 +12,4 @@ ws2_32
 ole32
 cryptui
 ntdll
+netapi32
