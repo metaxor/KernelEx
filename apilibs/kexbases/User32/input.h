@@ -24,7 +24,7 @@
 typedef struct _INPUTDATA
 {
 	BYTE		un1[0x5];						// 000
-	BYTE		pKey[256 * 2 / 8];				// 007 - 2 bits per key
+	BYTE		pKey[256 * 2 / 8];				// 006 - 2 bits per key
 	BYTE		pKeyRecentDown[256 / 8];		// 046 - 1 bit per key
 	BYTE		un3[0x10];						// 065
 	WORD		MouseX;							// 076
