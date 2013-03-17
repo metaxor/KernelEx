@@ -60,7 +60,7 @@ LINK32=link.exe
 OutDir=.\Release
 WkspDir=.
 SOURCE="$(InputPath)"
-PostBuild_Cmds=copy /Y "$(OutDir)\KernelEx.lib" "..\common\"
+PostBuild_Cmds=copy /Y "$(OutDir)\KernelEx.lib" "$(WkspDir)\common"
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "Core - Win32 Debug"
@@ -91,8 +91,9 @@ LINK32=link.exe
 # SUBTRACT LINK32 /pdb:none
 # Begin Special Build Tool
 OutDir=.\Debug
-WkspDir=.SOURCE="$(InputPath)"
-PostBuild_Cmds=copy /Y "$(OutDir)\KernelEx.lib" "..\common\"
+WkspDir=.
+SOURCE="$(InputPath)"
+PostBuild_Cmds=copy /Y "$(OutDir)\KernelEx.lib" "$(WkspDir)\common"
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "Core - Win32 Release APIHOOK"
@@ -127,7 +128,7 @@ LINK32=link.exe
 OutDir=.\Release_APIHOOK
 WkspDir=.
 SOURCE="$(InputPath)"
-PostBuild_Cmds=copy /Y "$(OutDir)\KernelEx.lib" "$(WkspDir)\common\"
+PostBuild_Cmds=copy /Y "$(OutDir)\KernelEx.lib" "$(WkspDir)\common"
 # End Special Build Tool
 
 !ENDIF 
