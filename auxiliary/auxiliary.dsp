@@ -113,18 +113,6 @@ SOURCE=.\wtsapi32\wtsapi32.c
 SOURCE=.\wtsapi32\wtsapi32.h
 # End Source File
 # End Group
-# Begin Group "netapi32"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=.\netapi32\netapi32.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\netapi32\netapi32.h
-# End Source File
-# End Group
 # Begin Group "winsta"
 
 # PROP Default_Filter ""
