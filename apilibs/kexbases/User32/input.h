@@ -24,12 +24,12 @@
 typedef struct _INPUTDATA
 {
 	BYTE		un1[0x5];						// 000
-	LPBYTE		pKeyState;						// 006
-	LPBYTE		pKey[256 * 2 / 8 - 1];			// 007
-	LPBYTE		pKeyRecentDown[256 / 8 - 1];	// 046
+	BYTE		pKeyState;						// 006
+	BYTE		pKey[256 * 2 / 8];				// 007 - 2 bits per key
+	BYTE		pKeyRecentDown[256 / 8];		// 046 - 1 bit per key
 	BYTE		un3[0x10];						// 065
-	LPWORD		MouseX;							// 076
-	LPWORD		MouseY;							// 078
+	WORD		MouseX;							// 076
+	WORD		MouseY;							// 078
 } INPUTDATA, *PINPUTDATA;
 
 extern PINPUTDATA pInputData;
