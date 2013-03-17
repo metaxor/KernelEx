@@ -56,7 +56,9 @@ HWND WINAPI CreateDialogIndirectParamA_fix(HINSTANCE hInstance,
 	if(pti->rpdesk != gpdeskInputDesktop && pWnd->style & WS_VISIBLE)
 	{
 		pWnd->style |= WS_INTERNAL_WASVISIBLE;
+		ReleaseWin16Lock();
 		ShowWindowAsync(hWnd, SW_HIDE);
+		GrabWin16Lock();
 	}
 
 _ret:
@@ -98,7 +100,9 @@ HWND WINAPI CreateDialogParamA_fix(HINSTANCE hInstance,
 	if(pti->rpdesk != gpdeskInputDesktop && pWnd->style & WS_VISIBLE)
 	{
 		pWnd->style |= WS_INTERNAL_WASVISIBLE;
+		ReleaseWin16Lock();
 		ShowWindowAsync(hWnd, SW_HIDE);
+		GrabWin16Lock();
 	}
 
 _ret:

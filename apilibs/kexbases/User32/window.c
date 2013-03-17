@@ -50,7 +50,7 @@ static BOOL WINAPI TestChild(HWND hwnd, HWND hwndNewParent)
 	return ret;
 }
 
-BOOL __fastcall GetWndList(PWND **pWndList, LPDWORD lpReturnedSize)//, DWORD dwSize, LPDWORD dwReturnedSize)
+BOOL __fastcall GetWndList(PWND **pWndList, LPDWORD lpReturnedSize)
 {
 	PWND pWnd = NULL;
 	PWND pWndParent = NULL;
@@ -684,7 +684,9 @@ BOOL WINAPI SetForegroundWindow_fix(HWND hWnd)
 	if(pwnd == NULL)
 		goto _ret;
 
+	ReleaseWin16Lock(); /* SetForegroundWindow already grab the win16 lock */
 	result = SetForegroundWindow(hWnd);
+	GrabWin16Lock();
 
 	if(!result)
 		goto _ret;
