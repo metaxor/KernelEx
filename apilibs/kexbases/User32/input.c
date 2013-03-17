@@ -118,7 +118,7 @@ SHORT WINAPI GetAsyncKeyState_nothunk(int vKey)
 {
 	PTDB98 Thread = get_tdb();
 	UINT cState = 0;
-	BYTE pKeyState = pInputData->pKeyState;
+	BYTE pKeyState = 0;
 
 	if(Thread->Win32Thread != NULL && Thread->Win32Thread->rpdesk != gpdeskInputDesktop)
 		return 0;
@@ -130,7 +130,7 @@ SHORT WINAPI GetAsyncKeyState_nothunk(int vKey)
 	}
 
 	vKey = vKey & 0Xff;
-	pKeyState = pKeyState + (vKey >> 2);
+	pKeyState = pInputData->pKey[(vKey >> 2) + 1];
 
 	if (pKeyState & (1 << ((vKey & 3)*2)))
 		cState = 0x8000;
