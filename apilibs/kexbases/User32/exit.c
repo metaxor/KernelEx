@@ -583,7 +583,7 @@ VOID __fastcall LogoffCurrentUser(PSHUTDOWNDATA ShutdownData)
 				{
 					/* Force processes to terminate if the logoff time has raised the maximum logoff timeout */
 
-					if(ShutdownData->fLoggingOff)
+					if(!ShutdownData->fLoggingOff)
 					{
 						if(!(ShutdownData->uFlags & EWX_FORCE))
 							ShutdownData->uFlags |= EWX_FORCE;
