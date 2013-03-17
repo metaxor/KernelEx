@@ -140,6 +140,7 @@ SHORT WINAPI GetAsyncKeyState_nothunk(int vKey)
 	if (pKeyState & (1 << (vKey & 7)))
 	{
 		pKeyState = pKeyState & ~(1 << (vKey & 7));
+		pInputData->pKeyRecentDown[vKey >> 3] = pKeyState;
 		cState |= 1;		
 	}
 	return (SHORT)cState;
