@@ -23,13 +23,25 @@
 
 /* MAKE_EXPORT NetShareEnum_new=NetShareEnum */
 NET_API_STATUS NET_API_FUNCTION
-NetShareEnum_new(LMSTR       servername,
+NetShareEnum_new(LMSTR servername,
 	DWORD   level,
 	LPBYTE  *bufptr,
 	DWORD   prefmaxlen,
 	LPDWORD entriesread,
 	LPDWORD totalentries,
-	LPDWORD resume_handle)
+	LPDWORD resume_handle
+)
+{
+	return ERROR_CALL_NOT_IMPLEMENTED;
+}
+
+/* MAKE_EXPORT NetUserGetInfo_new=NetUserGetInfo */
+NET_API_STATUS NET_API_FUNCTION
+NetUserGetInfo_new(LPCWSTR servername,
+	LPCWSTR username,
+	DWORD level,
+	LPBYTE* bufptr
+)
 {
 	return ERROR_CALL_NOT_IMPLEMENTED;
 }
