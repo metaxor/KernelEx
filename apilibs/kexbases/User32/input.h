@@ -20,15 +20,17 @@
  */
 
 #include "common.h"
+#include "desktop.h"
+#include "thuni_layer.h"
+#include "hwnd9x.h"
 
 typedef struct _INPUTDATA
 {
-	BYTE		un1[0x5];						// 000
+	BYTE		un1[0x5];						// 000 - ???
 	BYTE		pKey[256 * 2 / 8];				// 006 - 2 bits per key
 	BYTE		pKeyRecentDown[256 / 8];		// 046 - 1 bit per key
-	BYTE		un3[0x10];						// 065
-	WORD		MouseX;							// 076
-	WORD		MouseY;							// 078
+	BYTE		un3[0x10];						// 065 - ???
+	POINTS		CursorPos;						// 076-078
 } INPUTDATA, *PINPUTDATA;
 
 extern PINPUTDATA pInputData;
