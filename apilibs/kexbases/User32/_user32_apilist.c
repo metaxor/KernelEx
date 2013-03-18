@@ -499,6 +499,7 @@ static const apilib_named_api user32_named_apis[] =
 	DECL_API("SendMessageW", SendMessageW_NEW),
 	DECL_API("SendNotifyMessageW", SendNotifyMessageW_NEW),
 	DECL_API("SetClassLongW", SetClassLongW_NEW),
+	DECL_API("SetCursorPos", SetCursorPos_nothunk),
 	DECL_API("SetDlgItemTextW", SetDlgItemTextW_NEW),
 	DECL_API("SetForegroundWindow", SetForegroundWindow_fix),
 	DECL_API("SetLayeredWindowAttributes", SetLayeredWindowAttributes_stub),

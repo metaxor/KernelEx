@@ -114,6 +114,7 @@ UINT WINAPI GetRawInputDeviceList_new(PVOID pRawInputDeviceList, PUINT puiNumDev
 UINT WINAPI GetRawInputDeviceInfo_new(HANDLE hDevice, UINT uiCommand, LPVOID pData, PUINT pcbSize);
 UINT WINAPI GetRegisteredRawInputDevices_new(PVOID pRawInputDevices, PUINT puiNumDevices, UINT cbSize);
 BOOL WINAPI RegisterRawInputDevices_new(PVOID pRawInputDevices, UINT uiNumDevices, UINT cbSize);
+BOOL WINAPI SetCursorPos_nothunk(int X, int Y);
 LPWSTR WINAPI CharNextExW_new(WORD codepage, LPCWSTR ptr, DWORD flags);
 LPWSTR WINAPI CharNextW_new(LPCWSTR x);
 LPSTR WINAPI CharPrevExW_new(WORD codepage, LPCWSTR start, LPCWSTR ptr, DWORD flags);
