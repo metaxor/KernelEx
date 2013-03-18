@@ -188,3 +188,8 @@ BOOL InitDesktops();
 
 BOOL IntValidateDesktopHandle(HDESK hDesktop, PDESKTOP *DesktopObject);
 BOOL IntValidateWindowStationHandle(HWINSTA hWindowStation, PWINSTATION_OBJECT *WindowStationObject);
+
+VOID RepaintScreen(VOID);
+VOID DisableOEMLayer();
+VOID EnableOEMLayer();
+VOID APIENTRY RedrawDesktop();
