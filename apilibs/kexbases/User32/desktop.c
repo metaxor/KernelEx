@@ -1240,7 +1240,7 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
 	{
 		TRACE_OUT("Re-enabling OEM layer...\n");
 		EnableOEMLayer();
-		SetCursorPos(GetSystemMetrics(SM_CXSCREEN)/2, GetSystemMetrics(SM_CYSCREEN)/2);
+		SetCursorPos_nothunk(GetSystemMetrics(SM_CXSCREEN)/2, GetSystemMetrics(SM_CYSCREEN)/2);
 	}
 
 	TRACE("Switching to desktop 0x%X successful\n", hDesktop);
