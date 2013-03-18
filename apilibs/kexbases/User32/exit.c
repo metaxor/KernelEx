@@ -203,7 +203,7 @@ begining:
 							WM_QUERYENDSESSION,
 							0,
 							ShutdownData->uFlags & EWX_LOGOFF ? ENDSESSION_LOGOFF : 0,
-							SMTO_NORMAL,
+							SMTO_NORMAL | SMTO_ABORTIFHUNG,
 							fHung ? HungAppTimeout : WaitToKillAppTimeout,
 							&dwResult);
 
@@ -264,6 +264,7 @@ BOOL CALLBACK EnumProcessesProc(DWORD dwProcessId, PSHUTDOWNDATA ShutdownData)
 	DWORD Threads = 0;
 	ULONG i = 0;
 	PPDB98 Process = NULL;
+	char ProcessName[255];
 
 	Process = (PPDB98)kexGetProcess(dwProcessId);
 
@@ -277,7 +278,10 @@ BOOL CALLBACK EnumProcessesProc(DWORD dwProcessId, PSHUTDOWNDATA ShutdownData)
 	if(!(Process->Flags & fServiceProcess) && Process != Msg32Process && ShutdownData->fEndServices)
 		return TRUE;
 
-	if(Process == MprProcess)
+	kexGetProcessName(dwProcessId, ProcessName);
+
+	/* Fail if the process is the MPR process or the process is the system tray */
+	if(Process == MprProcess || !strcmp(ProcessName, "SYSTRAY.EXE"))
 		return TRUE;
 
 	ShutdownData->ShellProcessId = GetWindowProcessId(GetShellWindow_new());
