@@ -339,6 +339,9 @@ HWND WINAPI CreateMDIWindowA_fix(LPCSTR lpClassName, LPCSTR lpWindowName, DWORD 
 	if(pti == NULL)
 		return hwnd;
 
+	TRACE("MDI Window hwnd 0x%X object ", hwnd);
+	DBGPRINTF(("%p created\n", pwnd));
+
 	if(pti != NULL && pti->rpdesk != gpdeskInputDesktop && pwnd->style & WS_VISIBLE)
 	{
 		if(!(pwnd->style & WS_CHILD))
