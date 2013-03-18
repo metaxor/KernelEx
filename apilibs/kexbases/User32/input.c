@@ -123,11 +123,13 @@ SHORT WINAPI GetAsyncKeyState_nothunk(int vKey)
 	if(Thread->Win32Thread != NULL && Thread->Win32Thread->rpdesk != gpdeskInputDesktop)
 		return 0;
 
-	if(vKey >= 0x100)
+	if(vKey < 0 || vKey >= 0x100)
 	{
 		SetLastError(ERROR_INVALID_PARAMETER);
 		return 0;
 	}
+
+	GrabWin16Lock();
 
 	vKey = vKey & 0Xff;
 	pKeyState = pInputData->pKey[(vKey >> 2) + 1];
@@ -143,6 +145,9 @@ SHORT WINAPI GetAsyncKeyState_nothunk(int vKey)
 		pInputData->pKeyRecentDown[vKey >> 3] = pKeyState;
 		cState |= 1;		
 	}
+
+	ReleaseWin16Lock();
+
 	return (SHORT)cState;
 }
 
@@ -152,8 +157,8 @@ BOOL WINAPI GetCursorPos_nothunk( LPPOINT lpPoint )
 	if (lpPoint == NULL || IsBadReadPtr(lpPoint , sizeof(POINT)))
 		return FALSE;
 
-	lpPoint->x = pInputData->MouseX;
-	lpPoint->y = pInputData->MouseY;
+	lpPoint->x = pInputData->CursorPos.x;
+	lpPoint->y = pInputData->CursorPos.y;
 
 	return TRUE;
 }
@@ -278,4 +283,49 @@ BOOL WINAPI RegisterRawInputDevices_new(PVOID pRawInputDevices, UINT uiNumDevice
 {
 	SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
 	return FALSE;
+}
+
+/* MAKE_EXPORT SetCursorPos_nothunk=SetCursorPos */
+BOOL WINAPI SetCursorPos_nothunk(int X, int Y)
+{
+	PWND pwndDesktop = HWNDtoPWND(GetDesktopWindow());
+	RECTS rcClient;
+	SHORT vKey = 0;
+	PPDB98 Process = get_pdb();
+
+	if(pwndDesktop == NULL)
+		return FALSE;
+
+	if(Process->Win32Process && !(kexGetHandleAccess(Process->Win32Process->hwinsta) & WINSTA_WRITEATTRIBUTES))
+	{
+		ERR_OUT("Cannot set the cursor position because the current process window station doesn't have the WINSTA_WRITEATTRIBUTES access right !\n");
+		SetLastError(ERROR_ACCESS_DENIED);
+		return FALSE;
+	}
+
+	vKey = GetAsyncKeyState_nothunk(VK_CONTROL) | GetAsyncKeyState_nothunk(VK_LBUTTON) |
+		   GetAsyncKeyState_nothunk(VK_MBUTTON) | GetAsyncKeyState_nothunk(VK_RBUTTON) |
+		   GetAsyncKeyState_nothunk(VK_SHIFT);
+
+	GrabWin16Lock();
+
+	memcpy(&rcClient, &pwndDesktop->rcClient, sizeof(RECTS));
+
+	if(X >= rcClient.right)  X = rcClient.right - 1;
+	if(X < rcClient.left)    X = rcClient.left;
+	if(Y >= rcClient.bottom) Y = rcClient.bottom - 1;
+	if(Y < rcClient.top)     Y = rcClient.top;
+
+	PostMessage(GetCapture(), WM_MOUSEMOVE, vKey, MAKELPARAM(X, Y));
+
+	TRACE("New cursor position : X = %d, Y = %d", X, Y);
+
+	pInputData->CursorPos.x = X;
+	pInputData->CursorPos.y = Y;
+
+	/* FIXME : SHOW the new cursor position */
+
+	ReleaseWin16Lock();
+
+	return TRUE;
 }
