@@ -429,7 +429,6 @@ static const apilib_named_api user32_named_apis[] =
 	DECL_API("GetDlgItemTextW", GetDlgItemTextW_NEW),
 	DECL_API("GetForegroundWindow", GetForegroundWindow_fix),
 	DECL_API("GetInputDesktop", GetInputDesktop_new),
-	DECL_API("GetLastInputInfo", GetLastInputInfo_new),
 	DECL_API("GetLastInputInfo", GetLastInputInfo_NEW),
 	DECL_API("GetMessageA", GetMessageA_NEW),
 	DECL_API("GetMessageW", GetMessageW_NEW),
