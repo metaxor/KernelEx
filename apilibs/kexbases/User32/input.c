@@ -163,20 +163,6 @@ BOOL WINAPI GetCursorPos_nothunk( LPPOINT lpPoint )
 	return TRUE;
 }
 
-/* MAKE_EXPORT GetLastInputInfo_new=GetLastInputInfo */
-BOOL WINAPI GetLastInputInfo_new(PLASTINPUTINFO plii)
-{
-	if(plii == NULL || IsBadReadPtr(plii, sizeof(LASTINPUTINFO)))
-		return FALSE;
-
-	if(plii->cbSize != sizeof(LASTINPUTINFO))
-		return FALSE;
-
-	plii->dwTime = GetTickCount();
-
-	return TRUE;
-}
-
 /* MAKE_EXPORT MapVirtualKeyA_new=MapVirtualKeyA */
 UINT WINAPI MapVirtualKeyA_new(UINT uCode, UINT uMapType)
 {
