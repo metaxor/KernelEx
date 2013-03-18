@@ -30,7 +30,7 @@ extern void detach_exttls();
 
 BOOL init_kernel32()
 {
-	return init_threadpool();//init_exttls() && init_threadpool(); && init_jemalloc();
+	return init_exttls() && init_threadpool() && init_jemalloc();
 }
 
 void uninit_kernel32()
