@@ -238,7 +238,7 @@ BOOL InitDesktops()
 		DesktopPath = NULL;
 	}
 
-	if(DesktopPath != NULL && strlen(DesktopPath) > sizeof(CHAR))
+	if(DesktopPath != NULL && !IsBadStringPtr(DesktopPath, -1) && strlen(DesktopPath) > sizeof(CHAR))
 	{
 		char *pch;
 
