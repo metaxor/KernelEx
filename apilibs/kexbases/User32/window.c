@@ -603,28 +603,6 @@ HWND APIENTRY GetAncestor_fix(HWND hwnd, UINT gaFlags)
 	return GetAncestor(hwnd, gaFlags);
 }
 
-/* MAKE_EXPORT GetForegroundWindow_fix=GetForegroundWindow */
-HWND WINAPI GetForegroundWindow_fix(VOID)
-{
-	HWND hWnd;
-
-	/* Should we return the global foreground window or the current thread desktop's foreground window ?*/
-
-	GrabWin16Lock();
-
-	__try
-	{
-		hWnd = (HWND)get_tdb()->Win32Thread->rpdesk->spwndForeground->hWnd16;
-	}
-	__except(EXCEPTION_EXECUTE_HANDLER)
-	{
-		hWnd = NULL;
-	}
-
-	ReleaseWin16Lock();
-	return hWnd;
-}
-
 /* MAKE_EXPORT GetShellWindow_new=GetShellWindow */
 HWND APIENTRY GetShellWindow_new(VOID)
 {
@@ -675,14 +653,14 @@ BOOL WINAPI SetForegroundWindow_fix(HWND hWnd)
 	PDESKTOP Desktop = NULL;
 	PTHREADINFO pti = NULL;
 
+	pwnd = HWNDtoPWND(hWnd);
+
 	GrabWin16Lock();
 
 	pti = get_tdb()->Win32Thread;
 
 	if(pti == NULL || pti->rpdesk == NULL)
 		goto _ret;
-
-	pwnd = HWNDtoPWND(hWnd);
 
 	if(pwnd == NULL)
 		goto _ret;
@@ -758,6 +736,7 @@ BOOL WINAPI ShowWindowAsync_fix(HWND hWnd, int nCmdShow)
 	return FALSE;
 }
 
+/* MAKE_EXPORT SetParent_nothunk=SetParent */
 HWND WINAPI SetParent_nothunk(HWND hWndChild, HWND hWndNewParent)
 {
 	PWND pwnd = NULL;
@@ -766,6 +745,25 @@ HWND WINAPI SetParent_nothunk(HWND hWndChild, HWND hWndNewParent)
 	HWND hwndPrevParent = NULL;
 	PMSGQUEUE pQueue = NULL;
 	PMSGQUEUE pQueueParent = NULL;
+
+	GrabWin16Lock();
+
+	if(IS_SYSTEM_HWND(hWndChild))
+	{
+		ERR("Process %p attempt to change the parent of the system window !\n", get_pdb());
+		SetLastError(ERROR_ACCESS_DENIED);
+		goto _ret;
+	}
+
+	ReleaseWin16Lock();
+
+	if(!TestChild(hWndChild, hWndNewParent))
+	{
+		GrabWin16Lock();
+		ERR("Circular reference detected for child hwnd 0x%X !\n", hWndChild);
+		SetLastError(ERROR_INVALID_PARAMETER);
+		goto _ret;
+	}
 
 	GrabWin16Lock();
 
@@ -812,7 +810,7 @@ _ret:
 	return hwndPrevParent;
 }
 
-/* MAKE_EXPORT SetParent_fix=SetParent */
+#if 0
 __declspec(naked)
 HWND WINAPI SetParent_fix(HWND hWndChild, HWND hWndNewParent)
 {
@@ -839,7 +837,7 @@ __hwndok:
 	jnz     __childfail
 
 	/* return control to SetParent (nothunk version) */
-	jmp     dword ptr [SetParent]
+	jmp     dword ptr [SetParent_nothunk]
 
 __childfail:
 	/* circular reference detected - stop! */
@@ -853,6 +851,7 @@ __error:
 
 	}
 }
+#endif
 
 /* MAKE_EXPORT UpdateLayeredWindow_new=UpdateLayeredWindow */
 BOOL WINAPI UpdateLayeredWindow_new(
