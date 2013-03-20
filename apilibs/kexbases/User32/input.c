@@ -154,7 +154,7 @@ SHORT WINAPI GetAsyncKeyState_nothunk(int vKey)
 /* MAKE_EXPORT GetCursorPos_nothunk=GetCursorPos */
 BOOL WINAPI GetCursorPos_nothunk( LPPOINT lpPoint )
 {
-	if (lpPoint == NULL || IsBadReadPtr(lpPoint , sizeof(POINT)))
+	if (lpPoint == NULL || IsBadWritePtr(lpPoint , sizeof(POINT)))
 		return FALSE;
 
 	lpPoint->x = pInputData->CursorPos.x;
@@ -302,14 +302,16 @@ BOOL WINAPI SetCursorPos_nothunk(int X, int Y)
 	if(Y >= rcClient.bottom) Y = rcClient.bottom - 1;
 	if(Y < rcClient.top)     Y = rcClient.top;
 
+	ReleaseWin16Lock();
 	PostMessage(GetCapture(), WM_MOUSEMOVE, vKey, MAKELPARAM(X, Y));
+	GrabWin16Lock();
 
 	TRACE("New cursor position : X = %d, Y = %d", X, Y);
 
 	pInputData->CursorPos.x = X;
 	pInputData->CursorPos.y = Y;
 
-	/* FIXME : SHOW the new cursor position */
+	/* FIXME : The new cursor position won't show unless the user moves the mouse */
 
 	ReleaseWin16Lock();
 
