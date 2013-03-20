@@ -657,6 +657,8 @@ BOOL WINAPI CloseDesktop_new(HDESK hDesktop)
 	kexDereferenceObject(DesktopObject);
 	result = kexDereferenceObject(DesktopObject);
 
+	TRACE("Object 0x%X dereferenced\n", DesktopObject);
+
 	if(DesktopObject->cReferences < 1)
 	{
 		TRACE("Removing object 0x%X from the system\n", DesktopObject);
