@@ -94,6 +94,9 @@ HDESK WINAPI OpenDesktopA_new(LPSTR lpszDesktop, DWORD dwFlags, BOOL fInherit, A
 HDESK WINAPI OpenInputDesktop_new(DWORD dwFlags, BOOL fInherit, ACCESS_MASK dwDesiredAccess);
 BOOL WINAPI SetThreadDesktop_new(HDESK hDesktop);
 BOOL WINAPI SwitchDesktop_new(HDESK hDesktop);
+HWND WINAPI CreateDialogIndirectParamA_fix(HINSTANCE hInstance, LPCDLGTEMPLATE lpTemplate, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM lParamInit);
+HWND WINAPI CreateDialogParamA_fix(HINSTANCE hInstance, LPCTSTR lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam);
+HWND WINAPI GetNextDlgTabItem_fix(HWND hDlg, HWND hCtl, BOOL bPrevious);
 LONG WINAPI ChangeDisplaySettingsExA_fix(LPCSTR lpszDeviceName, LPDEVMODE lpDevMode, HWND hwnd, DWORD dwflags, LPVOID lParam);
 LONG WINAPI ChangeDisplaySettingsA_fix(LPDEVMODE lpDevMode, DWORD dwflags);
 BOOL WINAPI EnumDisplaySettingsA_fix(LPCSTR lpszDeviceName, DWORD iModeNum, LPDEVMODE lpDevMode);
