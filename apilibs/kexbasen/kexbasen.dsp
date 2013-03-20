@@ -399,6 +399,10 @@ SOURCE=.\ntdll\_ntdll_apilist.h
 
 SOURCE=.\ntdll\_ntdll_stubs.c
 # End Source File
+# Begin Source File
+
+SOURCE=.\ntdll\ntruntime.c
+# End Source File
 # End Group
 # Begin Group "netapi32"
 
