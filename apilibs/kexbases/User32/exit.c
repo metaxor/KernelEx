@@ -271,17 +271,17 @@ BOOL CALLBACK EnumProcessesProc(DWORD dwProcessId, PSHUTDOWNDATA ShutdownData)
 	if(Process == NULL)
 		return TRUE;
 
-	/* Skip services processes */
-	if((Process->Flags & fServiceProcess || Process == Msg32Process) && !ShutdownData->fEndServices)
-		return TRUE;
-
-	if(!(Process->Flags & fServiceProcess) && Process != Msg32Process && ShutdownData->fEndServices)
-		return TRUE;
-
 	kexGetProcessName(dwProcessId, ProcessName);
 
+	/* Skip services processes */
+	if((Process->Flags & fServiceProcess || Process == Msg32Process || !strcmp(ProcessName, "SYSTRAY.EXE")) && !ShutdownData->fEndServices)
+		return TRUE;
+
+	if(!(Process->Flags & fServiceProcess) && Process != Msg32Process && strcmp(ProcessName, "SYSTRAY.EXE") && ShutdownData->fEndServices)
+		return TRUE;
+
 	/* Fail if the process is the MPR process or the process is the system tray */
-	if(Process == MprProcess || !strcmp(ProcessName, "SYSTRAY.EXE"))
+	if(Process == MprProcess)
 		return TRUE;
 
 	ShutdownData->ShellProcessId = GetWindowProcessId(GetShellWindow_new());
