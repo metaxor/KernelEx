@@ -28,6 +28,14 @@ BOOL init_ntdll()
 	return TRUE;
 }
 
+/* HACK to prevent stdio/crt initialization which cause crash at startup */
+extern "C" {
+	BOOL APIENTRY _DllMainCRTStartup(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved)
+	{
+		return TRUE;
+	}
+}
+
 void main(){}
 
 static const apilib_named_api ntdll_named_apis[] = 
