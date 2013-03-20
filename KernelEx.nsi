@@ -328,7 +328,14 @@ Section "Install"
   Rename /REBOOTOK $0  "$INSTDIR\userenv.dll"
   WriteRegStr HKLM "Software\KernelEx\KnownDLLs" \
     "USERENV" "USERENV.DLL"
-  
+
+  GetTempFileName $0 "$INSTDIR"
+  File /oname=$0 output-i386\Release\winsta.dll
+  Delete "$INSTDIR\winsta.dll"
+  Rename /REBOOTOK $0  "$INSTDIR\winsta.dll"
+  WriteRegStr HKLM "Software\KernelEx\KnownDLLs" \
+    "WINSTA" "WINSTA.DLL"
+
   SetOverwrite lastused
   
   ExecWait '"$WINDIR\regedit.exe" /s "$INSTDIR\settings.reg"'
@@ -416,6 +423,8 @@ Section "Uninstall"
   DeleteRegValue HKLM "Software\KernelEx\KnownDLLs" "WTSAPI32"
   Delete /REBOOTOK "$INSTDIR\userenv.dll"
   DeleteRegValue HKLM "Software\KernelEx\KnownDLLs" "USERENV"
+   Delete /REBOOTOK "$INSTDIR\winsta.dll"
+  DeleteRegValue HKLM "Software\KernelEx\KnownDLLs" "WINSTA"
   
   File "util\sdbcreate\sdbdb\kexsdb.u.reg"
   ExecWait '"$WINDIR\regedit.exe" /s "$INSTDIR\kexsdb.u.reg"'
