@@ -333,6 +333,7 @@ VOID process_user_uninit(PPDB98 Process)
 	__except(EXCEPTION_EXECUTE_HANDLER)
 	{
 	}
+
 	return;
 }
 
@@ -385,9 +386,7 @@ static const apilib_named_api user32_named_apis[] =
 	DECL_API("CreateDesktopExA", CreateDesktopExA_new),
 	DECL_API("CreateDesktopExW", CreateDesktopExW_new),
 	DECL_API("CreateDesktopW", CreateDesktopW_new),
-	DECL_API("CreateDialogIndirectParamA", CreateDialogIndirectParamA_fix),
 	DECL_API("CreateDialogIndirectParamW", CreateDialogIndirectParamW_NEW),
-	DECL_API("CreateDialogParamA", CreateDialogParamA_fix),
 	DECL_API("CreateDialogParamW", CreateDialogParamW_NEW),
 	DECL_API("CreateMDIWindowA", CreateMDIWindowA_fix),
 	DECL_API("CreateMDIWindowW", CreateMDIWindowW_NEW),
@@ -427,13 +426,11 @@ static const apilib_named_api user32_named_apis[] =
 	DECL_API("GetClassLongW", GetClassLongW_NEW),
 	DECL_API("GetCursorPos", GetCursorPos_nothunk),
 	DECL_API("GetDlgItemTextW", GetDlgItemTextW_NEW),
-	DECL_API("GetForegroundWindow", GetForegroundWindow_fix),
 	DECL_API("GetInputDesktop", GetInputDesktop_new),
 	DECL_API("GetLastInputInfo", GetLastInputInfo_NEW),
 	DECL_API("GetMessageA", GetMessageA_NEW),
 	DECL_API("GetMessageW", GetMessageW_NEW),
 	DECL_API("GetMouseMovePointsEx", GetMouseMovePointsEx_98),
-	DECL_API("GetNextDlgTabItem", GetNextDlgTabItem_fix),
 	DECL_API("GetParent", GetParent_nothunk),
 	DECL_API("GetProcessWindowStation", GetProcessWindowStation_new),
 	DECL_API("GetRawInputBuffer", GetRawInputBuffer_new),
@@ -503,7 +500,7 @@ static const apilib_named_api user32_named_apis[] =
 	DECL_API("SetForegroundWindow", SetForegroundWindow_fix),
 	DECL_API("SetLayeredWindowAttributes", SetLayeredWindowAttributes_stub),
 	DECL_API("SetLogonNotifyWindow", SetLogonNotifyWindow_new),
-	DECL_API("SetParent", SetParent_fix),
+	DECL_API("SetParent", SetParent_nothunk),
 	DECL_API("SetProcessWindowStation", SetProcessWindowStation_new),
 	DECL_API("SetThreadDesktop", SetThreadDesktop_new),
 	DECL_API("SetUserObjectInformationA", SetUserObjectInformationA_new),
