@@ -24,6 +24,17 @@
 
 #include "common.h"
 #include "kexcoresdk.h"
+#include <stddef.h>
+#include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include <math.h>
+
+#undef _tolower
+#undef _toupper
+#undef isascii
+#include "../../../kexcrt/ctypes.h"
 
 BOOL init_ntdll();
 extern const apilib_api_table apitable_ntdll;
