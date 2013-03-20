@@ -754,31 +754,250 @@ BOOL WINAPI IsBadStringPtrW_new(LPCWSTR lpsz, UINT_PTR ucchMax)
     return Result;
 }
 
+/* MAKE_EXPORT OpenEventW_new=OpenEventW */
+HANDLE WINAPI OpenEventW_new(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpNameW)
+{
+	ALLOC_WtoA(lpName);
 
-DUMMY_FUNCTION(OpenEventW);
-DUMMY_FUNCTION(OpenFileMappingW);
-DUMMY_FUNCTION(OpenMutexW);
-DUMMY_FUNCTION(OpenSemaphoreW);
-DUMMY_FUNCTION(OpenWaitableTimerW);
-DUMMY_FUNCTION(PeekConsoleInputW);
-DUMMY_FUNCTION(QueryDosDeviceW);
-DUMMY_FUNCTION(ReadConsoleOutputCharacterW);
-DUMMY_FUNCTION(ReadConsoleOutputW);
-DUMMY_FUNCTION(ReadConsoleW);
-DUMMY_FUNCTION(ScrollConsoleScreenBufferW);
-DUMMY_FUNCTION(SetCalendarInfoW);
-DUMMY_FUNCTION(SetComputerNameW);
-DUMMY_FUNCTION(SetDefaultCommConfigW);
-DUMMY_FUNCTION(SetEnvironmentVariableW);
-DUMMY_FUNCTION(SetLocaleInfoW);
-DUMMY_FUNCTION(SetVolumeLabelW);
-DUMMY_FUNCTION(WaitNamedPipeW);
-DUMMY_FUNCTION(WriteConsoleInputW);
-DUMMY_FUNCTION(WriteConsoleOutputCharacterW);
-DUMMY_FUNCTION(WriteConsoleOutputW);
-DUMMY_FUNCTION(WriteConsoleW);
-DUMMY_FUNCTION(WritePrivateProfileSectionW);
-DUMMY_FUNCTION(WritePrivateProfileStringW);
-DUMMY_FUNCTION(WritePrivateProfileStructW);
-DUMMY_FUNCTION(WriteProfileSectionW);
-DUMMY_FUNCTION(WriteProfileStringW);
+	return OpenEventA(dwDesiredAccess, bInheritHandle, lpNameA);
+}
+
+/* MAKE_EXPORT OpenFileMappingW_new=OpenFileMappingW */
+HANDLE WINAPI OpenFileMappingW_new(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpNameW)
+{
+	ALLOC_WtoA(lpName);
+
+	return OpenFileMappingA(dwDesiredAccess, bInheritHandle, lpNameA);
+}
+
+/* MAKE_EXPORT OpenMutexW_new=OpenMutexW */
+HANDLE WINAPI OpenMutexW_new(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpNameW)
+{
+	ALLOC_WtoA(lpName);
+
+	return OpenMutexA(dwDesiredAccess, bInheritHandle, lpNameA);
+}
+
+/* MAKE_EXPORT OpenSemaphoreW_new=OpenSemaphoreW */
+HANDLE WINAPI OpenSemaphoreW_new(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpNameW)
+{
+	ALLOC_WtoA(lpName);
+
+	return OpenSemaphoreA(dwDesiredAccess, bInheritHandle, lpNameA);
+}
+
+/* MAKE_EXPORT OpenWaitableTimerW_new=OpenWaitableTimerW */
+HANDLE WINAPI OpenWaitableTimerW_new(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpTimerNameW)
+{
+	ALLOC_WtoA(lpTimerName);
+
+	return OpenWaitableTimerA(dwDesiredAccess, bInheritHandle, lpTimerNameA);
+}
+
+/* MAKE_EXPORT PeekConsoleInputW_new=PeekConsoleInputW */
+BOOL WINAPI PeekConsoleInputW_new(HANDLE hConsoleInput, PINPUT_RECORD lpBuffer, DWORD nLength, LPDWORD lpNumberOfEventsRead)
+{
+	/* Any differences with the unicode version here ? */
+	return PeekConsoleInputA(hConsoleInput, lpBuffer, nLength, lpNumberOfEventsRead);
+}
+
+/* MAKE_EXPORT QueryDosDeviceW_new=QueryDosDeviceW */
+DWORD WINAPI QueryDosDeviceW_new(LPCWSTR lpDeviceNameW, LPWSTR lpTargetPathW, DWORD ucchMax)
+{
+	LPSTR lpTargetPathA = (LPSTR)malloc(ucchMax);
+	DWORD result = 0;
+
+	if(lpTargetPathA == NULL)
+		return 0;
+
+	ALLOC_WtoA(lpDeviceName);
+
+	result = QueryDosDeviceA(lpDeviceNameA, lpTargetPathA, ucchMax);
+
+	if(!result)
+	{
+		free(lpTargetPathA);
+		return 0;
+	}
+
+	STACK_AtoW(lpTargetPathA, lpTargetPathW);
+
+	free(lpTargetPathA);
+
+	return result;
+}
+
+/* MAKE_EXPORT ReadConsoleOutputCharacterW_new=ReadConsoleOutputCharacterW */
+BOOL WINAPI ReadConsoleOutputCharacterW_new(HANDLE hConsoleOutput, LPWSTR lpCharacterW, DWORD nLength, COORD dwReadCoord, LPDWORD lpNumberOfCharsRead)
+{
+	LPSTR lpCharacterA = (LPSTR)malloc(nLength);
+	DWORD result = 0;
+
+	if(lpCharacterA == NULL)
+		return 0;
+
+	result = ReadConsoleOutputCharacterA(hConsoleOutput, lpCharacterA, nLength, dwReadCoord, lpNumberOfCharsRead);
+
+	if(!result)
+	{
+		free(lpCharacterA);
+		return 0;
+	}
+
+	STACK_AtoW(lpCharacterA, lpCharacterW);
+
+	free(lpCharacterA);
+
+	return result;
+}
+
+/* MAKE_EXPORT ReadConsoleOutputW_new=ReadConsoleOutputW */
+BOOL WINAPI ReadConsoleOutputW_new(HANDLE hConsoleOutput, PCHAR_INFO lpBuffer, COORD dwBufferSize, COORD dwBufferCoord, PSMALL_RECT lpReadRegion)
+{
+	return ReadConsoleOutputA(hConsoleOutput, lpBuffer, dwBufferSize, dwBufferCoord, lpReadRegion);
+}
+
+/* MAKE_EXPORT ReadConsoleW_new=ReadConsoleW */
+BOOL WINAPI ReadConsoleW_new(HANDLE hConsoleInput, LPVOID lpBuffer, DWORD nNumberOfCharsToRead, LPDWORD lpNumberOfCharsRead, LPVOID lpReserved)
+{
+	return ReadConsoleA(hConsoleInput, lpBuffer, nNumberOfCharsToRead, lpNumberOfCharsRead, lpReserved);
+}
+
+/* MAKE_EXPORT ScrollConsoleScreenBufferW_new=ScrollConsoleScreenBufferW */
+BOOL WINAPI ScrollConsoleScreenBufferW_new(HANDLE hConsoleOutput, const SMALL_RECT* lpScrollRectangle, const SMALL_RECT* lpClipRectangle, COORD dwDestinationOrigin, const CHAR_INFO* lpFill)
+{
+	return ScrollConsoleScreenBufferA(hConsoleOutput, lpScrollRectangle, lpClipRectangle, dwDestinationOrigin, lpFill);
+}
+
+/* MAKE_EXPORT SetCalendarInfoW_new=SetCalendarInfoW */
+int WINAPI SetCalendarInfoW_new(LCID Locale, CALID Calendar, CALTYPE CalType, LPCWSTR lpCalDataW)
+{
+	ALLOC_WtoA(lpCalData);
+
+	return SetCalendarInfoA(Locale, Calendar, CalType, lpCalDataA);
+}
+
+/* MAKE_EXPORT SetComputerNameW_new=SetComputerNameW */
+BOOL WINAPI SetComputerNameW_new(LPCWSTR lpComputerNameW)
+{
+	ALLOC_WtoA(lpComputerName);
+
+	return SetComputerNameA(lpComputerNameA);
+}
+
+/* MAKE_EXPORT SetDefaultCommConfigW_new=SetDefaultCommConfigW_new */
+BOOL WINAPI SetDefaultCommConfigW_new(LPCWSTR lpszNameW, LPCOMMCONFIG lpCC, DWORD dwSize)
+{
+	ALLOC_WtoA(lpszName);
+
+	return SetDefaultCommConfigA(lpszNameA, lpCC, dwSize);
+}
+
+BOOL WINAPI SetEnvironmentVariableW_new(LPCWSTR lpNameW, LPCWSTR lpValueW)
+{
+	ALLOC_WtoA(lpName);
+	ALLOC_WtoA(lpValue);
+
+	return SetEnvironmentVariableA(lpNameA, lpValueA);
+}
+
+/* MAKE_EXPORT SetLocaleInfoW_new=SetLocaleInfoW */
+BOOL WINAPI SetLocaleInfoW_new(LCID Locale, LCTYPE LCType, LPCWSTR lpLCDataW)
+{
+	ALLOC_WtoA(lpLCData);
+
+	return SetLocaleInfoA(Locale, LCType, lpLCDataA);
+}
+
+/* MAKE_EXPORT SetVolumeLabelW_new=SetVolumeLabelW */
+BOOL WINAPI SetVolumeLabelW_new(LPCWSTR lpRootPathNameW, LPCWSTR lpVolumeNameW)
+{
+	ALLOC_WtoA(lpRootPathName);
+	ALLOC_WtoA(lpVolumeName);
+
+	return SetVolumeLabelA(lpRootPathNameA, lpVolumeNameA);
+}
+
+/* MAKE_EXPORT WaitNamedPipeW_new=WaitNamedPipeW */
+BOOL WINAPI WaitNamedPipeW_new(LPCWSTR lpNamedPipeNameW, DWORD nTimeOut)
+{
+	ALLOC_WtoA(lpNamedPipeName);
+
+	return WaitNamedPipeA(lpNamedPipeNameA, nTimeOut);
+}
+
+/* MAKE_EXPORT WriteConsoleInputW_new=WriteConsoleInputW */
+BOOL WINAPI WriteConsoleInputW_new(HANDLE hConsoleInput, const INPUT_RECORD* lpBuffer, DWORD nLength, LPDWORD lpNumberOfEventsWritten)
+{
+	return WriteConsoleInputA(hConsoleInput, lpBuffer, nLength, lpNumberOfEventsWritten);
+}
+
+/* MAKE_EXPORT WriteConsoleOutputCharacterW_new=WriteConsoleOutputCharacterW */
+BOOL WINAPI WriteConsoleOutputCharacterW_new(HANDLE hConsoleOutput, LPCWSTR lpCharacterW, DWORD nLength, COORD dwWriteCoord, LPDWORD lpNumberOfCharsWritten)
+{
+	ALLOC_WtoA(lpCharacter);
+
+	return WriteConsoleOutputCharacterA(hConsoleOutput, lpCharacterA, nLength, dwWriteCoord, lpNumberOfCharsWritten);
+}
+
+/* MAKE_EXPORT WriteConsoleOutputW_new=WriteConsoleOutputW */
+BOOL WINAPI WriteConsoleOutputW_new(HANDLE hConsoleOutput, const CHAR_INFO* lpBuffer, COORD dwBufferSize, COORD dwBufferCoord, PSMALL_RECT lpWriteRegion)
+{
+	return WriteConsoleOutputA(hConsoleOutput, lpBuffer, dwBufferSize, dwBufferCoord, lpWriteRegion);
+}
+
+/* MAKE_EXPORT WriteConsoleW_new=WriteConsoleW */
+BOOL WINAPI WriteConsoleW_new(HANDLE hConsoleOutput, const VOID* lpBuffer, DWORD nNumberOfCharsToWrite, LPDWORD lpNumberOfCharsWritten, LPVOID lpReserved)
+{
+	return WriteConsoleA(hConsoleOutput, lpBuffer, nNumberOfCharsToWrite, lpNumberOfCharsWritten, lpReserved);
+}
+
+/* MAKE_EXPORT WritePrivateProfileSectionW_new=WritePrivateProfileSectionW */
+BOOL WINAPI WritePrivateProfileSectionW_new(LPCWSTR lpAppNameW, LPCWSTR lpStringW, LPCWSTR lpFileNameW)
+{
+	ALLOC_WtoA(lpAppName);
+	ALLOC_WtoA(lpString);
+	ALLOC_WtoA(lpFileName);
+
+	return WritePrivateProfileSectionA(lpAppNameA, lpStringA, lpFileNameA);
+}
+
+/* MAKE_EXPORT WritePrivateProfileStringW_new=WritePrivateProfileStringW */
+BOOL WINAPI WritePrivateProfileStringW_new(LPCWSTR lpAppNameW, LPCWSTR lpKeyNameW, LPCWSTR lpStringW, LPCWSTR lpFileNameW)
+{
+	ALLOC_WtoA(lpAppName);
+	ALLOC_WtoA(lpKeyName);
+	ALLOC_WtoA(lpString);
+	ALLOC_WtoA(lpFileName);
+
+	return WritePrivateProfileStringA(lpAppNameA, lpKeyNameA, lpStringA, lpFileNameA);
+}
+
+/* MAKE_EXPORT WritePrivateProfileStructW_new=WritePrivateProfileStructW */
+BOOL WINAPI WritePrivateProfileStructW_new(LPCWSTR lpszSectionW, LPCWSTR lpszKeyW, LPVOID lpStruct, UINT uSizeStruct, LPCWSTR szFileW)
+{
+	ALLOC_WtoA(lpszSection);
+	ALLOC_WtoA(lpszKey);
+	ALLOC_WtoA(szFile);
+
+	return WritePrivateProfileStructA(lpszSectionA, lpszKeyA, lpStruct, uSizeStruct, szFileA);
+}
+
+/* MAKE_EXPORT WriteProfileSectionW_new=WriteProfileSectionW */
+BOOL WINAPI WriteProfileSectionW_new(LPCWSTR lpAppNameW, LPCWSTR lpStringW)
+{
+	ALLOC_WtoA(lpAppName);
+	ALLOC_WtoA(lpString);
+
+	return WriteProfileSectionA(lpAppNameA, lpStringA);
+}
+
+/* MAKE_EXPORT WriteProfileStringW_new=WriteProfileStringW */
+BOOL WINAPI WriteProfileStringW_new(LPCWSTR lpAppNameW, LPCWSTR lpKeyNameW, LPCWSTR lpStringW)
+{
+	ALLOC_WtoA(lpAppName);
+	ALLOC_WtoA(lpKeyName);
+	ALLOC_WtoA(lpString);
+
+	return WriteProfileStringA(lpAppNameA, lpKeyNameA, lpStringA);
+}
