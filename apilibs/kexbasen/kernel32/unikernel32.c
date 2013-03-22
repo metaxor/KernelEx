@@ -22,8 +22,6 @@
 #include "common.h"
 #include "unifwd.h"
 
-#define DUMMY_FUNCTION(x)
-
 /* MAKE_EXPORT BuildCommDCBAndTimeoutsW_new=BuildCommDCBAndTimeoutsW */
 BOOL WINAPI BuildCommDCBAndTimeoutsW_new(LPCWSTR lpDefW, LPDCB lpDCB, LPCOMMTIMEOUTS lpCommTimeouts)
 {
