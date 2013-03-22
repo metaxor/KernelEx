@@ -425,6 +425,10 @@ SOURCE=.\netapi32\netbuffer.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\netapi32\netget.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\netapi32\netshare.c
 # End Source File
 # End Group
