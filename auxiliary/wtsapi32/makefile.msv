@@ -1,10 +1,10 @@
 # Makefile for Microsoft Visual C++ Compiler (MSVC)
 
-OBJ = winsta.lib wtsapi32.obj
+OBJ = wtsapi32.obj
 RES = 
 DEF = /DEF:wtsapi32.def
 BIN = ..\..\output-i386\Release\wtsapi32.dll
-LIBS = -nodefaultlib kernel32.lib gdi32.lib user32.lib ../../kexcrt/kexcrt.lib ../../common/KernelEx.lib
+LIBS = -nodefaultlib kernel32.lib gdi32.lib user32.lib ../../kexcrt/kexcrt.lib ../winsta/winsta.lib ../../common/KernelEx.lib
 LDFLAGS = /DLL /OPT:NOWIN98 /ENTRY:DllMain@12
 CFLAGS = /W3 /O2 /Oi /FD
 CXXFLAGS = $(CFLAGS)
@@ -32,7 +32,3 @@ $(BIN) : $(OBJ) $(RES)
 
 .cpp.obj : 
 	cl /nologo $(CXXFLAGS) /c /Fo$@ $<
-
-winsta.lib : ../winsta/winsta.def
-	link /LIB /NOLOGO /MACHINE:IX86 /DEF:$? /OUT:$@
-

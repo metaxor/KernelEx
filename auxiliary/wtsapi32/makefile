@@ -25,7 +25,7 @@ clean :
 realclean : clean
 	-@if exist $(BIN) del $(BIN)
 
-$(BIN) : $(OBJ) $(RES) ..\winsta\winsta.a
+$(BIN) : $(OBJ) $(RES) winsta.def
 	$(CXX) $(LDFLAGS) -o $(BIN) $(OBJ) $(RES) $(LIBS)  $(DEF)
 
 .c.o : 
