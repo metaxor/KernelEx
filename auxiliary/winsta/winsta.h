@@ -30,6 +30,9 @@
 #include <wtsapi32.h>
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 static const char* debugstr_a(const char* a)
 {
 	return a;
@@ -68,5 +71,9 @@ BOOL WINSTAAPI WinStationSendMessageW(HANDLE hServer,
 );
 BOOL WINSTAAPI WinStationTerminateProcess(HANDLE hServer, DWORD ProcessId, DWORD ExitCode);
 BOOL WINSTAAPI WinStationWaitSystemEvent(HANDLE hServer, DWORD Mask, DWORD* Flags);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

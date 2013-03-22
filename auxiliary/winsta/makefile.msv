@@ -1,6 +1,6 @@
 # Makefile for Microsoft Visual C++ Compiler (MSVC)
 
-OBJ = winsta.obj
+OBJ = winsta.lib winsta.obj
 RES = 
 DEF = /DEF:winsta.def
 BIN = ..\..\output-i386\Release\winsta.dll
@@ -18,6 +18,8 @@ clean :
 	-@if exist *.obj del *.obj
 	-@if exist *.idb del *.idb
 	-@if exist *.res del *.res
+	-@if exist *.exp del *.exp
+	-@if exist *.lib del *.lib
 
 realclean : clean
 	-@if exist $(BIN) del $(BIN)
@@ -31,3 +33,5 @@ $(BIN) : $(OBJ) $(RES)
 .cpp.obj : 
 	cl /nologo $(CXXFLAGS) /c /Fo$@ $<
 
+winsta.lib : winsta.def
+	link /LIB /NOLOGO /MACHINE:IX86 /DEF:$? /OUT:$@
