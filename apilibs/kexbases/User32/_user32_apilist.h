@@ -196,7 +196,7 @@ BOOL WINAPI AnyPopup_nothunk(VOID);
 HWND WINAPI CreateMDIWindowA_fix(LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int X, int Y, int nWidth, int nHeight, HWND hWndParent, HINSTANCE hInstance, LPARAM lParam);
 HWND WINAPI CreateWindowExA_fix(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam);
 void __stdcall DisableProcessWindowsGhosting_new(void);
-BOOL WINAPI EnableWindow_nothunk(HWND hWnd, BOOL bEnable);
+BOOL WINAPI EnableWindow_fix(HWND hWnd, BOOL bEnable);
 BOOL WINAPI EnumChildWindows_nothunk(HWND hWndParent, WNDENUMPROC lpEnumFunc, LPARAM lParam);
 BOOL WINAPI EnumThreadWindows_nothunk(DWORD dwThreadId, WNDENUMPROC lpfn, LPARAM lParam);
 BOOL WINAPI EnumWindows_nothunk(WNDENUMPROC lpEnumFunc, LPARAM lParam);

@@ -433,6 +433,10 @@ HWND WINAPI CreateWindowExA_fix(DWORD dwExStyle,
 /* MAKE_EXPORT DisableProcessWindowsGhosting_new=DisableProcessWindowsGhosting */
 void __stdcall DisableProcessWindowsGhosting_new(void)
 {
+	PPDB98 Process = get_pdb();
+
+	if(Process->Win32Process != NULL)
+		Process->Win32Process->WindowsGhosting = FALSE;
 }
 
 /* 
@@ -443,48 +447,69 @@ void __stdcall DisableProcessWindowsGhosting_new(void)
  * a multiple of 64K 
  */
 
-/* MAKE_EXPORT EnableWindow_nothunk=EnableWindow */
+/* MAKE_EXPORT EnableWindow_fix=EnableWindow */
+BOOL WINAPI EnableWindow_fix(HWND hWnd, BOOL bEnable)
+{
+	return EnableWindow(hWnd, bEnable ? TRUE : FALSE);
+}
+
+/* FIXME: The following code make the cursor unusable if hWnd is a window (e.g: GOM Player's About window )*/
+#if 0
 BOOL WINAPI EnableWindow_nothunk(HWND hWnd, BOOL bEnable)
 {
 	PWND pWnd = HWNDtoPWND(hWnd);
 	BOOL fDisabled = FALSE;
 	BOOL fUpdate = FALSE;
-	PMSGQUEUE pQueue = NULL;
+
+	TRACE_OUT("Enter EnableWindow\n");
+
+	GrabWin16Lock();
 
 	if(pWnd == NULL)
-		return FALSE;
+		goto _ret;
 
-	pQueue = GetWindowQueue(pWnd);
+	fDisabled = !!(pWnd->style & WS_DISABLED);
 
-	if(pQueue == NULL)
-		return FALSE;
-
-	fDisabled = (pWnd->style & WS_DISABLED);
-
-	if(!bEnable)
+	if(bEnable)
 	{
-		fUpdate = !fDisabled;
+		fUpdate = fDisabled;
 
-		SendMessage(hWnd, WM_CANCELMODE, 0, 0);
-
-		/* To avoid troubles, remove the input from this windows if the thread has focus for it */
-		if(pQueue->threadId == GetCurrentThreadId())
-			SetFocus(NULL);
-
-		pWnd->style |= WS_DISABLED;
+		if(pWnd->style & WS_DISABLED)
+			pWnd->style &= ~WS_DISABLED;
 	}
 	else
 	{
-		fUpdate = fDisabled;
-		pWnd->style &= ~WS_DISABLED;
+		fUpdate = !fDisabled;
+
+		ReleaseWin16Lock();
+		SendMessage(hWnd, WM_CANCELMODE, 0, 0);
+		GrabWin16Lock();
+
+		/* To avoid troubles, remove the input from this windows if the thread has focus for it */
+		if(hWnd == GetFocus())
+		{
+			TRACE_OUT("EnableWindow : Set NULL focus\n");
+			SetFocus(NULL);
+		}
+
+		if(!(pWnd->style & WS_DISABLED))
+			pWnd->style |= WS_DISABLED;
 	}
+
+_ret:
+	ReleaseWin16Lock();
 
 	/* Update if needed */
 	if(fUpdate)
+	{
+		NotifyWinEvent(EVENT_OBJECT_STATECHANGE, hWnd, OBJID_WINDOW, CHILDID_SELF);
 		SendMessage(hWnd, WM_ENABLE, bEnable, 0);
+	}
 
+	TRACE("Leave EnableWindow, fDisabled=%d", fDisabled);
 	return fDisabled;
 }
+#endif
 
 /* MAKE_EXPORT EnumChildWindows_nothunk=EnumChildWindows */
 BOOL WINAPI EnumChildWindows_nothunk(HWND hWndParent,

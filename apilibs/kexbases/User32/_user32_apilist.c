@@ -408,7 +408,7 @@ static const apilib_named_api user32_named_apis[] =
 	DECL_API("DisableProcessWindowsGhosting", DisableProcessWindowsGhosting_new),
 	DECL_API("DispatchMessageW", DispatchMessageA),
 	DECL_API("DrawCaptionTempW", DrawCaptionTempW_new),
-	DECL_API("EnableWindow", EnableWindow_nothunk),
+	DECL_API("EnableWindow", EnableWindow_fix),
 	DECL_API("EnumChildWindows", EnumChildWindows_nothunk),
 	DECL_API("EnumDesktopWindows", EnumDesktopWindows_new),
 	DECL_API("EnumDesktopsA", EnumDesktopsA_new),
