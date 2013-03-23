@@ -95,6 +95,7 @@ BOOL ppi_init(PPDB98 Process)
 	ppi->hdeskStartup = NULL;
 	ppi->rpdeskStartup = NULL;
 	ppi->ShutdownLevel = 0x280;
+	ppi->WindowsGhosting = TRUE;
 
 	return TRUE;
 }
