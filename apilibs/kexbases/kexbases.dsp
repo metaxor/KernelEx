@@ -277,10 +277,6 @@ SOURCE=.\User32\input.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\User32\LockWorkStation.c
-# End Source File
-# Begin Source File
-
 SOURCE=.\User32\lstr.c
 # End Source File
 # Begin Source File
