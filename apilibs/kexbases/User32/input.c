@@ -23,6 +23,9 @@
 
 #include "input.h"
 #include "desktop.h"
+#include "_user32_apilist.h"
+
+GetMouseMovePoints_t GetMouseMovePoints_pfn;
 
 PINPUTDATA pInputData = NULL;
 
@@ -162,6 +165,13 @@ BOOL WINAPI GetCursorPos_nothunk( LPPOINT lpPoint )
 
 	return TRUE;
 }
+
+/* MAKE_EXPORT GetMouseMovePointsEx_98=GetMouseMovePointsEx */
+int WINAPI GetMouseMovePointsEx_98(UINT size, LPMOUSEMOVEPOINT ptin, LPMOUSEMOVEPOINT ptout, int count, DWORD res)
+{
+	return GetMouseMovePoints_pfn(size, ptin, ptout, count, res);
+}
+
 
 /* MAKE_EXPORT MapVirtualKeyA_new=MapVirtualKeyA */
 UINT WINAPI MapVirtualKeyA_new(UINT uCode, UINT uMapType)
