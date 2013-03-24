@@ -45,7 +45,9 @@ int CurrentLine = 0;
 #define V_MAJOR		1
 #define V_MINOR		0
 
-_Declare_Virtual_Device(VKRNLEX, V_MAJOR, V_MINOR, ControlDispatcher, UNDEFINED_DEVICE_ID, UNDEFINED_INIT_ORDER, 0, 0, 0);
+#define VKRNLEX_STR {'V','K','R','N','L','E','X',' '}
+
+_Declare_Virtual_Device(VKRNLEX, V_MAJOR, V_MINOR, ControlDispatcher, UNDEFINED_DEVICE_ID, UNDEFINED_INIT_ORDER, 0, 0, 0, VKRNLEX_STR);
 
 DWORD ( _stdcall *VKernelEx_W32_Proc[] )(DWORD, PDIOCPARAMETERS) = {
         VKernelEx_IOCTL_Connect,
