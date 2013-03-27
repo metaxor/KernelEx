@@ -38,6 +38,7 @@ static const char c_szDBCSProp[]="kexDBCS";
 #define WF_M_DIALOG	0x2
 
 /* Custom flags */
+#define WS_INTERNAL_HUNGWASVISIBLE	0x00002000 // Reserved for ghost windows
 #define WS_INTERNAL_MUSTPAINT		0x00004000 // currently unused
 #define WS_INTERNAL_WASVISIBLE		0x00008000 // Reseved flag for desktop switching
 #define WS_EX_INTERNAL_WASTOPMOST	0x80000000
