@@ -25,12 +25,10 @@
 #include "common.h"
 #include "thuni_layer.h"
 
-#ifndef _HWND32_H
-#define _HWND32_H
-
 #define IS_SYSTEM_HWND(hwnd) ((hwnd)>=(HWND)0x80 && (hwnd)<=(HWND)0x88)
 
 #pragma pack (1)
+
 typedef struct _RECTS
 {
 	SHORT    left;
@@ -69,6 +67,66 @@ typedef struct _WND
 	DWORD   alternatePID;      // 58h
 	DWORD   alternateTID;      // 5Ch
 } WND, *PWND;
+
+typedef struct _WINDOWSDATA
+{
+	WORD	Tick;						// 000h - Time (retrieved by GETCURRENTTIME)
+	WORD	wUn1;						// 002h
+	WORD	wUn2;						// 004h - Unused
+	WORD	wUn3;						// 006h
+	WORD	wGlobalObj;					// 008h - GETUSERLOCALOBJTYPE, ???
+	WORD	wAlign;						// 00Ah
+	DWORD	dwUn4;						// 00Ch
+	WORD	wUn4;						// 010h
+	WORD	wAlign2[3];					// 012h
+	WORD	wUn5;						// 018h
+	BYTE	str1[0x2C];					// 01Ah - Strings (not needed)
+	WORD	wUn6;						// 046h
+	BYTE	str2[2];					// 048h
+	WORD	wUn7;						// 04Ah
+	BYTE	str3[2];					// 04Ch
+	BYTE	str4[0x4C];					// 04Eh
+	WORD	wUn8;						// 09Ah
+	DWORD	dwUn9;						// 09Ch
+	WORD	wGdiObj1;					// 0A0h - Used by ISGDIOBJECT
+	WORD	wFont1;						// 0A2h - Used by CREATEFONTINDIRECT
+	BYTE	str5[0x38];					// 0A4h
+	DWORD	dwUn10;						// 0DCh
+	BYTE	str6[0x5A];					// 0E0h
+	WORD	wUn11;						// 13Ah
+	WORD	wUn12;						// 13Ch
+	WORD	wUn13;						// 13Eh
+	BYTE	str7[0x8C];					// 140h
+	WORD	wUn14;						// 1CCh
+	BYTE	str8[0x74];					// 1CEh
+	WORD	wUn15;						// 242h
+	WORD	wCursorTimer;				// 244h - Changed by SETCHECKCURSORTIMER
+	DWORD	dwUn16;						// 246h
+	WORD	wUn17;						// 24Ah
+	BYTE	str9[0xF2];					// 24Ch
+	WORD	wUn18;						// 33Eh
+	WORD	wUn19;						// 340h
+	WORD	wUn20;						// 342h
+	BYTE	str10[0x23E];				// 344h
+	BYTE	un21[0x4C];					// 582h
+	WORD	pSysClass;					// 5CEh - Pointer to system classes list
+	BYTE	un22[0xEA];					// 5D0h
+	DWORD	ClipboardOwner;				// 6BAh - Called by GETCLIPBOARDOWNER
+	DWORD	ClipboardViewer;			// 6BEh - Called by GETCLIPBOARDVIEWER
+	WORD	wUn23;						// 6C2h
+	WORD	wUn24;						// 6C4h
+	DWORD	ClipboardWindow;			// 6C6h - Called by GETOPENCLIPBOARDWINDOW
+	BYTE	un25[0x4A];					// 6CAh
+	PWND	pwndDesktop;				// 714h - Desktop window, why is this always NULL ?
+	BYTE	un26[0x36];					// 718h
+	WORD	MenuHeap32;					// 74Eh - USER32 menu heap
+	DWORD	MenuHeapHandleTableBase;	// 750h - Menu heap handle table
+	DWORD	WindowHeapHandleTableBase;	// 754h - Window heap handle table
+
+	/* The rest are unknown (from dseg34:0758 to dseg34:1B6F)*/
+} WINDOWSDATA, *PWINDOWSDATA;
+
+extern PWINDOWSDATA pWindowsData; // How to call it anyway ?
 
 typedef struct _MSGQUEUE
 {
@@ -185,4 +243,4 @@ _ret:
 /* IsWindow returns PWND */
 #define HWNDtoPWND(hwnd) (PWND)IsWindow(hwnd)//GetWindowObject(hwnd)
 
-#endif
+BOOL FASTCALL InitWindowsSegment(void);
