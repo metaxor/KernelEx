@@ -194,6 +194,7 @@ BOOL init_user32()
 	HANDLE hThread2 = NULL;
 	HANDLE hThread3 = NULL;
 	BOOL fInputResult = FALSE;
+	BOOL fWindowsResult = FALSE;
 	DWORD dwThreadId = 0;
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
@@ -212,6 +213,7 @@ BOOL init_user32()
 	GetMouseMovePoints_pfn = (GetMouseMovePoints_t)kexGetProcAddress(hUser32, "GetMouseMovePoints");
 
 	fInputResult = InitInputSegment();
+	fWindowsResult = InitWindowsSegment();
 
 	if(gpdeskInputDesktop == NULL)
 		if(!CreateWindowStationAndDesktops())
@@ -277,7 +279,7 @@ BOOL init_user32()
 #endif
 
 	return IsHungThread_pfn && DrawCaptionTempA_pfn && GetMouseMovePoints_pfn
-			&& hThread && hThread2 && hThread3 && fInputResult;
+			&& hThread && hThread2 && hThread3 && fInputResult && fWindowsResult;
 }
 
 BOOL thread_user32_init(PTDB98 Thread)

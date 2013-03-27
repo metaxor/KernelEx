@@ -27,6 +27,41 @@
 #include "_user32_apilist.h"
 #include "thuni_layer.h"
 
+PWINDOWSDATA pWindowsData = NULL;
+
+BOOL FASTCALL InitWindowsSegment(void)
+{
+	HINSTANCE hUser16 = (HINSTANCE)LoadLibrary16("user");
+	WORD *WindowsSegment = NULL;
+
+	if((DWORD)hUser16 < 32)
+	{
+		TRACE("Failed to load USER (err=%d)\n", hUser16);
+		return FALSE;
+	}
+
+	WindowsSegment = (WORD*)MapSL(GetProcAddress16(hUser16, "GETCURRENTTIME") + 4);
+
+	if(WindowsSegment == NULL)
+	{
+		TRACE_OUT("Failed to load GetCurrentTime\n");
+		FreeLibrary16(hUser16);
+		return FALSE;
+	}
+
+	pWindowsData = (PWINDOWSDATA)MapSL((DWORD)*WindowsSegment << 16);
+
+	if(pWindowsData == NULL)
+	{
+		TRACE_OUT("Failed to get the windows segment\n");
+		FreeLibrary16(hUser16);
+		return FALSE;
+	}
+
+	FreeLibrary16(hUser16);
+	return TRUE;
+}
+
 /* returns TRUE if hwnd is a parent of hwndNewParent */
 static BOOL WINAPI TestChild(HWND hwnd, HWND hwndNewParent)
 {
@@ -664,8 +699,7 @@ _ret:
 /* MAKE_EXPORT GetDesktopWindow_source=GetDesktopWindow */
 HWND WINAPI GetDesktopWindow_source(VOID)
 {
-	/* Desktop window is always HWND 0x80 */
-	return (HWND)0x80;
+	return (HWND)0x80;//pWindowsData->pwndDesktop->hWnd16;
 }
 
 /* MAKE_EXPORT GetDialogBaseUnits_source=GetDialogBaseUnits */
