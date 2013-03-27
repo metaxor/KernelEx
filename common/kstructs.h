@@ -143,6 +143,7 @@ typedef struct _THREADINFO
         PVOID                   Thread;
         struct _WINDOWSTATION   *rpwinsta;
     };
+	BOOL				fGhosted;
 } THREADINFO, *PTHREADINFO;
 
 typedef struct _PROCESSINFO
