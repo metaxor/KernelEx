@@ -94,12 +94,16 @@ BOOL FASTCALL InitInputSegment(void)
 	WORD *InputSegment = NULL;
 
 	if((DWORD)hUser16 < 32)
+	{
+		TRACE("Failed to load USER (err=%d)\n", hUser16);
 		return FALSE;
+	}
 
 	InputSegment = (WORD*)MapSL(GetProcAddress16(hUser16, "GETASYNCKEYSTATE") + 6);
 
 	if(InputSegment == NULL)
 	{
+		TRACE_OUT("Failed to load GetAsyncKeyState\n");
 		FreeLibrary16(hUser16);
 		return FALSE;
 	}
@@ -108,6 +112,7 @@ BOOL FASTCALL InitInputSegment(void)
 
 	if(pInputData == NULL)
 	{
+		TRACE_OUT("Failed to get the input segment\n");
 		FreeLibrary16(hUser16);
 		return FALSE;
 	}
