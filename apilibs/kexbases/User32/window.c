@@ -628,11 +628,90 @@ HWND APIENTRY GetAncestor_fix(HWND hwnd, UINT gaFlags)
 	return GetAncestor(hwnd, gaFlags);
 }
 
+/* MAKE_EXPORT GetClientRect_source=GetClientRect */
+BOOL WINAPI GetClientRect_source(HWND hWnd, LPRECT lpRect)
+{
+	PWND pWnd = HWNDtoPWND(hWnd);
+	BOOL result = FALSE;
+
+	GrabWin16Lock();
+
+	if(pWnd == NULL || IsBadWritePtr(lpRect, sizeof(RECT)))
+		goto _ret;
+
+	if (pWnd->style & WS_MINIMIZE)
+	{
+		lpRect->left = lpRect->top = 0;
+		lpRect->right = GetSystemMetrics(SM_CXMINIMIZED);
+		lpRect->bottom = GetSystemMetrics(SM_CYMINIMIZED);
+		return TRUE;
+	}
+	else
+	{
+		lpRect->bottom = pWnd->rcClient.bottom;
+		lpRect->left = pWnd->rcClient.left;
+		lpRect->right = pWnd->rcClient.right;
+		lpRect->top = pWnd->rcClient.top;
+
+		OffsetRect_source(lpRect, -pWnd->rcClient.left, -pWnd->rcClient.top);
+	}
+
+_ret:
+	ReleaseWin16Lock();
+	return result;
+}
+
+/* MAKE_EXPORT GetDesktopWindow_source=GetDesktopWindow */
+HWND WINAPI GetDesktopWindow_source(VOID)
+{
+	/* Desktop window is always HWND 0x80 */
+	return (HWND)0x80;
+}
+
+/* MAKE_EXPORT GetDialogBaseUnits_source=GetDialogBaseUnits */
+LONG WINAPI GetDialogBaseUnits_source(VOID)
+{
+	DWORD low = g_UserBase;
+	DWORD high;
+	DWORD retval;
+
+	low = *(DWORD*)(low + 0x193E);
+	high = *(DWORD*)(g_UserBase + 0x192C);
+
+	retval = low << 16;
+	retval |= high;
+
+	return retval;
+}
+
 /* MAKE_EXPORT GetShellWindow_new=GetShellWindow */
 HWND APIENTRY GetShellWindow_new(VOID)
 {
 	//return FindWindow("SysListView32", NULL);
 	return FindWindow("Shell_TrayWnd", NULL);
+}
+
+/* MAKE_EXPORT GetWindowRect_source=GetWindowRect */
+BOOL WINAPI GetWindowRect_source(HWND hWnd, LPRECT lpRect)
+{
+	PWND pWnd = HWNDtoPWND(hWnd);
+	BOOL result = FALSE;
+
+	GrabWin16Lock();
+
+	if(pWnd == NULL || IsBadWritePtr(lpRect, sizeof(RECT)))
+		goto _ret;
+
+	lpRect->bottom = pWnd->rcWindow.bottom;
+	lpRect->left = pWnd->rcWindow.left;
+	lpRect->right = pWnd->rcWindow.right;
+	lpRect->top = pWnd->rcWindow.top;
+
+	result = TRUE;
+
+_ret:
+	ReleaseWin16Lock();
+	return result;
 }
 
 /* MAKE_EXPORT IsHungAppWindow_new=IsHungAppWindow */
@@ -666,6 +745,20 @@ BOOL WINAPI IsWindowVisible_fix(HWND hWnd)
 	}
 
 	ReleaseWin16Lock();
+
+	return TRUE;
+}
+
+/* MAKE_EXPORT OffsetRect_source=OffsetRect */
+BOOL WINAPI OffsetRect_source(LPRECT lprc, int dx, int dy)
+{
+    if (lprc == NULL || IsBadReadPtr(lprc, sizeof(RECT)) || IsBadWritePtr(lprc, sizeof(RECT)))
+		return FALSE;
+
+	lprc->left += dx;
+	lprc->right += dx;
+	lprc->bottom += dy;
+	lprc->top += dy;
 
 	return TRUE;
 }
@@ -895,11 +988,11 @@ BOOL WINAPI UpdateLayeredWindow_new(
 	if ( (GetWindowLong(hwnd,GWL_EXSTYLE) & WS_EX_LAYERED) && hdcSrc && pptSrc )
 	{
 		RECT rc;
-		GetWindowRect(hwnd,&rc);
+		GetWindowRect_source(hwnd,&rc);
 		if (pptDst)
 		{
-			OffsetRect(&rc,-rc.left,-rc.top);
-			OffsetRect(&rc,pptDst->x,pptDst->y);
+			OffsetRect_source(&rc,-rc.left,-rc.top);
+			OffsetRect_source(&rc,pptDst->x,pptDst->y);
 		}
 		if (psize)
 		{
@@ -908,7 +1001,7 @@ BOOL WINAPI UpdateLayeredWindow_new(
 		}
 		MoveWindow(hwnd,rc.left,rc.top,rc.right-rc.left,rc.bottom-rc.top,FALSE);
 		HDC hdc = GetDC( hwnd );
-		OffsetRect(&rc,-rc.left,-rc.top);
+		OffsetRect_source(&rc,-rc.left,-rc.top);
 		ret = BitBlt(hdc,0,0,rc.right-rc.left,rc.bottom-rc.top,hdcSrc,pptSrc->x,pptSrc->y,SRCCOPY);
 		ReleaseDC(hwnd,hdc);
 	}
