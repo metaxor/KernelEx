@@ -202,6 +202,7 @@ HWINSTA WINAPI CreateWindowStationA_new(LPCSTR lpwinsta, DWORD dwFlags, ACCESS_M
 BOOL WINAPI EnumWindowStationsA_new(WINSTAENUMPROCA lpEnumFunc, LPARAM lParam)
 {
 	PWINSTATION_OBJECT WindowStationObject;
+	HANDLE hWindowStation;
 	PLIST_ENTRY WinStaList;
 
 	if(IsBadCodePtr((FARPROC)lpEnumFunc))
@@ -212,7 +213,14 @@ BOOL WINAPI EnumWindowStationsA_new(WINSTAENUMPROCA lpEnumFunc, LPARAM lParam)
 
 	for(WinStaList = WindowStationList.Flink; WinStaList != &WindowStationList; WinStaList = WinStaList->Flink)
 	{
-		// FIXME: Check WindowStationObject's access right for WINSTA_ENUMERATE
+		if(kexFindObjectHandle(get_pdb(), WindowStationObject, K32OBJ_WINSTATION, &hWindowStation))
+		{
+			/* Skip the window station if the process has it and doesn't have the WINSTA_ENUMERATE
+			   access right */
+			if(!(kexGetHandleAccess(hWindowStation) & WINSTA_ENUMERATE))
+				continue;
+		}
+
 		WindowStationObject = CONTAINING_RECORD(WinStaList, WINSTATION_OBJECT, ListEntry);
 
 		if(!(*lpEnumFunc)(WindowStationObject->lpName, lParam))
