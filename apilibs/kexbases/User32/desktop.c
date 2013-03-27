@@ -559,16 +559,6 @@ DWORD WINAPI DesktopThread(PVOID lParam)
 		}
 
 		ReleaseWin16Lock();
-
-		/* FIXME: Wait for Win16Lock to be grabbed/released without wasting system resources */
-		/*while(pWin16Mutex == NULL || pWin16Mutex->LockCount >= 0)
-		{
-			PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE);
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-			Sleep(1);
-			continue;
-		}*/
 	}
 
 	return 0;
@@ -817,6 +807,7 @@ BOOL WINAPI EnumDesktopsA_new(HWINSTA hwinsta, DESKTOPENUMPROCA lpEnumFunc, LPAR
 {
 	PWINSTATION_OBJECT WindowStationObject;
 	PDESKTOP DesktopObject;
+	HANDLE hDesktop;
 	PLIST_ENTRY DesktopList;
 
 	if(IsBadCodePtr((FARPROC)lpEnumFunc))
@@ -831,7 +822,7 @@ BOOL WINAPI EnumDesktopsA_new(HWINSTA hwinsta, DESKTOPENUMPROCA lpEnumFunc, LPAR
 		return FALSE;
 	}
 
-	/* Check if hwinsta has the WINSTA_ENUMDESKTOPS access right */
+	/* Fail if the window station doesn't have the WINSTA_ENUMDESKTOPS access right */
 	if(!(kexGetHandleAccess(hwinsta) & WINSTA_ENUMDESKTOPS))
 	{
 		SetLastError(ERROR_ACCESS_DENIED);
@@ -841,7 +832,13 @@ BOOL WINAPI EnumDesktopsA_new(HWINSTA hwinsta, DESKTOPENUMPROCA lpEnumFunc, LPAR
 
 	for(DesktopList = WindowStationObject->DesktopListHead.Flink; DesktopList != &WindowStationObject->DesktopListHead; DesktopList = DesktopList->Flink)
 	{
-		// FIXME: Check DesktopObject's access right for DESKTOP_ENUMERATE
+		if(kexFindObjectHandle(get_pdb(), DesktopObject, K32OBJ_DESKTOP, &hDesktop))
+		{
+			/* Skip the desktop if the process has it and doesn't have the DESKTOP_ENUMERATE
+			   access right */
+			if(!(kexGetHandleAccess(hDesktop) & DESKTOP_ENUMERATE))
+				continue;
+		}
 		DesktopObject = CONTAINING_RECORD(DesktopList, DESKTOP, ListEntry);
 
 		if(!(*lpEnumFunc)(DesktopObject->lpName, lParam))
