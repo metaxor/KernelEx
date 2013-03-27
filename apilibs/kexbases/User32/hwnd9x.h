@@ -22,7 +22,6 @@
 
 #pragma once
 
-#include <windows.h>
 #include "common.h"
 #include "thuni_layer.h"
 
@@ -151,22 +150,18 @@ PWND inline GetWindowObject(HWND hWnd)
 {
     PWND pWnd;
 
-	/* This function doesn't work */
-
-    GrabWin16Lock();
-
     if(hWnd == NULL)
         goto _ret;
 
-    /* Check if hWnd is a multiple of 4 */
+    /* fail if the hWnd isn't a multiple of 4 */
     if((DWORD)hWnd & 3)
         goto _ret;
 
-    /* if hWnd is below 0x80 */
+    /* fail if the hWnd is below 0x80 */
     if((DWORD)hWnd < 0x80)
         goto _ret;
 
-    /* if hWnd is above the max HWND value */
+    /* fail if the hWnd is above the max HWND value */
     if((DWORD)hWnd > *(PDWORD)(g_UserBase + 0x10070) )
         goto _ret;
 
@@ -184,11 +179,10 @@ PWND inline GetWindowObject(HWND hWnd)
     pWnd = (PWND)REBASEUSER(pWnd);
 
 _ret:
-    ReleaseWin16Lock();
     return pWnd;
 }
 
 /* IsWindow returns PWND */
-#define HWNDtoPWND(hwnd) (PWND)IsWindow(hwnd) 
+#define HWNDtoPWND(hwnd) (PWND)IsWindow(hwnd)//GetWindowObject(hwnd)
 
 #endif
