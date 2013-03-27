@@ -3,6 +3,7 @@
 // Used by kexbases.rc
 //
 #define IDD_ENDTASK                     101
+#define IDD_ENDTASK2                    102
 #define IDC_WAITTASK                    1000
 #define IDC_ENDTASK                     1001
 #define IDT_STATIC2                     1002
