@@ -27,6 +27,7 @@
 #include "_user32_apilist.h"
 #include "../kernel32/_kernel32_apilist.h"
 #include "thuni_layer.h"
+#include "hung.h"
 
 IsHungThread_t IsHungThread_pfn;
 DrawCaptionTempA_t DrawCaptionTempA_pfn;
@@ -197,6 +198,9 @@ BOOL init_user32()
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
 
+	if(!InitUniThunkLayer())
+		return FALSE;
+
 	MprProcess = get_pdb();
 	gpidMpr = GetCurrentProcessId();
 
@@ -217,10 +221,7 @@ BOOL init_user32()
 	hThread = CreateKernelThread(NULL, 0, DesktopThread, NULL, 0, &dwThreadId);
 
 	if(hThread == NULL)
-	{
 		TRACE_OUT("Failed to create the desktop thread !\n");
-		CloseHandle(hThread);
-	}
 
 	/* Create the shutdown thread */
 	hThread2 = CreateKernelThread(NULL, 0, ShutdownThread, NULL, 0, &dwThreadId);
@@ -228,7 +229,8 @@ BOOL init_user32()
 	if(hThread2 == NULL)
 	{
 		TRACE_OUT("Failed to create the shutdown thread !\n");
-		CloseHandle(hThread2);
+		CloseHandle(hThread);
+		hThread = NULL;
 	}
 
 	/* Create the hard-error messages thread */
@@ -237,8 +239,24 @@ BOOL init_user32()
 	if(hThread3 == NULL)
 	{
 		TRACE_OUT("Failed to create the hard-error messages thread !\n");
-		CloseHandle(hThread3);
+		CloseHandle(hThread);
+		CloseHandle(hThread2);
+		hThread = hThread2 = NULL;
 	}
+
+#if 0
+	/* Create the hang manager thread */
+	hThread4 = CreateKernelThread(NULL, 0, HangManagerThread, NULL, 0, &dwThreadId);
+
+	if(hThread4 == NULL)
+	{
+		TRACE_OUT("Failed to create the hang manager thread !\n");
+		CloseHandle(hThread);
+		CloseHandle(hThread2);
+		CloseHandle(hThread3);
+		hThread = hThread2 = hThread3 = NULL;
+	}
+#endif
 
 	memset(&si, 0, sizeof(STARTUPINFO));
 	memset(&pi, 0, sizeof(PROCESS_INFORMATION));
@@ -259,7 +277,7 @@ BOOL init_user32()
 #endif
 
 	return IsHungThread_pfn && DrawCaptionTempA_pfn && GetMouseMovePoints_pfn
-			&& InitUniThunkLayer() && hThread && hThread2 && hThread3 && fInputResult;
+			&& hThread && hThread2 && hThread3 && fInputResult;
 }
 
 BOOL thread_user32_init(PTDB98 Thread)
@@ -426,7 +444,10 @@ static const apilib_named_api user32_named_apis[] =
 	DECL_API("GetClassInfoExW", GetClassInfoExW_NEW),
 	DECL_API("GetClassInfoW", GetClassInfoW_NEW),
 	DECL_API("GetClassLongW", GetClassLongW_NEW),
+	DECL_API("GetClientRect", GetClientRect_source),
 	DECL_API("GetCursorPos", GetCursorPos_nothunk),
+	DECL_API("GetDesktopWindow", GetDesktopWindow_source),
+	DECL_API("GetDialogBaseUnits", GetDialogBaseUnits_source),
 	DECL_API("GetDlgItemTextW", GetDlgItemTextW_NEW),
 	DECL_API("GetInputDesktop", GetInputDesktop_new),
 	DECL_API("GetLastInputInfo", GetLastInputInfo_NEW),
@@ -449,6 +470,7 @@ static const apilib_named_api user32_named_apis[] =
 	DECL_API("GetUserObjectSecurity", GetUserObjectSecurity_new),
 	DECL_API("GetWindowLongA", GetWindowLongA_NEW),
 	DECL_API("GetWindowLongW", GetWindowLongW_NEW),
+	DECL_API("GetWindowRect", GetWindowRect_source),
 	DECL_API("GetWindowTextLengthW", GetWindowTextLengthW_NEW),
 	DECL_API("GetWindowTextW", GetWindowTextW_NEW),
 	DECL_API("InitSharedTable", InitSharedTable_stub),
@@ -473,6 +495,7 @@ static const apilib_named_api user32_named_apis[] =
 	DECL_API("ModifyMenuW", ModifyMenuW_new),
 	DECL_API("OemToCharBuffW", OemToCharBuffW_new),
 	DECL_API("OemToCharW", OemToCharW_new),
+	DECL_API("OffsetRect", OffsetRect_source),
 	DECL_API("OpenDesktopA", OpenDesktopA_new),
 	DECL_API("OpenDesktopW", OpenDesktopW_new),
 	DECL_API("OpenInputDesktop", OpenInputDesktop_new),
