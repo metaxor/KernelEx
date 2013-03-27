@@ -265,6 +265,14 @@ SOURCE=.\User32\exit.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\User32\hung.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\User32\hung.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\User32\input.c
 # End Source File
 # Begin Source File
