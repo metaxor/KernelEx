@@ -70,6 +70,8 @@ typedef struct _WND
 
 typedef struct _WINDOWSDATA
 {
+	/* Almost every fields of this struct are NULL, what's wrong ? */
+
 	WORD	Tick;						// 000h - Time (retrieved by GETCURRENTTIME)
 	WORD	wUn1;						// 002h
 	WORD	wUn2;						// 004h - Unused
@@ -117,13 +119,15 @@ typedef struct _WINDOWSDATA
 	WORD	wUn24;						// 6C4h
 	DWORD	ClipboardWindow;			// 6C6h - Called by GETOPENCLIPBOARDWINDOW
 	BYTE	un25[0x4A];					// 6CAh
-	PWND	pwndDesktop;				// 714h - Desktop window, why is this always NULL ?
+	PWND	pwndDesktop;				// 714h - Pointer to the desktop window structure
 	BYTE	un26[0x36];					// 718h
 	WORD	MenuHeap32;					// 74Eh - USER32 menu heap
 	DWORD	MenuHeapHandleTableBase;	// 750h - Menu heap handle table
 	DWORD	WindowHeapHandleTableBase;	// 754h - Window heap handle table
+	BYTE	un27[0xAF0];				// 758h
+	HWND	hwndDesktop;				// 1248h - Desktop window
 
-	/* The rest are unknown (from dseg34:0758 to dseg34:1B6F)*/
+	/* The rest are unknown (from dseg34:1248 to dseg34:1B6F)*/
 } WINDOWSDATA, *PWINDOWSDATA;
 
 extern PWINDOWSDATA pWindowsData; // How to call it anyway ?
