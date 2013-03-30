@@ -37,20 +37,45 @@ HRESULT WINAPI PrintDlgEx_new(LPPRINTDLGEX lppd)
 	if(lppd->lStructSize != sizeof(PRINTDLGEX))
 		return E_FAIL;
 
-	pdlg.lStructSize = sizeof(PRINTDLG);
+	pdlg.lStructSize			= sizeof(PRINTDLG);
 
-	pdlg.Flags = lppd->Flags;
-	pdlg.hDC = lppd->hDC;
-	pdlg.hDevMode = lppd->hDevMode;
-	pdlg.hDevNames = lppd->hDevNames;
-	pdlg.hInstance = lppd->hInstance;
-	pdlg.hwndOwner = lppd->hwndOwner;
-	pdlg.lpPrintTemplateName = lppd->lpPrintTemplateName;
-	pdlg.nCopies = (SHORT)lppd->nCopies;
-	pdlg.nFromPage = (SHORT)lppd->nStartPage;
-	pdlg.nMaxPage = (SHORT)lppd->nMaxPage;
-	pdlg.nMinPage = (SHORT)lppd->nMinPage;
-	pdlg.nToPage = (SHORT)lppd->nStartPage + (SHORT)lppd->nCopies;
+	pdlg.hwndOwner				= lppd->hwndOwner;
+	pdlg.hDevMode				= lppd->hDevMode;
+	pdlg.hDevNames				= lppd->hDevNames;
+	pdlg.hDC					= lppd->hDC;
+	pdlg.Flags					= !(lppd->Flags & PD_USEDEVMODECOPIESANDCOLLATE) ? PD_USEDEVMODECOPIESANDCOLLATE : 0
+									| !(lppd->Flags & PD_RETURNDC) ? PD_RETURNDC : 0 | lppd->Flags;
+	pdlg.nCopies				= 1;
+	pdlg.nFromPage				= 0xFFFF; 
+	pdlg.nToPage				= 0xFFFF; 
+	pdlg.nMinPage				= (SHORT)lppd->nMinPage;
+	pdlg.nMaxPage				= (SHORT)lppd->nMaxPage;
+	pdlg.nCopies				= (SHORT)lppd->nCopies;
+	pdlg.hInstance				= lppd->hInstance;
+	pdlg.lCustData				= 0;
+	pdlg.lpfnPrintHook			= NULL;
+	pdlg.lpfnSetupHook			= NULL;
+	pdlg.lpPrintTemplateName	= lppd->lpPrintTemplateName;
+	pdlg.lpSetupTemplateName	= NULL;
+	pdlg.hPrintTemplate			= NULL;
+	pdlg.hSetupTemplate			= NULL;
 
-	return PrintDlg(&pdlg);
+
+	if(PrintDlg(&pdlg))
+	{
+		lppd->dwResultAction	= PD_RESULT_PRINT;
+		lppd->hDevMode			= pdlg.hDevMode;
+		lppd->hDevNames			= pdlg.hDevNames;
+		lppd->hDC				= pdlg.hDC;
+		lppd->nPageRanges		= 0;
+		lppd->nMaxPageRanges	= 0;
+		lppd->lpPageRanges		= NULL;
+		lppd->nMinPage			= pdlg.nMinPage;
+		lppd->nMaxPage			= pdlg.nMaxPage;
+		lppd->nCopies			= pdlg.nCopies;
+	}
+	else
+		lppd->dwResultAction	= PD_RESULT_CANCEL;
+
+	return S_OK;
 }
