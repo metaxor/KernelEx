@@ -29,6 +29,28 @@
  */
 HRESULT WINAPI PrintDlgEx_new(LPPRINTDLGEX lppd)
 {
-	SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
-	return E_NOTIMPL;
+	PRINTDLG pdlg;
+
+	if(lppd == NULL || IsBadReadPtr(lppd, sizeof(PRINTDLGEX)) || IsBadWritePtr(lppd, sizeof(PRINTDLGEX)))
+		return E_POINTER;
+
+	if(lppd->lStructSize != sizeof(PRINTDLGEX))
+		return E_FAIL;
+
+	pdlg.lStructSize = sizeof(PRINTDLG);
+
+	pdlg.Flags = lppd->Flags;
+	pdlg.hDC = lppd->hDC;
+	pdlg.hDevMode = lppd->hDevMode;
+	pdlg.hDevNames = lppd->hDevNames;
+	pdlg.hInstance = lppd->hInstance;
+	pdlg.hwndOwner = lppd->hwndOwner;
+	pdlg.lpPrintTemplateName = lppd->lpPrintTemplateName;
+	pdlg.nCopies = (SHORT)lppd->nCopies;
+	pdlg.nFromPage = (SHORT)lppd->nStartPage;
+	pdlg.nMaxPage = (SHORT)lppd->nMaxPage;
+	pdlg.nMinPage = (SHORT)lppd->nMinPage;
+	pdlg.nToPage = (SHORT)lppd->nStartPage + (SHORT)lppd->nCopies;
+
+	return PrintDlg(&pdlg);
 }
