@@ -25,9 +25,9 @@
 #include "debug.h"
 #include "kexcoresdk.h"
 
-#define USEWDEB
+//#define USEWDEB
 //#define USECOMPORT
-//#define WRITETOLOG
+#define WRITETOLOG
 
 BOOL fCommInitialized = FALSE;
 
