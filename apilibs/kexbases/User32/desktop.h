@@ -24,6 +24,8 @@
 #include <stdio.h>
 #include "common.h"
 #include "thuni_layer.h"
+#include "thuni_macro.h"
+#include "thuni_thunk.h"
 #include "listhead.h"
 #include "kstructs.h"
 #include "..\gdi32\GdiObjects.h"
@@ -178,6 +180,8 @@ extern PPDB98 pKernelProcess;
 extern PTDB98 pDesktopThread;
 extern DWORD dwDesktopThreadId;
 extern DWORD dwKernelProcessId;
+
+extern PWND pwndDesktop;
 
 BOOL WINAPI CreateWindowStationAndDesktops();
 
