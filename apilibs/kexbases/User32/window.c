@@ -27,41 +27,6 @@
 #include "_user32_apilist.h"
 #include "thuni_layer.h"
 
-PWINDOWSDATA pWindowsData = NULL;
-
-BOOL FASTCALL InitWindowsSegment(void)
-{
-	HINSTANCE hUser16 = (HINSTANCE)LoadLibrary16("user");
-	WORD *WindowsSegment = NULL;
-
-	if((DWORD)hUser16 < 32)
-	{
-		TRACE("Failed to load USER (err=%d)\n", hUser16);
-		return FALSE;
-	}
-
-	WindowsSegment = (WORD*)MapSL(GetProcAddress16(hUser16, "GETCURRENTTIME") + 4);
-
-	if(WindowsSegment == NULL)
-	{
-		TRACE_OUT("Failed to load GetCurrentTime\n");
-		FreeLibrary16(hUser16);
-		return FALSE;
-	}
-
-	pWindowsData = (PWINDOWSDATA)MapSL((DWORD)*WindowsSegment << 16);
-
-	if(pWindowsData == NULL)
-	{
-		TRACE_OUT("Failed to get the windows segment\n");
-		FreeLibrary16(hUser16);
-		return FALSE;
-	}
-
-	FreeLibrary16(hUser16);
-	return TRUE;
-}
-
 /* returns TRUE if hwnd is a parent of hwndNewParent */
 static BOOL WINAPI TestChild(HWND hwnd, HWND hwndNewParent)
 {
@@ -663,7 +628,7 @@ HWND APIENTRY GetAncestor_fix(HWND hwnd, UINT gaFlags)
 	return GetAncestor(hwnd, gaFlags);
 }
 
-/* MAKE_EXPORT GetClientRect_source=GetClientRect */
+/* DON'T EXPORT THIS */
 BOOL WINAPI GetClientRect_source(HWND hWnd, LPRECT lpRect)
 {
 	PWND pWnd = HWNDtoPWND(hWnd);
@@ -696,16 +661,10 @@ _ret:
 	return result;
 }
 
-/* MAKE_EXPORT GetDesktopWindow_source=GetDesktopWindow */
-HWND WINAPI GetDesktopWindow_source(VOID)
-{
-	return (HWND)0x80;//pWindowsData->pwndDesktop->hWnd16;
-}
-
-/* MAKE_EXPORT GetDialogBaseUnits_source=GetDialogBaseUnits */
+/* DON'T EXPORT THIS */
 LONG WINAPI GetDialogBaseUnits_source(VOID)
 {
-	DWORD low = g_UserBase;
+	DWORD low = (DWORD)g_UserBase;
 	DWORD high;
 	DWORD retval;
 
@@ -725,7 +684,7 @@ HWND APIENTRY GetShellWindow_new(VOID)
 	return FindWindow("Shell_TrayWnd", NULL);
 }
 
-/* MAKE_EXPORT GetWindowRect_source=GetWindowRect */
+/* DON'T EXPORT THIS */
 BOOL WINAPI GetWindowRect_source(HWND hWnd, LPRECT lpRect)
 {
 	PWND pWnd = HWNDtoPWND(hWnd);
@@ -783,7 +742,7 @@ BOOL WINAPI IsWindowVisible_fix(HWND hWnd)
 	return TRUE;
 }
 
-/* MAKE_EXPORT OffsetRect_source=OffsetRect */
+/* DON'T EXPORT THIS */
 BOOL WINAPI OffsetRect_source(LPRECT lprc, int dx, int dy)
 {
     if (lprc == NULL || IsBadReadPtr(lprc, sizeof(RECT)) || IsBadWritePtr(lprc, sizeof(RECT)))
