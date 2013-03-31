@@ -31,6 +31,7 @@ BOOL fLoggingOff = FALSE;
 BOOL fAborted = FALSE;
 BOOL fForceShutdown = FALSE;
 DWORD dwShutdownThreadId = 0;
+PTDB98 pShutdownThread = NULL;
 DWORD ShutdownThreadWndId = 0;
 
 int WaitToKillAppTimeout = 20000;
@@ -333,6 +334,7 @@ DWORD WINAPI CreateShutdownWindow(PVOID lParam)
 	LPDLGTEMPLATE pDlg = (LPDLGTEMPLATE)GlobalLock(hGlobal);
 	MSG msg;
 	BOOL result;
+	HWND hWnd;
 	HANDLE hEvent = lParam;
 
 	pDlg->cdit = 0;
@@ -345,27 +347,30 @@ DWORD WINAPI CreateShutdownWindow(PVOID lParam)
 
 	GlobalUnlock(hGlobal);
 
-	CreateDialogIndirect(GetModuleHandle(0),
-						(LPDLGTEMPLATE)hGlobal,
-						NULL,
-						DialogProc);
+	hWnd = CreateDialogIndirect(GetModuleHandle(0),
+							(LPDLGTEMPLATE)hGlobal,
+							NULL,
+							DialogProc);
 
 	GlobalFree(hGlobal);
 
 	SetEvent(hEvent);
 
+	if(hWnd == NULL)
+		return 0;
+
 	while((result = GetMessage( &msg, NULL, 0, 0 )) != 0)
-	{ 
+	{
 		if (result == -1)
 		{
 			return 0;
 		}
 		else
 		{
-			TranslateMessage(&msg); 
-			DispatchMessage(&msg); 
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
 		}
-	} 
+	}
 
 	return 0;
 }
@@ -520,6 +525,8 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 	REGREMAPPREDEFKEY RegRemapPreDefKey = (REGREMAPPREDEFKEY)kexGetProcAddress(GetModuleHandle("ADVAPI32.DLL"), "RegRemapPreDefKey");
 	BYEBYEGDI ByeByeGDI = (BYEBYEGDI)kexGetProcAddress(GetModuleHandle("GDI32.DLL"), "ByeByeGDI");
 
+	pShutdownThread = get_tdb();
+
 	dwShutdownThreadId = GetCurrentThreadId();
 
 	while(1)
@@ -528,12 +535,15 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 
 		/* Make sure the message is WM_QUERYENDSESSION */
 		if(msg.message != WM_QUERYENDSESSION)
-			continue;
+		{
+			ERR("The message isn't WM_QUERYENDESSION ! (msg=0x%X)", msg.message);
+			goto finished;
+		}
 
 		if(IsBadReadPtr(MprProcess, sizeof(PDB98)) || MprProcess->Flags & INVALID_FLAGS)
 		{
-			TRACE_OUT("Cannot logoff/shutdown because MPREXE process is terminated !!\n");
-			continue;
+			ERR_OUT("Cannot logoff/shutdown because MPREXE process is terminated !!\n");
+			goto finished;
 		}
 
 		fShutdown = TRUE;
@@ -622,7 +632,8 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 
 			hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 			hThread = CreateThread(NULL, 0, CreateShutdownWindow, hEvent, 0, &ShutdownThreadWndId);
-			WaitForSingleObject(hEvent, INFINITE);
+			if(hThread != NULL)
+				WaitForSingleObject(hEvent, INFINITE);
 			SetWindowText(hwndGlobalText, "Please wait while the system is logging off.");
 			CloseHandle(hEvent);
 			CloseHandle(hThread);
