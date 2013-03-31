@@ -63,9 +63,6 @@ HANDLE WINAPI CreateRemoteThread_new(HANDLE hProcess,
         bInheritHandle = lpThreadAttributes->bInheritHandle;
     }
 
-    if (IsBadCodePtr((FARPROC)lpStartAddress))
-        return NULL;
-
     if (!(dwProcessId = GetProcessId_new(hProcess)))
         return NULL;
 
