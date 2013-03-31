@@ -28,7 +28,8 @@
 #include "thuni_layer.h"
 
 LPCRITICAL_SECTION pWin16Mutex;
-PUSERDGROUP g_UserBase;
+PUSERDGROUP gSharedInfo;
+DWORD UserHeap;
 HMODULE g_hUser32;
 
 BOOL InitUniThunkLayerStuff()
@@ -41,13 +42,16 @@ BOOL InitUniThunkLayerStuff()
 		return FALSE;
 
 	_GetpWin16Lock( &pWin16Mutex );
-	g_UserBase = (PUSERDGROUP)MapSL((DWORD)hUser16 << 16);
+	gSharedInfo = (PUSERDGROUP)MapSL((DWORD)hUser16 << 16);
 	g_hUser32 = GetModuleHandleA("user32");
+
+	if(gSharedInfo != NULL)
+		UserHeap = *(DWORD*)((DWORD)gSharedInfo + 0x1007C);
 
 	//FreeLibrary16(hUser16);
 
-	TRACE("ThunkLayer initialized: g_UserBase = 0x%X, hUser16 = 0x%X, g_hUser32 = 0x%X\n", g_UserBase, hUser16, g_hUser32);
-	return (g_UserBase && g_hUser32);
+	TRACE("ThunkLayer initialized: gSharedInfo = 0x%X, hUser16 = 0x%X, g_hUser32 = 0x%X\n", gSharedInfo, hUser16, g_hUser32);
+	return (gSharedInfo && g_hUser32);
 }
 
 void GrabWin16Lock()
