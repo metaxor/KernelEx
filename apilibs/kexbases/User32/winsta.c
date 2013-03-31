@@ -26,6 +26,9 @@ PPDB98 pKernelProcess = NULL;
 PWINSTATION_OBJECT InputWindowStation = NULL;
 LIST_ENTRY WindowStationList;
 
+/* Desktop switch event (WinSta0_DesktopSwitch) */
+HANDLE gpdeskSwitchEvent = NULL;
+
 BOOL InitProcessWindowStation(VOID)
 {
 	PPDB98 Process;
@@ -178,6 +181,7 @@ HWINSTA WINAPI CreateWindowStationA_new(LPCSTR lpwinsta, DWORD dwFlags, ACCESS_M
 	WindowStation = (HWINSTA)kexAllocHandle(Process, WindowStationObject, dwDesiredAccess | flags);
 
 	SetLastError(0);
+
 	/* Create the desktop switch event */
 	hEvent = CreateEvent(NULL, FALSE, FALSE, "WinSta0_DesktopSwitch");
 
@@ -190,8 +194,8 @@ HWINSTA WINAPI CreateWindowStationA_new(LPCSTR lpwinsta, DWORD dwFlags, ACCESS_M
 	}
 	else
 	{
-		/* Store the handle in the system process so that it is never closed */
-		ConvertToGlobalHandle(hEvent);
+		/* Store the handle in the system process so that it can't be closed */
+		gpdeskSwitchEvent = ConvertToGlobalHandle(hEvent);
 		CloseHandle(hEvent);
 	}
 

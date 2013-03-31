@@ -176,6 +176,8 @@ extern LIST_ENTRY WindowStationList;
 extern PWINSTATION_OBJECT InputWindowStation;
 extern PDESKTOP gpdeskInputDesktop;
 
+extern HANDLE gpdeskSwitchEvent;
+
 extern PPDB98 pKernelProcess;
 extern PTDB98 pDesktopThread;
 extern DWORD dwDesktopThreadId;
