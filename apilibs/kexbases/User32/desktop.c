@@ -24,12 +24,10 @@
 /* If desktop and window stations are fully implemented, we could make Windows 98
    run multiples sessions */
 
-/* NOTE: Desktops aren't input devices in KernelEx */
-/* NOTE2: If KernelEx compatibility is disabled on an application,
-   the application will always start on WinSta0\Default */
-/* NOTE3: Windows directly created in other desktop than InputDesktop will
-   sometimes have messed up scrollbars */
-/* NOTE4: Hung threads will appear on any desktop (logically) */
+/* NOTE: Desktops aren't input devices in KernelEx
+   NOTE2: Windows directly created in other desktop than the input desktop will
+   sometimes have messed up scrollbars
+*/
 
 /* Desktops */
 PDESKTOP gpdeskInputDesktop = NULL;
@@ -155,6 +153,7 @@ BOOL WINAPI CreateWindowStationAndDesktops()
 	sa.bInheritHandle = TRUE;
 
 	InitializeListHead(&WindowStationList);
+
 	hWindowStation = CreateWindowStationA_new("WinSta0", 0, WINSTA_ALL_ACCESS, &sa);
 
 	if(hWindowStation == NULL)
@@ -385,6 +384,7 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
 	PTHREADINFO pti = NULL;
 	PPROCESSINFO ppi = NULL;
 	BOOL fHung = FALSE;
+	BOOL fDesktopChanged = lParam;
 
 	dwThreadId = GetWindowThreadProcessId(hwnd, &dwProcessId);
 
@@ -492,8 +492,9 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
 				pwnd->ExStyle |= WS_EX_INTERNAL_WASTOPMOST;
 			}
 
-			/* Alot faster than SetWindowPos, and even redraw hung windows */
-			IntCompleteRedrawWindow(pwnd);
+			/* */
+			if(!fDesktopChanged)
+				IntCompleteRedrawWindow(pwnd); /* Faster than SetWindowPos, and even redraw hung windows */
 		}
 	}
 	else
@@ -511,7 +512,8 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
 				pwnd->ExStyle &= ~WS_EX_INTERNAL_WASTOPMOST;
 			}
 
-			IntCompleteRedrawWindow(pwnd);
+			if(!fDesktopChanged)
+				IntCompleteRedrawWindow(pwnd);
 		}
 	}
 
@@ -523,17 +525,16 @@ DWORD WINAPI DesktopThread(PVOID lParam)
 	MSG msg;
 
 	kexGrabLocks();
+
 	pDesktopThread = get_tdb();
 	pKernelProcess = get_pdb();
+
 	dwDesktopThreadId = GetCurrentThreadId();
 	dwKernelProcessId = GetCurrentProcessId();
 
-	/* Prevent the kernel process from being terminated by adding the terminating flag */
-	pKernelProcess->Flags |= fTerminating;
-
 	kexReleaseLocks();
 
-	//pwndDesktop = g_UserBase->pwndDesktop;
+	//pwndDesktop = gSharedInfo->pwndDesktop;
 
 	pwndDesktop = HWNDtoPWND(GetDesktopWindow());
 
@@ -550,14 +551,20 @@ DWORD WINAPI DesktopThread(PVOID lParam)
 		exception handling, crash happen when there is no free memory */
 		__try
 		{
-			EnumWindows_nothunk(EnumWindowsProc, 0);
+			if(!fNewDesktop)
+				EnumWindows_nothunk(EnumWindowsProc, 0);
+
 			EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, gpdeskInputDesktop->pdev);
+
 			if(InterlockedExchange((volatile long *)&fNewDesktop, FALSE) == TRUE)
 			{
+				EnumWindows_nothunk(EnumWindowsProc, TRUE);
 				TRACE_OUT("Input desktop has changed, redrawing screen... ");
 				RepaintScreen();
 				RedrawDesktop();
 				DBGPRINTF(("successful\n"));
+
+				SetEvent(gpdeskSwitchEvent);
 			}
 		}
 		__except(EXCEPTION_EXECUTE_HANDLER)
@@ -570,7 +577,7 @@ DWORD WINAPI DesktopThread(PVOID lParam)
 	return 0;
 }
 
-/**
+/*
  *
  *
  *
@@ -788,7 +795,7 @@ HDESK WINAPI CreateDesktopA_new(LPCSTR lpszDesktop, LPCSTR lpszDevice, LPDEVMODE
 	DesktopObject->pdev = pdev;
 	DesktopObject->DesktopWindow = GetDesktopWindow();
 
-	DesktopObject->pheapDesktop = (DWORD)g_UserBase; // Using USER32's Heap for each desktop
+	DesktopObject->pheapDesktop = (DWORD)gSharedInfo; // Using USER32's Heap for each desktop
 	DesktopObject->ulHeapSize = 4194304; // USER32's Heap size
 
 	hDesktop = (HDESK)kexAllocHandle(Process, DesktopObject, dwDesiredAccess | flags);
@@ -931,8 +938,8 @@ HWND WINAPI GetDesktopWindow_new(VOID)
 	   everything in USER's DGROUP seems right (non-NULL)
 	*/
 
-	//return (HWND)0x80;//g_UserBase->pwndDesktop->hWnd16;
-	//return g_UserBase->hwndDesktop;
+	//return (HWND)0x80;//gSharedInfo->pwndDesktop->hWnd16;
+	//return gSharedInfo->hwndDesktop;
 }
 
 /* MAKE_EXPORT GetInputDesktop_new=GetInputDesktop */
@@ -1147,8 +1154,6 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
     PDESKTOP DesktopObject = NULL;
     PWINSTATION_OBJECT WindowStationObject = NULL;
     HWINSTA hWinSta = GetProcessWindowStation_new();
-	BOOL FirstSwitch = (gpdeskInputDesktop == NULL);
-	HANDLE hEvent = NULL;
 	BOOL fFirstSwitch = (gpdeskInputDesktop == NULL);
 	BOOL fParent = FALSE;
 	PDEVMODE pdev = NULL;
@@ -1263,8 +1268,6 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
 		SetCursorPos_nothunk(GetSystemMetrics(SM_CXSCREEN)/2, GetSystemMetrics(SM_CYSCREEN)/2);
 	}
 
-	TRACE("Switching to desktop 0x%X successful\n", hDesktop);
-
 	kexDereferenceObject(DesktopObject);
 	kexDereferenceObject(WindowStationObject);
 
@@ -1272,15 +1275,16 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
 
 	InterlockedExchange((volatile long *)&fNewDesktop, TRUE);
 
-	/* Signal the desktop switch event */
-	hEvent = OpenEvent(EVENT_MODIFY_STATE, FALSE, "WinSta0_DesktopSwitch");
-
-	if(hEvent != NULL)
+	if(!fFirstSwitch)
 	{
-		SetEvent(hEvent);
-		ResetEvent(hEvent);
-		CloseHandle(hEvent);
+		TRACE("Waiting for desktop 0x%X... ", hDesktop);
+		if(WaitForSingleObject(gpdeskSwitchEvent, INFINITE) == WAIT_FAILED)
+			DBGPRINTF(("WaitForSingleObject failed (err %d)\n", GetLastError()));
+		else
+			DBGPRINTF(("successful\n"));
 	}
+
+	TRACE("Switching to desktop 0x%X successful\n", hDesktop);
 
 	return TRUE;
 }
