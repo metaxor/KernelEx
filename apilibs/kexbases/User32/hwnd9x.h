@@ -73,58 +73,31 @@ typedef struct _USERDGROUP
 	/* Almost every fields of this struct are NULL, what's wrong ? */
 
 	WORD	Tick;						// 000h - Time (retrieved by GETCURRENTTIME)
-	WORD	wUn1;						// 002h
-	WORD	wUn2;						// 004h - Unused
-	WORD	wUn3;						// 006h
+	WORD	un1[3];						// 002h
 	WORD	wGlobalObj;					// 008h - GETUSERLOCALOBJTYPE, ???
 	WORD	wAlign;						// 00Ah
-	DWORD	dwUn4;						// 00Ch
-	WORD	wUn4;						// 010h
-	WORD	wAlign2[3];					// 012h
-	WORD	wUn5;						// 018h
-	BYTE	str1[0x2C];					// 01Ah - Strings (not needed)
-	WORD	wUn6;						// 046h
-	BYTE	str2[2];					// 048h
-	WORD	wUn7;						// 04Ah
-	BYTE	str3[2];					// 04Ch
-	BYTE	str4[0x4C];					// 04Eh
-	WORD	wUn8;						// 09Ah
-	DWORD	dwUn9;						// 09Ch
+	BYTE	un2[0x94];					// 00Ch
 	WORD	wGdiObj1;					// 0A0h - Used by ISGDIOBJECT
 	WORD	wFont1;						// 0A2h - Used by CREATEFONTINDIRECT
-	BYTE	str5[0x38];					// 0A4h
-	DWORD	dwUn10;						// 0DCh
-	BYTE	str6[0x5A];					// 0E0h
-	WORD	wUn11;						// 13Ah
-	WORD	wUn12;						// 13Ch
-	WORD	wUn13;						// 13Eh
-	BYTE	str7[0x8C];					// 140h
-	WORD	wUn14;						// 1CCh
-	BYTE	str8[0x74];					// 1CEh
-	WORD	wUn15;						// 242h
+	BYTE	un3[0x1A0];					// 0A4h
 	WORD	wCursorTimer;				// 244h - Changed by SETCHECKCURSORTIMER
-	DWORD	dwUn16;						// 246h
-	WORD	wUn17;						// 24Ah
-	BYTE	str9[0xF2];					// 24Ch
-	WORD	wUn18;						// 33Eh
-	WORD	wUn19;						// 340h
-	WORD	wUn20;						// 342h
-	BYTE	str10[0x23E];				// 344h
-	BYTE	un21[0x4C];					// 582h
+	BYTE	un4[0x384];					// 246h
+	HWND	ShellWindow;				// 5CAh - Shell window (usually explorer)
 	WORD	pSysClass;					// 5CEh - Pointer to system classes list
-	BYTE	un22[0xEA];					// 5D0h
-	DWORD	ClipboardOwner;				// 6BAh - Called by GETCLIPBOARDOWNER
-	DWORD	ClipboardViewer;			// 6BEh - Called by GETCLIPBOARDVIEWER
-	WORD	wUn23;						// 6C2h
-	WORD	wUn24;						// 6C4h
-	DWORD	ClipboardWindow;			// 6C6h - Called by GETOPENCLIPBOARDWINDOW
-	BYTE	un25[0x4A];					// 6CAh
+	BYTE	un5[0xEA];					// 5D0h
+	HWND	ClipboardOwner;				// 6BAh - Called by GETCLIPBOARDOWNER
+	HWND	ClipboardViewer;			// 6BEh - Called by GETCLIPBOARDVIEWER
+	WORD	un6[2];						// 6C2h
+	HWND	ClipboardWindow;			// 6C6h - Called by GETOPENCLIPBOARDWINDOW
+	BYTE	un7[0x4A];					// 6CAh
 	PWND	pwndDesktop;				// 714h - Pointer to the desktop window structure
-	BYTE	un26[0x36];					// 718h
+	BYTE	un8[0x32];					// 718h
+	DWORD	DebugFlags;					// 74Ah - USER debug flags
 	WORD	MenuHeap32;					// 74Eh - USER32 menu heap
 	DWORD	MenuHeapHandleTableBase;	// 750h - Menu heap handle table
 	DWORD	WindowHeapHandleTableBase;	// 754h - Window heap handle table
-	BYTE	un27[0xAF0];				// 758h
+	BYTE	un9[0xAEE];					// 758h
+	WORD	wForegroundIndex;			// 1246h - Index to the foreground window ( *(DWORD*)((DWORD)gSharedInfo + wForegroundIndex) to get the PWND)
 	HWND	hwndDesktop;				// 1248h - Desktop window
 
 	/* The rest are unknown (from dseg34:1248 to dseg34:1B6F)*/
@@ -244,11 +217,11 @@ PWND inline GetWindowObject(HWND hWnd)
         goto _ret;
 
     /* fail if the hWnd is above the max HWND value */
-    if((DWORD)hWnd > *(PDWORD)(g_UserBase + 0x10070) )
+    if((DWORD)hWnd > *(PDWORD)(gSharedInfo + 0x10070) )
         goto _ret;
 
     /* Grab the pointer from gSharedInfo (USER's DGROUP) */
-    pWnd = (PWND)*(PDWORD)(hWnd + 0x10000 + g_UserBase);
+    pWnd = (PWND)*(PDWORD)(hWnd + 0x10000 + gSharedInfo);
 
     /* HWND structures must be above 0x20000 */
     if((DWORD)pWnd < 0x20000)
