@@ -27,8 +27,8 @@
 
 static const char c_szDBCSProp[]="kexDBCS";
 
-#define REBASEUSER(x) ((x) != 0 ? (DWORD)g_UserBase + (DWORD)(x) : 0)
-#define USER32FAR16(x) ((x) != 0 ? (DWORD)(x) - (DWORD)g_UserBase : 0)
+#define REBASEUSER(x) ((x) != 0 ? (DWORD)gSharedInfo + (DWORD)(x) : 0)
+#define USER32FAR16(x) ((x) != 0 ? (DWORD)(x) - (DWORD)gSharedInfo : 0)
 
 #define ISOURPROCESSHWND(hwnd) ( GetWindowProcessId(hwnd) == GetCurrentProcessId() )
 #define IS_SHARED(x) (((DWORD)x) & 0x80000000)
@@ -72,7 +72,7 @@ static const char c_szDBCSProp[]="kexDBCS";
 
 //stuff
 extern LPCRITICAL_SECTION pWin16Mutex;
-extern PUSERDGROUP g_UserBase;
+extern PUSERDGROUP gSharedInfo;
 extern HMODULE g_hUser32;
 BOOL InitUniThunkLayerStuff();
 void GrabWin16Lock();

@@ -642,7 +642,7 @@ BOOL __fastcall IntCompleteRedrawWindow(PWND pWnd)
 
 	//TRACE("Region %p created\n", hRgn);
 
-	/* Draw the new region to the desktop window */
+	/* Draw the new region to the window */
 	RedrawWindow(hWnd,
 				NULL,
 				hRgn,
