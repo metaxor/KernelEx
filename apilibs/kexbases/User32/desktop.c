@@ -40,6 +40,8 @@ PTDB98 pDesktopThread = NULL;
 DWORD dwDesktopThreadId = NULL;
 BOOL fNewDesktop = FALSE;
 
+PWND pwndDesktop = NULL;
+
 VOID RepaintScreen(VOID)
 {
 	HINSTANCE hModule;
@@ -531,6 +533,10 @@ DWORD WINAPI DesktopThread(PVOID lParam)
 
 	kexReleaseLocks();
 
+	//pwndDesktop = g_UserBase->pwndDesktop;
+
+	pwndDesktop = HWNDtoPWND(GetDesktopWindow());
+
 	while(1)
 	{
 		Sleep(1);
@@ -782,7 +788,7 @@ HDESK WINAPI CreateDesktopA_new(LPCSTR lpszDesktop, LPCSTR lpszDevice, LPDEVMODE
 	DesktopObject->pdev = pdev;
 	DesktopObject->DesktopWindow = GetDesktopWindow();
 
-	DesktopObject->pheapDesktop = g_UserBase; // Using USER32's Heap for each desktop
+	DesktopObject->pheapDesktop = (DWORD)g_UserBase; // Using USER32's Heap for each desktop
 	DesktopObject->ulHeapSize = 4194304; // USER32's Heap size
 
 	hDesktop = (HDESK)kexAllocHandle(Process, DesktopObject, dwDesiredAccess | flags);
@@ -912,6 +918,21 @@ BOOL WINAPI EnumDesktopWindows_new(HDESK hDesktop, WNDENUMPROC lpfn, LPARAM lPar
 
 	kexDereferenceObject(DesktopObject);
 	return result;
+}
+
+/* MAKE_EXPORT GetDesktopWindow_new=GetDesktopWindow */
+HWND WINAPI GetDesktopWindow_new(VOID)
+{
+	return (HWND)pwndDesktop->hWnd16;
+
+	/*
+	   BUGBUG FIXME : There is a problem over there, pwndDesktop (offset 714h in USER's DGROUP)
+	   and hwndDesktop (offset 1248h in USER's DGROUP) are always NULL, while in user32,
+	   everything in USER's DGROUP seems right (non-NULL)
+	*/
+
+	//return (HWND)0x80;//g_UserBase->pwndDesktop->hWnd16;
+	//return g_UserBase->hwndDesktop;
 }
 
 /* MAKE_EXPORT GetInputDesktop_new=GetInputDesktop */
