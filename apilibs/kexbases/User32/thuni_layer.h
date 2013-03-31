@@ -27,8 +27,8 @@
 
 static const char c_szDBCSProp[]="kexDBCS";
 
-#define REBASEUSER(x) ((x) != 0 ? g_UserBase + (DWORD)(x) : 0)
-#define USER32FAR16(x) ((x) != 0 ? (DWORD)(x) - g_UserBase : 0)
+#define REBASEUSER(x) ((x) != 0 ? (DWORD)g_UserBase + (DWORD)(x) : 0)
+#define USER32FAR16(x) ((x) != 0 ? (DWORD)(x) - (DWORD)g_UserBase : 0)
 
 #define ISOURPROCESSHWND(hwnd) ( GetWindowProcessId(hwnd) == GetCurrentProcessId() )
 #define IS_SHARED(x) (((DWORD)x) & 0x80000000)
@@ -49,20 +49,37 @@ static const char c_szDBCSProp[]="kexDBCS";
 #define SetWinCreateEvent(proc) SetWinEventHook(EVENT_OBJECT_CREATE, EVENT_OBJECT_CREATE, g_hUser32, \
 				(WINEVENTPROC)(proc), GetCurrentProcessId(), GetCurrentThreadId(), WINEVENT_INCONTEXT)
 
+/* GetFreeSystemResources flags */
 #define GFSR_SYSTEMRESOURCES   0x0000
 #define GFSR_GDIRESOURCES      0x0001
 #define GFSR_USERRESOURCES     0x0002
 
+/* UserSeeUserDo flags */
+#define USUD_ALLOC_DGROUP       1	// Allocate in the USER's heap
+#define USUD_FREE_DGROUP        2
+#define USUD_COMPACT_DGROUP     3
+#define USUD_GET_MENUHEAP       4
+#define USUD_GET_PCLSLIST       5
+#define USUD_GET_DGROUP         6
+#define USUD_GET_POCEFIRST      8
+#define USUD_GET_PWNDDESKTOP    9
+#define USUD_ALLOC_MEMORY       10
+#define USUD_FREE_MEMORY        11
+#define USUD_UNKNOWN            7
+
+/* The hwnd9x header will need some functions from the thuni layer */
+#include "hwnd9x.h"
+
 //stuff
 extern LPCRITICAL_SECTION pWin16Mutex;
-extern DWORD g_UserBase;
+extern PUSERDGROUP g_UserBase;
 extern HMODULE g_hUser32;
 BOOL InitUniThunkLayerStuff();
 void GrabWin16Lock();
 void ReleaseWin16Lock();
 
-/* The hwnd9x header will need some functions from the thuni layer */
-#include "hwnd9x.h"
+#define GETWNDCLASS(hwnd) (HWNDtoPWND(hwnd)->wndClass)
+#define GETWNDCLASSPTR(hwnd) (PUSER_DGROUP_WNDCLASS)REBASEUSER(GETWNDCLASS(hwnd))
 
 DWORD GetWindowProcessId( HWND hwnd );
 LRESULT WINAPI CallWindowProc_stdcall( WNDPROC lpPrevWndFunc, HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
@@ -97,7 +114,16 @@ BOOL InitUniThunkLayer();
 LRESULT WINAPI SendMessageA_fix(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 
 //resources
-UINT __fastcall GetFreeSystemResources(UINT uFlags);
+UINT FASTCALL GetFreeSystemResources(UINT uFlags);
+
+//user
+UINT FASTCALL UserSeeUserDo(UINT uFlags);
+
+//unexported remade functions
+BOOL WINAPI GetClientRect_source(HWND hWnd, LPRECT lpRect);
+LONG WINAPI GetDialogBaseUnits_source(VOID);
+BOOL WINAPI GetWindowRect_source(HWND hWnd, LPRECT lpRect);
+BOOL WINAPI OffsetRect_source(LPRECT lprc, int dx, int dy);
 
 #ifdef __cplusplus
 extern "C"
