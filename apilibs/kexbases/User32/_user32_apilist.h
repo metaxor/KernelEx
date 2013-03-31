@@ -62,6 +62,8 @@ extern DWORD gpidMpr;
 extern PTDB98 pHardErrorThread;
 extern DWORD HardErrorThreadId;
 
+extern PTDB98 pShutdownThread;
+
 extern PHARDERRORDATA *pHardErrorData;
 
 extern BOOL fShutdown;
