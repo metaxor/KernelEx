@@ -28,7 +28,7 @@
 #include "thuni_layer.h"
 
 LPCRITICAL_SECTION pWin16Mutex;
-DWORD g_UserBase;
+PUSERDGROUP g_UserBase;
 HMODULE g_hUser32;
 
 BOOL InitUniThunkLayerStuff()
@@ -41,7 +41,7 @@ BOOL InitUniThunkLayerStuff()
 		return FALSE;
 
 	_GetpWin16Lock( &pWin16Mutex );
-	g_UserBase = MapSL((DWORD)hUser16 << 16);
+	g_UserBase = (PUSERDGROUP)MapSL((DWORD)hUser16 << 16);
 	g_hUser32 = GetModuleHandleA("user32");
 
 	//FreeLibrary16(hUser16);
@@ -191,7 +191,7 @@ HINSTANCE hUser16 = NULL;
 DWORD GFSR_Address = NULL;
 WORD result = 0;
 
-UINT __fastcall GetFreeSystemResources(UINT uFlags)
+UINT FASTCALL GetFreeSystemResources(UINT uFlags)
 {
     char buffer[0x40]; 
  
@@ -216,13 +216,47 @@ UINT __fastcall GetFreeSystemResources(UINT uFlags)
 
 	SetLastError(0);
 
-	__asm	xor eax, eax
-	__asm	push [uFlags]
-	__asm	mov edx, [GFSR_Address]
-	__asm	call ds:QT_Thunk
-	__asm	mov [result], ax
+	__asm	xor			eax, eax
+	__asm	push		[uFlags]
+	__asm	mov edx,	[GFSR_Address]
+	__asm	call		ds:QT_Thunk
+	__asm	mov			[result], ax
 
 	FreeLibrary16(hUser16);
+
+	return result;
+}
+
+UINT FASTCALL UserSeeUserDo(UINT uFlags)
+{
+	HINSTANCE hModule;
+	DWORD _UserSeeUserDo;
+	DWORD result;
+
+	hModule = (HINSTANCE)LoadLibrary16("USER.EXE");
+
+	if((DWORD)hModule < 32)
+	{
+		TRACE("(err %d) can't load USER.EXE !\n", hModule);
+		return 0;
+	}
+
+	_UserSeeUserDo = GetProcAddress16(hModule, "USERSEEUSERDO");
+
+	if(_UserSeeUserDo == NULL)
+	{
+		TRACE_OUT("Can't find UserSeeUserDo in USER.EXE !\n");
+		FreeLibrary16(hModule);
+		return 0;
+	}
+
+	__asm	xor			eax, eax
+	__asm	push		[uFlags]
+	__asm	mov edx,	[_UserSeeUserDo]
+	__asm	call		ds:QT_Thunk
+	__asm	mov			[result], eax
+
+	FreeLibrary16(hModule);
 
 	return result;
 }
