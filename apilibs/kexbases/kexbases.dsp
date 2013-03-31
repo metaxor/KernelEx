@@ -459,6 +459,10 @@ SOURCE=.\comdlg32\_comdlg32_apilist.c
 
 SOURCE=.\comdlg32\_comdlg32_apilist.h
 # End Source File
+# Begin Source File
+
+SOURCE=.\comdlg32\print.c
+# End Source File
 # End Group
 # Begin Group "version"
 
