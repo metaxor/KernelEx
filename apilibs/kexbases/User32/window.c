@@ -664,12 +664,12 @@ _ret:
 /* DON'T EXPORT THIS */
 LONG WINAPI GetDialogBaseUnits_source(VOID)
 {
-	DWORD low = (DWORD)g_UserBase;
+	DWORD low = (DWORD)gSharedInfo;
 	DWORD high;
 	DWORD retval;
 
 	low = *(DWORD*)(low + 0x193E);
-	high = *(DWORD*)(g_UserBase + 0x192C);
+	high = *(DWORD*)(gSharedInfo + 0x192C);
 
 	retval = low << 16;
 	retval |= high;
@@ -705,6 +705,11 @@ BOOL WINAPI GetWindowRect_source(HWND hWnd, LPRECT lpRect)
 _ret:
 	ReleaseWin16Lock();
 	return result;
+}
+
+BOOL WINAPI IsChild_nothunk(HWND hWndParent, HWND hWnd)
+{
+	return TestChild(hWnd, hWndParent);
 }
 
 /* MAKE_EXPORT IsHungAppWindow_new=IsHungAppWindow */
