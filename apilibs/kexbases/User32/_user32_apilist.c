@@ -194,7 +194,6 @@ BOOL init_user32()
 	HANDLE hThread2 = NULL;
 	HANDLE hThread3 = NULL;
 	BOOL fInputResult = FALSE;
-	BOOL fWindowsResult = FALSE;
 	DWORD dwThreadId = 0;
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
@@ -213,7 +212,6 @@ BOOL init_user32()
 	GetMouseMovePoints_pfn = (GetMouseMovePoints_t)kexGetProcAddress(hUser32, "GetMouseMovePoints");
 
 	fInputResult = InitInputSegment();
-	fWindowsResult = InitWindowsSegment();
 
 	if(gpdeskInputDesktop == NULL)
 		if(!CreateWindowStationAndDesktops())
@@ -279,7 +277,7 @@ BOOL init_user32()
 #endif
 
 	return IsHungThread_pfn && DrawCaptionTempA_pfn && GetMouseMovePoints_pfn
-			&& hThread && hThread2 && hThread3 && fInputResult && fWindowsResult;
+			&& hThread && hThread2 && hThread3 && fInputResult;
 }
 
 BOOL thread_user32_init(PTDB98 Thread)
@@ -446,10 +444,8 @@ static const apilib_named_api user32_named_apis[] =
 	DECL_API("GetClassInfoExW", GetClassInfoExW_NEW),
 	DECL_API("GetClassInfoW", GetClassInfoW_NEW),
 	DECL_API("GetClassLongW", GetClassLongW_NEW),
-	DECL_API("GetClientRect", GetClientRect_source),
 	DECL_API("GetCursorPos", GetCursorPos_nothunk),
-	DECL_API("GetDesktopWindow", GetDesktopWindow_source),
-	DECL_API("GetDialogBaseUnits", GetDialogBaseUnits_source),
+	DECL_API("GetDesktopWindow", GetDesktopWindow_new),
 	DECL_API("GetDlgItemTextW", GetDlgItemTextW_NEW),
 	DECL_API("GetInputDesktop", GetInputDesktop_new),
 	DECL_API("GetLastInputInfo", GetLastInputInfo_NEW),
@@ -472,7 +468,6 @@ static const apilib_named_api user32_named_apis[] =
 	DECL_API("GetUserObjectSecurity", GetUserObjectSecurity_new),
 	DECL_API("GetWindowLongA", GetWindowLongA_NEW),
 	DECL_API("GetWindowLongW", GetWindowLongW_NEW),
-	DECL_API("GetWindowRect", GetWindowRect_source),
 	DECL_API("GetWindowTextLengthW", GetWindowTextLengthW_NEW),
 	DECL_API("GetWindowTextW", GetWindowTextW_NEW),
 	DECL_API("InitSharedTable", InitSharedTable_stub),
@@ -497,7 +492,6 @@ static const apilib_named_api user32_named_apis[] =
 	DECL_API("ModifyMenuW", ModifyMenuW_new),
 	DECL_API("OemToCharBuffW", OemToCharBuffW_new),
 	DECL_API("OemToCharW", OemToCharW_new),
-	DECL_API("OffsetRect", OffsetRect_source),
 	DECL_API("OpenDesktopA", OpenDesktopA_new),
 	DECL_API("OpenDesktopW", OpenDesktopW_new),
 	DECL_API("OpenInputDesktop", OpenInputDesktop_new),
