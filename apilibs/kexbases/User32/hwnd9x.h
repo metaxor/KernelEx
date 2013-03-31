@@ -68,7 +68,7 @@ typedef struct _WND
 	DWORD   alternateTID;      // 5Ch
 } WND, *PWND;
 
-typedef struct _WINDOWSDATA
+typedef struct _USERDGROUP
 {
 	/* Almost every fields of this struct are NULL, what's wrong ? */
 
@@ -128,9 +128,7 @@ typedef struct _WINDOWSDATA
 	HWND	hwndDesktop;				// 1248h - Desktop window
 
 	/* The rest are unknown (from dseg34:1248 to dseg34:1B6F)*/
-} WINDOWSDATA, *PWINDOWSDATA;
-
-extern PWINDOWSDATA pWindowsData; // How to call it anyway ?
+} USERDGROUP, *PUSERDGROUP;
 
 typedef struct _MSGQUEUE
 {
@@ -204,9 +202,31 @@ typedef struct _QUEUEKEYBUFFER
 	BYTE keystate[0xFF];	// 20h keys state (0x80-pressed, 0x1-toggled)
 } QUEUEKEYBUFFER, *PQUEUEKEYBUFFER;
 
+typedef struct _USER_GSHARED_WNDCLASS
+{
+	DWORD   lpIntWndClass;	// 00h
+	WORD    hcNext;			// 04h
+	ATOM    classNameAtom;	// 06h
+	DWORD   style;			// 08h
+} USER_GSHARED_WNDCLASS, *PUSER_GSHARED_WNDCLASS;
+
+typedef struct _INTWNDCLASS
+{
+	DWORD   cClsWnds;		// 00h
+	DWORD   lpfnWndProc;	// 04h
+	WORD    cbClsExtra;		// 08h
+	WORD    hModule;		// 0Ah
+	WORD    hIcon;			// 0Ch
+	WORD    hCursor;		// 0Eh
+	WORD    hBrBackground;	// 10h
+	DWORD   lpszMenuName;	// 12h
+	WORD    hIconSm;		// 16h
+	WORD    cbWndExtra;		// 18h
+} INTWNDCLASS, *PINTWNDCLASS, *LPINTWNDCLASS;
 
 #pragma pack()
 
+#if 0
 /* New way to get a relative 32-bit window */
 PWND inline GetWindowObject(HWND hWnd)
 {
@@ -243,6 +263,7 @@ PWND inline GetWindowObject(HWND hWnd)
 _ret:
     return pWnd;
 }
+#endif
 
 /* IsWindow returns PWND */
 #define HWNDtoPWND(hwnd) (PWND)IsWindow(hwnd)//GetWindowObject(hwnd)
