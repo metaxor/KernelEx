@@ -34,6 +34,8 @@ PDESKTOP gpdeskInputDesktop = NULL;
 PDESKTOP gpdeskScreenSaver = NULL;
 PDESKTOP gpdeskWinlogon = NULL;
 
+LPCRITICAL_SECTION gpdeskLock;
+
 PTDB98 pDesktopThread = NULL;
 DWORD dwDesktopThreadId = NULL;
 BOOL fNewDesktop = FALSE;
@@ -538,6 +540,11 @@ DWORD WINAPI DesktopThread(PVOID lParam)
 
 	pwndDesktop = HWNDtoPWND(GetDesktopWindow());
 
+	gpdeskLock = (LPCRITICAL_SECTION)kexAllocObject(sizeof(CRITICAL_SECTION));
+
+	InitializeCriticalSection(gpdeskLock);
+	MakeCriticalSectionGlobal(gpdeskLock);
+
 	while(1)
 	{
 		Sleep(1);
@@ -545,7 +552,13 @@ DWORD WINAPI DesktopThread(PVOID lParam)
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 
-		GrabWin16Lock(); // Don't get interrupted while we are switching desktop/hiding some windows
+		if(pWin16Mutex->LockCount == 0 && fNewDesktop == FALSE)
+			continue;
+
+		/* Only enum windows when necessary (the user lock has been grabbed), e.g : a window is created,
+		   a message has been sent to a window... */
+
+		EnterCriticalSection(gpdeskLock);
 
 		/* We don't want our desktop thread crash, so we safely use
 		exception handling, crash happen when there is no free memory */
@@ -571,7 +584,7 @@ DWORD WINAPI DesktopThread(PVOID lParam)
 		{
 		}
 
-		ReleaseWin16Lock();
+		LeaveCriticalSection(gpdeskLock);
 	}
 
 	return 0;
