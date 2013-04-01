@@ -48,6 +48,8 @@ void fatal_error(const char* msg);
 size_t lstrlenAnull(LPCSTR s);
 size_t lstrlenWnull(LPCWSTR s);
 
+BOOL WINAPI IsBadUnicodeStringPtr(LPCWSTR lpsz, UINT_PTR ucchMax);
+
 #ifdef __cplusplus
 };
 #endif
