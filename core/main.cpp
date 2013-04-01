@@ -46,7 +46,7 @@ int kexInit()
 	if (init_count > 0)
 		return ++init_count;
 
-	DBGPRINTF(("KernelEx Core v%s by Xeno86\n", VERSION_STR));
+	DBGPRINTF(("KernelEx Core v%s by Xeno86 & Ley0k\n", VERSION_STR));
 	DBGPRINTF(("Initializing...\n"));
 
 	if (!internals_init())
