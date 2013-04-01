@@ -320,6 +320,7 @@ BOOL init_user32()
 	HANDLE hThread = NULL;
 	HANDLE hThread2 = NULL;
 	HANDLE hThread3 = NULL;
+	HANDLE hThread4 = NULL;
 	HANDLE hStartupWndThread = NULL;
 	BOOL fInputResult = FALSE;
 	DWORD dwThreadId = 0;
@@ -373,16 +374,13 @@ BOOL init_user32()
 			goto _ret;
 
 		Sleep(25);
-	SetWindowText(hwndStartupText, "Windows is starting up (creating the desktop thread)...");
+	SetWindowText(hwndStartupText, "Windows is starting up (creating system threads)...");
 
 	/* Create the desktop thread */
 	hThread = CreateKernelThread(NULL, 0, DesktopThread, NULL, 0, &dwThreadId);
 
 	if(hThread == NULL)
 		TRACE_OUT("Failed to create the desktop thread !\n");
-
-	Sleep(25);
-	SetWindowText(hwndStartupText, "Windows is starting up (creating the shutdown thread)...");
 
 	/* Create the shutdown thread */
 	hThread2 = CreateKernelThread(NULL, 0, ShutdownThread, NULL, 0, &dwThreadId);
@@ -393,9 +391,6 @@ BOOL init_user32()
 		CloseHandle(hThread);
 		hThread = NULL;
 	}
-
-	Sleep(25);
-	SetWindowText(hwndStartupText, "Windows is starting up (creating the hard-error thread)...");
 
 	/* Create the hard-error messages thread */
 	hThread3 = CreateKernelThread(NULL, 0, HardErrorThread, NULL, 0, &dwThreadId);
@@ -411,11 +406,6 @@ BOOL init_user32()
 	/* Prevent the kernel process from being terminated by adding the terminating flag */
 	pKernelProcess->Flags |= fTerminating;
 
-#if 0
-
-	Sleep(25);
-	SetWindowText(hwndStartupText, "Windows is starting up (creating the hang-manager thread)...");
-
 	/* Create the hang manager thread */
 	hThread4 = CreateKernelThread(NULL, 0, HangManagerThread, NULL, 0, &dwThreadId);
 
@@ -427,7 +417,6 @@ BOOL init_user32()
 		CloseHandle(hThread3);
 		hThread = hThread2 = hThread3 = NULL;
 	}
-#endif
 
 	memset(&si, 0, sizeof(STARTUPINFO));
 	memset(&pi, 0, sizeof(PROCESS_INFORMATION));
@@ -650,6 +639,7 @@ static const apilib_named_api user32_named_apis[] =
 	DECL_API("GetWindowTextW", GetWindowTextW_NEW),
 	DECL_API("InitSharedTable", InitSharedTable_stub),
 	DECL_API("InsertMenuW", InsertMenuW_new),
+	DECL_API("InternalGetWindowText", InternalGetWindowText_new),
 	DECL_API("IsCharAlphaNumericW", IsCharAlphaNumericW_new),
 	DECL_API("IsCharAlphaW", IsCharAlphaW_new),
 	DECL_API("IsCharLowerW", IsCharLowerW_new),
