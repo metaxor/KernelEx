@@ -86,7 +86,6 @@ DWORD WINAPI GetProfileSectionW_new(LPCWSTR lpAppNameW, LPWSTR lpReturnedStringW
 DWORD WINAPI GetProfileStringW_new(LPCWSTR lpAppNameW, LPCWSTR lpKeyNameW, LPCWSTR lpDefaultW, LPWSTR lpReturnedStringW, DWORD nSize);
 int WINAPI GetTimeFormatW_new(LCID Locale, DWORD dwFlags, CONST SYSTEMTIME *lpTime, LPCWSTR lpFormatW, LPWSTR lpTimeStrW, int cchTime);
 BOOL WINAPI GetVolumeInformationW_new(LPCWSTR lpRootPathNameW, LPWSTR lpVolumeNameBufferW, DWORD nVolumeNameSize, LPDWORD lpVolumeSerialNumber, LPDWORD lpMaximumComponentLength, LPDWORD lpFileSystemFlags, LPWSTR lpFileSystemNameBufferW, DWORD nFileSystemNameSize);
-BOOL WINAPI IsBadStringPtrW_new(LPCWSTR lpsz, UINT_PTR ucchMax);
 HANDLE WINAPI OpenEventW_new(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpNameW);
 HANDLE WINAPI OpenFileMappingW_new(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpNameW);
 HANDLE WINAPI OpenMutexW_new(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpNameW);

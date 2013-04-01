@@ -95,7 +95,7 @@ static const apilib_named_api kernel32_named_apis[] =
 	DECL_API("GetProfileStringW", GetProfileStringW_new),
 	DECL_API("GetTimeFormatW", GetTimeFormatW_new),
 	DECL_API("GetVolumeInformationW", GetVolumeInformationW_new),
-	DECL_API("IsBadStringPtrW", IsBadStringPtrW_new),
+	DECL_API("IsBadStringPtrW", IsBadUnicodeStringPtr),
 	DECL_API("OpenEventW", OpenEventW_new),
 	DECL_API("OpenFileMappingW", OpenFileMappingW_new),
 	DECL_API("OpenMutexW", OpenMutexW_new),

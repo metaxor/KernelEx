@@ -720,37 +720,7 @@ BOOL WINAPI GetVolumeInformationW_new(LPCWSTR lpRootPathNameW, LPWSTR lpVolumeNa
 	return result;
 }
 
-/* MAKE_EXPORT IsBadStringPtrW_new=IsBadStringPtrW */
-BOOL WINAPI IsBadStringPtrW_new(LPCWSTR lpsz, UINT_PTR ucchMax)
-{
-    BOOLEAN Result = FALSE;
-    volatile WCHAR *Current;
-    PWCHAR Last;
-    WCHAR Char;
-
-    /* Quick cases */
-    if (!ucchMax) return FALSE;
-    if (!lpsz) return TRUE;
-
-    /* Calculate start and end */
-    Current = (volatile WCHAR*)lpsz;
-    Last = (PWCHAR)((ULONG_PTR)lpsz + (ucchMax * 2) - 2);
-
-    __try
-    {
-        /* Probe the entire range */
-        Char = *Current++;
-        while ((Char) && (Current != Last)) Char = *Current++;
-    }
-    __except(EXCEPTION_EXECUTE_HANDLER)
-    {
-        /* We hit an exception, so return true */
-        Result = TRUE;
-    }
-
-    /* Return exception status */
-    return Result;
-}
+/* MAKE_EXPORT IsBadUnicodeStringPtr=IsBadStringPtrW */
 
 /* MAKE_EXPORT OpenEventW_new=OpenEventW */
 HANDLE WINAPI OpenEventW_new(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpNameW)
