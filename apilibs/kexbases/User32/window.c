@@ -601,7 +601,13 @@ HWND WINAPI GetParent_nothunk(HWND hWnd)
 	if(pwnd == NULL)
 		goto _ret;
 
-	pwnd = (PWND)REBASEUSER(pwnd->spwndParent);
+	if((pwnd->style & (WS_CHILD | WS_POPUP)) == WS_TILED)
+		goto _ret;
+
+	if ((pwnd->style & (WS_CHILD | WS_POPUP)) == WS_CHILD)
+		pwnd = (PWND)REBASEUSER(pwnd->spwndParent);
+	else
+		pwnd = (PWND)REBASEUSER(pwnd->spwndOwner);
 
 	if(pwnd != NULL)
 		hwndParent = (HWND)pwnd->hWnd16;
@@ -705,6 +711,49 @@ BOOL WINAPI GetWindowRect_source(HWND hWnd, LPRECT lpRect)
 _ret:
 	ReleaseWin16Lock();
 	return result;
+}
+
+/* MAKE_EXPORT InternalGetWindowText_new=InternalGetWindowText */
+int APIENTRY InternalGetWindowText_new(HWND hWnd, LPWSTR lpString, int nMaxCount)
+{
+	PWND pWnd = HWNDtoPWND(hWnd);
+	int nLength;
+	PCHAR WndText;
+	PCHAR lpBuffer;
+
+	if(lpString != NULL && nMaxCount <= 1)
+	{
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return 0;
+	}
+
+	if(pWnd == NULL)
+	{
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return 0;
+	}
+
+	if(pWnd->windowTextOffset == 0)
+		return 0;
+
+	/* BUGBUG : How to retrieve the window text ? The WND structure is not clear enough */
+
+	/* Get the window text from the USER atom heap */
+	WndText = (PCHAR)*(DWORD*)(REBASEUSER(gSharedInfo->AtomHeap) + pWnd->windowTextOffset);
+
+	if(WndText == NULL)
+		return 0;
+
+	lpBuffer = (PCHAR)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, nMaxCount);
+
+	strncpy(lpBuffer, WndText, nMaxCount);
+	nLength = lstrlen(lpBuffer);
+
+	STACK_AtoW(lpBuffer, lpString);
+
+	HeapFree(GetProcessHeap(), 0, lpBuffer);
+
+	return nLength;
 }
 
 BOOL WINAPI IsChild_nothunk(HWND hWndParent, HWND hWnd)
