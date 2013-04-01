@@ -96,7 +96,9 @@ typedef struct _USERDGROUP
 	WORD	MenuHeap32;					// 74Eh - USER32 menu heap
 	DWORD	MenuHeapHandleTableBase;	// 750h - Menu heap handle table
 	DWORD	WindowHeapHandleTableBase;	// 754h - Window heap handle table
-	BYTE	un9[0xAEE];					// 758h
+	BYTE	un9[0x736];					// 758h
+	ATOM	AtomHeap;					// E8Eh - Global atom heap (allocated by internal USER GlobalInitAtom)
+	BYTE	un10[0x3B6];				// E90h
 	WORD	wForegroundIndex;			// 1246h - Index to the foreground window ( *(DWORD*)((DWORD)gSharedInfo + wForegroundIndex) to get the PWND)
 	HWND	hwndDesktop;				// 1248h - Desktop window
 
