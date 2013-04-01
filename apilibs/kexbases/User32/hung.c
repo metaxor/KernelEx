@@ -152,10 +152,6 @@ ULONG FASTCALL ShowEndTaskDialog(HWND hwnd, BOOL fEndSession)
 	return result;
 }
 
-/* BUGBUG FIXME : The following code hangs Win9x (when calling EndDialog) */
-
-#if 0
-
 INT_PTR CALLBACK GhostWindowProc(HWND hwnd,
     UINT uMsg,
     WPARAM wParam,
@@ -170,7 +166,17 @@ INT_PTR CALLBACK GhostWindowProc(HWND hwnd,
 	phi = (PHUNGINFO)GetWindowLong(hwnd, GWL_USERDATA);
 
 	if(phi != NULL)
+	{
 		dwSmto = SendMessageTimeout(phi->hwndReplace, WM_NULL, 0, 0, SMTO_ABORTIFHUNG, 1000, &dwMsgResult);
+
+		if(dwSmto)
+		{
+			SetWindowLong(hwnd, GWL_USERDATA, 0);
+			ShowWindowAsync(phi->hwndReplace, SW_SHOW);
+			EndDialog(hwnd, 0);
+			return 1;
+		}
+	}
 
 	switch(uMsg)
 	{
@@ -181,13 +187,7 @@ INT_PTR CALLBACK GhostWindowProc(HWND hwnd,
 
 			phi->hwndNew = hwnd;
 
-			if(phi->pwndReplace->style & WS_VISIBLE)
-			{
-				if(!(phi->pwndReplace->style & WS_INTERNAL_HUNGWASVISIBLE))
-					phi->pwndReplace->style |= WS_INTERNAL_HUNGWASVISIBLE;
-
-				phi->pwndReplace->style &= ~WS_VISIBLE;
-			}
+			phi->pwndReplace->style &= ~WS_VISIBLE;
 
 			/* Because standard window API doesn't hide hung windows, we create a new region */
 			IntCompleteRedrawWindow(phi->pwndReplace);
@@ -203,8 +203,11 @@ INT_PTR CALLBACK GhostWindowProc(HWND hwnd,
 					phi->x, phi->y, phi->cx, phi->cy,
 					SWP_NOZORDER | SWP_SHOWWINDOW);
 
+			TRACE("Ghost window 0x%X created\n", hwnd);
 			return TRUE;
 
+		case WM_CLOSE:
+			wParam = SC_CLOSE;
 		case WM_SYSCOMMAND:
 			switch(wParam)
 			{
@@ -230,19 +233,15 @@ INT_PTR CALLBACK GhostWindowProc(HWND hwnd,
 DWORD WINAPI GhostWindowThread(PVOID lpParameter)
 {
 	PHUNGINFO phi = (PHUNGINFO)lpParameter;
-	HWND hWnd = NULL;
-	PWND pWnd = NULL;
-	PWCHAR TitleW = NULL;
-	PCHAR Title = NULL;
-	DWORD dwTextLength = 0;
+	INT_PTR result;
+	PCHAR Title;
 	CHAR NewTitle[255];
 	WINDOWINFO wi;
-	DWORD dwSmto = 0;
-	DWORD dwMsgResult = 0;
 	RECT rc;
 	DWORD dwPreviousPriority = GetPriorityClass(GetCurrentProcess());
 	HGLOBAL hGlobal = GlobalAlloc(GMEM_ZEROINIT, sizeof(DLGTEMPLATE)*2);
 	LPDLGTEMPLATE pDlg = (LPDLGTEMPLATE)GlobalLock(hGlobal);
+	DWORD dwStyle = 0;
 
 	TRACE_OUT("Creating ghost window\n");
 
@@ -250,22 +249,28 @@ DWORD WINAPI GhostWindowThread(PVOID lpParameter)
 
 	SetPriorityClass(GetCurrentProcess(), IDLE_PRIORITY_CLASS);
 
-	TitleW = (PWCHAR)REBASEUSER(phi->pwndReplace->windowTextOffset);
+	Title = phi->Title;
 
-	STACK_WtoA(TitleW, Title);
 	GetWindowInfo(phi->hwndReplace, &wi);
 
-	DBGPRINTF(("windowTextOffset = 0x%X, Title = 0x%X", phi->pwndReplace->windowTextOffset, Title));
+	if(Title == NULL || phi->pwndReplace->windowTextOffset == 0)
+		Title = "<unknown>";
 
 	wsprintf(NewTitle, "%s (Unresponsive)", Title);
 
 	GetWindowRect(phi->hwndReplace, &rc);
 
+	if(wi.dwStyle & WS_MINIMIZE)
+		dwStyle |= WS_MINIMIZE;
+
+	if(wi.dwStyle & WS_MAXIMIZE)
+		dwStyle |= WS_MAXIMIZE;
+
 	pDlg->cdit = 0;
 	pDlg->cx = (SHORT)(rc.right - rc.left);
 	pDlg->cy = (SHORT)(rc.bottom - rc.top);
 	pDlg->dwExtendedStyle = 0;
-	pDlg->style = DS_MODALFRAME | WS_POPUP | WS_SYSMENU | WS_VISIBLE | WS_CAPTION | WS_MINIMIZEBOX;
+	pDlg->style = DS_MODALFRAME | WS_POPUP | WS_SYSMENU | WS_VISIBLE | WS_CAPTION | WS_MINIMIZEBOX | dwStyle;
 	pDlg->x = (SHORT)rc.left;
 	pDlg->y = (SHORT)rc.top;
 
@@ -278,7 +283,7 @@ DWORD WINAPI GhostWindowThread(PVOID lpParameter)
 
 	GlobalUnlock(hGlobal);
 
-	DialogBoxIndirectParam(GetModuleHandle(0),
+	result = DialogBoxIndirectParam(GetModuleHandle(0),
 						(LPDLGTEMPLATE)hGlobal,
 						NULL,
 						GhostWindowProc,
@@ -286,17 +291,7 @@ DWORD WINAPI GhostWindowThread(PVOID lpParameter)
 
 	GlobalFree(hGlobal);
 
-	if(hWnd == NULL)
-	{
-		TRACE("Failed to create the ghost window ! (err %d)\n", GetLastError());
-		SetEvent(phi->hEvent);
-		goto _ret;
-	}
-
-	TRACE("Ghost window 0x%X created\n", hWnd);
-
-_ret:
-	TRACE("Returning from ghost thread (hWnd=0x%X)\n", hWnd);
+	TRACE_OUT("Returning from ghost thread (result=%d)\n", result);
 
 	SetPriorityClass(GetCurrentProcess(), dwPreviousPriority);
 
@@ -310,8 +305,8 @@ _ret:
 		IntCompleteRedrawWindow(phi->pwndReplace);
 	}
 
-	if(hWnd != NULL)
-		SendMessage(hWnd, WM_APP+1, 0, 0);
+	if(phi->Title != NULL)
+		kexFreeObject(phi->Title);
 
 	ExitThread(0);
 	return 0;
@@ -337,6 +332,7 @@ HWND FASTCALL CreateGhostWindow(DWORD dwProcessId, DWORD dwThreadId, HWND hwndRe
 	HANDLE hEvent = NULL;
 	PPROCESSINFO ppi = Process->Win32Process;
 	PTHREADINFO pti = Thread->Win32Thread;
+	DWORD wndTextLength = 0;
 
 	TRACE_OUT("CreateGhostWindow\n");
 
@@ -345,7 +341,7 @@ HWND FASTCALL CreateGhostWindow(DWORD dwProcessId, DWORD dwThreadId, HWND hwndRe
 	pwndReplace = HWNDtoPWND(hwndReplace);
 
 	if(hProcess == NULL || Process == NULL || Thread == NULL || pwndReplace == NULL || phunginf == NULL ||
-		Process == pKernelProcess)
+		Process == pKernelProcess || ppi == NULL || pti == NULL || Process == pKernelProcess)
 	{
 		TRACE_OUT("CreateGhostWindow failed\n");
 		return NULL;
@@ -357,22 +353,19 @@ HWND FASTCALL CreateGhostWindow(DWORD dwProcessId, DWORD dwThreadId, HWND hwndRe
 		return NULL;
 	}
 
-	if(ppi != NULL && ppi->WindowsGhosting == FALSE)
+	if(ppi->WindowsGhosting == FALSE)
 	{
 		TRACE("Cannot create the ghost window because process %p disabled it !\n", dwProcessId);
 		return NULL;
 	}
 
-	if(pti != NULL)
+	if(pti->fGhosted)
 	{
-		if(pti->fGhosted)
-		{
-			TRACE("Cannot create the ghost window because thread %p is already ghosted !\n", dwThreadId);
-			return NULL;
-		}
-
-		pti->fGhosted = TRUE;
+		TRACE("Cannot create the ghost window because thread %p is already ghosted !\n", dwThreadId);
+		return NULL;
 	}
+
+	pti->fGhosted = TRUE;
 
 	phunginf->hwndReplace = hwndReplace;
 	phunginf->pwndReplace = pwndReplace;
@@ -380,6 +373,16 @@ HWND FASTCALL CreateGhostWindow(DWORD dwProcessId, DWORD dwThreadId, HWND hwndRe
 	phunginf->dwThreadId = dwThreadId;
 	phunginf->Process = Process;
 	phunginf->Thread = Thread;
+
+	wndTextLength = GetWindowTextLength(hwndReplace);
+
+	if(wndTextLength != 0)
+	{
+		wndTextLength += 2;
+
+		phunginf->Title = (PCHAR)kexAllocObject(wndTextLength);
+		GetWindowText(hwndReplace, phunginf->Title, wndTextLength);
+	}
 
 	hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 
@@ -409,18 +412,25 @@ BOOL CALLBACK EnumHungWindowsProc(HWND hwnd, LPARAM lParam)
 	HANDLE hThread;
 	DWORD dwProcessId = 0;
 	DWORD dwThreadId = GetWindowThreadProcessId(hwnd, &dwProcessId);
-//	DWORD dwMsgResult = 0;
-//	DWORD dwSmto = 0;
+	PWND pwnd = HWNDtoPWND(hwnd);
+	//DWORD dwMsgResult = 0;
+	//DWORD dwSmto = 0;
+
+	if(pwnd == NULL)
+		return TRUE;
 
 	if(dwProcessId == dwKernelProcessId)
 		return TRUE;
 
+	if(!IsWindowVisible_fix(hwnd) || (pwnd->style & WS_CHILD))
+		return TRUE;
+
 	hThread = OpenThread_new(THREAD_ALL_ACCESS, FALSE, dwThreadId);
 
-	//dwSmto = SendMessageTimeout(hwnd, WM_NULL, 0, 0, SMTO_ABORTIFHUNG, 1000, &dwMsgResult);
+	//dwSmto = SendMessageTimeout(hwnd, WM_NULL, 0, 0, SMTO_ABORTIFHUNG, 2000, &dwMsgResult);
 
 	/* Check if the thread is hung or suspended (WFSO returns WAIT_ABANDONNED if suspended) */
-	if((IsHungThread_pfn(dwThreadId) || WaitForSingleObject(hThread, 0) == WAIT_ABANDONED) && IsWindowVisible_fix(hwnd))
+	if(IsHungThread_pfn(dwThreadId) || WaitForSingleObject(hThread, 0) == WAIT_ABANDONED)
 		CreateGhostWindow(dwProcessId, dwThreadId, hwnd);
 
 	CloseHandle(hThread);
@@ -436,7 +446,7 @@ DWORD WINAPI HangManagerThread(PVOID lpParameter)
 
 	while(1)
 	{
-		Sleep(1);
+		Sleep(100);
 		PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE);
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
@@ -445,4 +455,3 @@ DWORD WINAPI HangManagerThread(PVOID lpParameter)
 	}
 }
 
-#endif
