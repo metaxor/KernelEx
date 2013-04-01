@@ -207,6 +207,7 @@ HWND WINAPI GetParent_nothunk(HWND hWnd);
 BOOL WINAPI LockSetForegroundWindow_98(UINT lockcode);
 HWND APIENTRY GetAncestor_fix(HWND hwnd, UINT gaFlags);
 HWND APIENTRY GetShellWindow_new(VOID);
+int APIENTRY InternalGetWindowText_new(HWND hWnd, LPWSTR lpString, int nMaxCount);
 BOOL WINAPI IsHungAppWindow_new(HWND hWnd);
 BOOL WINAPI IsWindowVisible_fix(HWND hWnd);
 BOOL WINAPI SetForegroundWindow_fix(HWND hWnd);
