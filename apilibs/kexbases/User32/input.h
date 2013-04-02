@@ -28,13 +28,14 @@
 
 typedef struct _INPUTDATA
 {
-	BYTE		un1[0x5];						// 000h - ???
+	BYTE		un1[0x6];						// 000h
 	BYTE		pKey[256 * 2 / 8];				// 006h - 2 bits per key
 	BYTE		pKeyRecentDown[256 / 8];		// 046h - 1 bit per key
-	BYTE		un3[0x10];						// 065h - ???
-	POINTS		CursorPos;						// 076h-078h - Cursor position
-	BYTE		un4[0xF56];						// 07Ah
-	BOOL		fInputBlocked;					// FD0h - 1 = Blocked, 0 = Enabled
+	BYTE		un2[0xE];						// 066h
+	WORD		wMouseBtnSide;					// 074h - 0 = Right-handed, 1 = Left-handed
+	POINTS		CursorPos;						// 076h - Cursor position
+	BYTE		un3[0xF56];						// 07Ah
+	BOOL		fInputBlocked;					// FD0h - 0 = Enabled, 1 = Blocked (cannot use the mouse & keyboard)
 } INPUTDATA, *PINPUTDATA;
 
 #pragma pack()
