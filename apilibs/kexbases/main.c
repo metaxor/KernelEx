@@ -77,9 +77,6 @@ BOOL ppi_init(PPDB98 Process)
 	if(IsBadReadPtr(Process, sizeof(PDB98)))
 		Process = get_pdb();
 
-	if(GetFreeSystemResources(GFSR_SYSTEMRESOURCES) < 10 && GetLastError() == 0)
-		ExitProcess(0);
-
 	ppi = (PPROCESSINFO)kexAllocObject(sizeof(PROCESSINFO));
 
 	if(ppi == NULL)
@@ -181,6 +178,16 @@ BOOL APIENTRY DllMain(HINSTANCE instance, DWORD reason, BOOL load_static)
 	switch (reason) 
 	{
 	case DLL_PROCESS_ATTACH:
+
+		TRACE("GDI resources: %u%%\n", GetFreeSystemResources(GFSR_GDIRESOURCES));
+		TRACE("System resources: %u%%\n", GetFreeSystemResources(GFSR_SYSTEMRESOURCES));
+		TRACE("USER resources: %u%%\n", GetFreeSystemResources(GFSR_USERRESOURCES));
+		if(GetFreeSystemResources(GFSR_SYSTEMRESOURCES) < 10)
+		{
+			ERR("Out of system resources ! Process %p cannot start\n", Process);
+			TerminateProcess(GetCurrentProcess(), 0);
+			return FALSE;
+		}
 
 		if(fShutdown)
 		{
