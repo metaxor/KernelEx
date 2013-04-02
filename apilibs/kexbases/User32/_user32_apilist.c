@@ -633,6 +633,7 @@ static const apilib_named_api user32_named_apis[] =
 	DECL_API("GetUserObjectInformationA", GetUserObjectInformationA_new),
 	DECL_API("GetUserObjectInformationW", GetUserObjectInformationW_new),
 	DECL_API("GetUserObjectSecurity", GetUserObjectSecurity_new),
+	DECL_API("GetWindow", GetWindow_nothunk),
 	DECL_API("GetWindowLongA", GetWindowLongA_NEW),
 	DECL_API("GetWindowLongW", GetWindowLongW_NEW),
 	DECL_API("GetWindowTextLengthW", GetWindowTextLengthW_NEW),

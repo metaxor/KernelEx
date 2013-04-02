@@ -206,6 +206,7 @@ BOOL WINAPI EnumWindows_nothunk(WNDENUMPROC lpEnumFunc, LPARAM lParam);
 HWND WINAPI GetParent_nothunk(HWND hWnd);
 HWND APIENTRY GetAncestor_fix(HWND hwnd, UINT gaFlags);
 HWND APIENTRY GetShellWindow_new(VOID);
+HWND WINAPI GetWindow_nothunk(HWND hWnd, UINT uCmd);
 int APIENTRY InternalGetWindowText_new(HWND hWnd, LPWSTR lpString, int nMaxCount);
 BOOL WINAPI IsHungAppWindow_new(HWND hWnd);
 BOOL WINAPI IsWindowVisible_fix(HWND hWnd);

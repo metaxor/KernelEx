@@ -684,6 +684,80 @@ HWND APIENTRY GetShellWindow_new(VOID)
 	return FindWindow("Shell_TrayWnd", NULL);
 }
 
+/* MAKE_EXPORT GetWindow_nothunk=GetWindow */
+HWND WINAPI GetWindow_nothunk(HWND hWnd, UINT uCmd)
+{
+	PWND pWnd, pWndFound;
+	HWND hWndFound;
+
+	pWnd = HWNDtoPWND(hWnd);
+
+	if(pWnd == NULL)
+	{
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return NULL;
+	}
+
+	switch(uCmd)
+	{
+		case GW_CHILD:
+			pWndFound = (PWND)REBASEUSER(pWnd->spwndChild);
+
+			if(pWndFound == NULL)
+				SetLastError(ERROR_NOT_CHILD_WINDOW);
+			break;
+
+		case GW_ENABLEDPOPUP:
+			SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+			break;
+
+		case GW_HWNDFIRST:
+			pWndFound = (PWND)REBASEUSER(pWnd->spwndParent);
+
+			if(REBASEUSER(pWndFound->spwndChild) != NULL)
+				pWndFound = (PWND)REBASEUSER(pWndFound->spwndChild);
+			break;
+
+		case GW_HWNDLAST:
+			pWndFound = pWnd;
+
+			while(REBASEUSER(pWndFound->spwndNext) != NULL)
+				pWndFound = (PWND)REBASEUSER(pWndFound->spwndNext);
+			break;
+
+		case GW_HWNDNEXT:
+			pWndFound = (PWND)REBASEUSER(pWnd->spwndNext);
+			break;
+   
+		case GW_HWNDPREV:
+			/* ?!! No spwndPrev ?? */
+			pWndFound = (PWND)REBASEUSER(pWnd->spwndParent);
+
+			if(pWndFound != NULL && REBASEUSER(pWndFound->spwndChild) != NULL)
+			{
+				while(REBASEUSER(pWndFound->spwndNext) != NULL && REBASEUSER(pWndFound->spwndNext) != (DWORD)pWnd)
+					pWndFound = (PWND)REBASEUSER(pWndFound->spwndNext);
+			}
+			break;
+
+		case GW_OWNER:
+			pWndFound = (PWND)REBASEUSER(pWnd->spwndOwner);
+			break;
+
+		default:
+			pWnd = NULL;
+			pWndFound = NULL;
+			hWndFound = NULL;
+			SetLastError(ERROR_NOT_SUPPORTED);
+			break;
+	}
+
+	if(pWndFound != NULL)
+		hWndFound = (HWND)pWnd->hWnd16;
+
+	return hWndFound;
+}
+
 /* DON'T EXPORT THIS */
 BOOL WINAPI GetWindowRect_source(HWND hWnd, LPRECT lpRect)
 {
