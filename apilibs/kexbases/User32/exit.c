@@ -227,15 +227,19 @@ ULONG GetUserProcessesCount(PSHUTDOWNDATA sa)
 
 	for(index=0;index<=cbProcesses;index++)
 	{
+		char ProcessName[255];
+
 		Process = (PPDB98)kexGetProcess(pProcess[index]);
 
 		if(Process == NULL)
 			continue;
 
-		if((Process->Flags & fServiceProcess || Process == Msg32Process) && !sa->fEndServices)
+		kexGetProcessName(pProcess[index], ProcessName);
+
+		if((Process->Flags & fServiceProcess || Process == Msg32Process || !strcmp(ProcessName, "SYSTRAY.EXE")) && !sa->fEndServices)
 			continue;
 
-		if(!(Process->Flags & fServiceProcess) && Process != Msg32Process && sa->fEndServices)
+		if(!(Process->Flags & fServiceProcess) && Process != Msg32Process && strcmp(ProcessName, "SYSTRAY.EXE") && sa->fEndServices)
 			continue;
 
 		if(Process == pKernelProcess || Process == MprProcess)
