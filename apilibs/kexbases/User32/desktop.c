@@ -573,8 +573,8 @@ DWORD WINAPI DesktopThread(PVOID lParam)
 			{
 				EnumWindows_nothunk(EnumWindowsProc, TRUE);
 				TRACE_OUT("Input desktop has changed, redrawing screen... ");
-				RepaintScreen();
 				RedrawDesktop();
+				RepaintScreen();
 				DBGPRINTF(("successful\n"));
 
 				SetEvent(gpdeskSwitchEvent);
