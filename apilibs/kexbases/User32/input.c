@@ -93,6 +93,8 @@ BOOL FASTCALL InitInputSegment(void)
 	HINSTANCE hUser16 = (HINSTANCE)LoadLibrary16("user");
 	WORD *InputSegment = NULL;
 
+	TRACE_OUT("InitInputSegment\n");
+
 	if((DWORD)hUser16 < 32)
 	{
 		TRACE("Failed to load USER (err=%d)\n", hUser16);
@@ -127,6 +129,8 @@ SHORT WINAPI GetAsyncKeyState_nothunk(int vKey)
 	PTDB98 Thread = get_tdb();
 	UINT cState = 0;
 	BYTE pKeyState = 0;
+
+	TRACE_OUT("GetAsyncKeyState\n");
 
 	if(Thread->Win32Thread != NULL && Thread->Win32Thread->rpdesk != gpdeskInputDesktop)
 		return 0;
@@ -294,8 +298,13 @@ BOOL WINAPI SetCursorPos_nothunk(int X, int Y)
 	SHORT vKey = 0;
 	PPDB98 Process = get_pdb();
 
+	TRACE_OUT("SetCursorPos_nothunk\n");
+
 	if(pwndDesktop == NULL)
+	{
+		ERR_OUT("pwndDesktop is uninitialized, cannot set the cursor position\n");
 		return FALSE;
+	}
 
 	if(Process->Win32Process && !(kexGetHandleAccess(Process->Win32Process->hwinsta) & WINSTA_WRITEATTRIBUTES))
 	{
