@@ -204,12 +204,12 @@ BOOL WINAPI EnumChildWindows_nothunk(HWND hWndParent, WNDENUMPROC lpEnumFunc, LP
 BOOL WINAPI EnumThreadWindows_nothunk(DWORD dwThreadId, WNDENUMPROC lpfn, LPARAM lParam);
 BOOL WINAPI EnumWindows_nothunk(WNDENUMPROC lpEnumFunc, LPARAM lParam);
 HWND WINAPI GetParent_nothunk(HWND hWnd);
-BOOL WINAPI LockSetForegroundWindow_98(UINT lockcode);
 HWND APIENTRY GetAncestor_fix(HWND hwnd, UINT gaFlags);
 HWND APIENTRY GetShellWindow_new(VOID);
 int APIENTRY InternalGetWindowText_new(HWND hWnd, LPWSTR lpString, int nMaxCount);
 BOOL WINAPI IsHungAppWindow_new(HWND hWnd);
 BOOL WINAPI IsWindowVisible_fix(HWND hWnd);
+BOOL WINAPI LockSetForegroundWindow_98(UINT lockcode);
 BOOL WINAPI SetForegroundWindow_fix(HWND hWnd);
 BOOL WINAPI SetWindowPos_fix(HWND hWnd, HWND hWndInsertAfter, int X, int Y, int cx, int cy, UINT uFlags);
 BOOL WINAPI ShowWindow_fix(HWND hWnd, int nCmdShow);
