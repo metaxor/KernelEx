@@ -37,7 +37,7 @@ DWORD ShutdownThreadWndId = 0;
 int WaitToKillAppTimeout = 20000;
 int HungAppTimeout = 5000;
 int TimeBetweenTermination = 250;
-ULONG LogoffTimeout = 5 * 1000 * 60; // 5 minutes
+ULONG LogoffTimeout = 2 * 1250 * 60; // 2 minutes 30 seconds - shut down doesn't take more than 2 minutes
 
 HWND hwndGlobalText = NULL;
 
@@ -431,15 +431,16 @@ VOID __fastcall DestroyKernelWnd(PSHUTDOWNDATA ShutdownData)
 		{
 			if(wndProcess == dwKernelProcessId && wndThread != dwShutdownThreadId && wndThread != ShutdownThreadWndId)
 			{
-				if(GetTickCount() - ShutdownData->StartShutdownTickCount < LogoffTimeout)
-					Sleep(TimeBetweenTermination);
-				else if(!ShutdownData->fLoggingOff)
+				Sleep(TimeBetweenTermination);
+
+				if(GetTickCount() - ShutdownData->StartShutdownTickCount >= LogoffTimeout && !ShutdownData->fLoggingOff)
 				{
 					fForceShutdown = TRUE;
 					return;
 				}
+
 				SendMessage(hWnd, WM_COMMAND, IDOK, 0);
-				EndDialog(hWnd, 1);
+				EndDialog(hWnd, IDOK);
 			}
 		}
 		__except(EXCEPTION_EXECUTE_HANDLER)
@@ -615,6 +616,9 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 
 		if(fAborted)
 			goto finished;
+
+		if(fForceShutdown)
+			WARN_OUT("Logoff timed out, shutdown is now forced\n");
 
 		if(sa.ShellProcessId != 0 && !fForceShutdown)
 		{
