@@ -326,14 +326,14 @@ BOOL WINAPI SetCursorPos_nothunk(int X, int Y)
 	if(Y >= rcClient.bottom) Y = rcClient.bottom - 1;
 	if(Y < rcClient.top)     Y = rcClient.top;
 
-	ReleaseWin16Lock();
-	PostMessage(GetCapture(), WM_MOUSEMOVE, vKey, MAKELPARAM(X, Y));
-	GrabWin16Lock();
+	TRACE("New cursor position : X = %d, Y = %d\n", X, Y);
 
-	TRACE("New cursor position : X = %d, Y = %d", X, Y);
-
+	/* Set the new cursor position */
 	pInputData->CursorPos.x = X;
 	pInputData->CursorPos.y = Y;
+
+	/* Copy the cursor pos to the other field */
+	pInputData->CursorPos2 = pInputData->CursorPos;
 
 	/* FIXME : The new cursor position won't show unless the user moves the mouse */
 
