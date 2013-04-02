@@ -617,12 +617,6 @@ _ret:
 	return hwndParent;
 }
 
-/* MAKE_EXPORT LockSetForegroundWindow_98=LockSetForegroundWindow */
-BOOL WINAPI LockSetForegroundWindow_98(UINT lockcode)
-{
-	return TRUE;
-}
-
 /* MAKE_EXPORT GetAncestor_fix=GetAncestor */
 HWND APIENTRY GetAncestor_fix(HWND hwnd, UINT gaFlags)
 {
@@ -793,6 +787,12 @@ BOOL WINAPI IsWindowVisible_fix(HWND hWnd)
 
 	ReleaseWin16Lock();
 
+	return TRUE;
+}
+
+/* MAKE_EXPORT LockSetForegroundWindow_98=LockSetForegroundWindow */
+BOOL WINAPI LockSetForegroundWindow_98(UINT lockcode)
+{
 	return TRUE;
 }
 
