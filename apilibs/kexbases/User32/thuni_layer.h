@@ -30,12 +30,20 @@ static const char c_szDBCSProp[]="kexDBCS";
 #define REBASEUSER(x) ((x) != 0 ? (DWORD)gSharedInfo + (DWORD)(x) : 0)
 #define USER32FAR16(x) ((x) != 0 ? (DWORD)(x) - (DWORD)gSharedInfo : 0)
 
+#define REBASEPWND(pwnd) ((PWND)REBASEUSER(pwnd))
+
 #define ISOURPROCESSHWND(hwnd) ( GetWindowProcessId(hwnd) == GetCurrentProcessId() )
 #define IS_SHARED(x) (((DWORD)x) & 0x80000000)
 
-#define WS_EX_UNICODE 0x80000000
-#define WF_EX_WIN32 0x02000000
-#define WF_M_DIALOG	0x2
+#define WF_M_DIALOG					0x00000002
+#define WF_WMPAINTSENT				0x00000020
+
+#define MOREFLAGS_HASDATA			0x0080
+#define MOREFLAGS_SCREENSAVER		0x0800
+
+#define WF_EX_PAINTNOTPROCESSED		0x00020000
+#define WF_EX_WIN32					0x02000000
+#define WS_EX_UNICODE				0x80000000
 
 /* Custom flags */
 #define WS_INTERNAL_HUNGWASVISIBLE	0x00002000 // Reserved for ghost windows
