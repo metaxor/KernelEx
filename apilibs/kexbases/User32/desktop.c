@@ -687,6 +687,8 @@ BOOL WINAPI CloseDesktop_new(HDESK hDesktop)
 		}
 	}
 
+	ReleaseWin16Lock();
+
 	return result;
 }
 
