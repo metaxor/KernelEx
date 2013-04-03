@@ -128,6 +128,7 @@ HANDLE WINAPI CreateRemoteThread_new(HANDLE hProcess, LPSECURITY_ATTRIBUTES lpTh
 HANDLE WINAPI CreateThread_fix(LPSECURITY_ATTRIBUTES lpThreadAttributes, SIZE_T dwStackSize, LPTHREAD_START_ROUTINE lpStartAddress, LPVOID lpParameter, DWORD dwCreationFlags, LPDWORD lpThreadId);
 DWORD WINAPI GetProcessIdOfThread_new(HANDLE hThread);
 DWORD WINAPI GetThreadId_new(HANDLE hThread);
+BOOL WINAPI GetThreadTimes_new(HANDLE hThread, LPFILETIME lpCreationTime, LPFILETIME lpExitTime, LPFILETIME lpKernelTime, LPFILETIME lpUserTime);
 HANDLE WINAPI OpenThread_new(DWORD dwDesiredAccess, BOOL bInheritHandle, DWORD dwThreadId);
 BOOL WINAPI SystemTimeToTzSpecificLocalTime_new(const TIME_ZONE_INFORMATION *lpTimeZoneInformation, const SYSTEMTIME *lpUniversalTime, LPSYSTEMTIME lpLocalTime);
 BOOL WINAPI TzSpecificLocalTimeToSystemTime_new(const TIME_ZONE_INFORMATION *lpTimeZoneInformation, const SYSTEMTIME *lpLocalTime, LPSYSTEMTIME lpUniversalTime);

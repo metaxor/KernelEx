@@ -161,6 +161,44 @@ DWORD WINAPI GetThreadId_new(HANDLE hThread)
 	return (DWORD)Thread ^ Obfuscator;
 }
 
+/* MAKE_EXPORT GetThreadTimes_new=GetThreadTimes */
+BOOL WINAPI GetThreadTimes_new(
+	HANDLE hThread,
+	LPFILETIME lpCreationTime,
+	LPFILETIME lpExitTime,
+	LPFILETIME lpKernelTime,
+	LPFILETIME lpUserTime
+)
+{
+	PTDB98 Thread = (PTDB98)kexGetHandleObject(hThread, WIN98_K32OBJ_THREAD, 0);
+
+	if(Thread == NULL)
+	{
+		SetLastError(ERROR_INVALID_HANDLE);
+		return FALSE;
+	}
+
+	if(Thread->Win32Thread == NULL)
+	{
+		SetLastError(ERROR_BUSY);
+		return FALSE;
+	}
+
+	if(IsBadWritePtr(lpCreationTime, sizeof(FILETIME)) || IsBadWritePtr(lpExitTime, sizeof(FILETIME))
+		|| IsBadWritePtr(lpKernelTime, sizeof(FILETIME)) || IsBadWritePtr(lpUserTime, sizeof(FILETIME)))
+	{
+		SetLastError(ERROR_INVALID_PARAMETER);
+		return FALSE;
+	}
+
+	*lpCreationTime = Thread->Win32Thread->CreationTime;
+	*lpExitTime = Thread->Win32Thread->ExitTime;
+	*lpKernelTime = Thread->Win32Thread->KernelTime;
+	*lpUserTime = Thread->Win32Thread->UserTime;
+
+	return TRUE;
+}
+
 /* MAKE_EXPORT OpenThread_new=OpenThread */
 HANDLE WINAPI OpenThread_new(DWORD dwDesiredAccess, BOOL bInheritHandle, DWORD dwThreadId)
 {

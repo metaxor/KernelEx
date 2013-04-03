@@ -133,6 +133,7 @@ static const apilib_named_api kernel32_named_apis[] =
 	DECL_API("GetTempFileNameW", GetTempFileNameW_new),
 	DECL_API("GetTempPathW", GetTempPathW_new),
 	DECL_API("GetThreadId", GetThreadId_new),
+	DECL_API("GetThreadTimes", GetThreadTimes_new),
 	DECL_API("GetUserDefaultUILanguage", GetUserDefaultUILanguage_new),
 	DECL_API("GetVersion", GetVersion_WIN95),
 	DECL_API("GetVersion", GetVersion_WIN98),
