@@ -62,7 +62,7 @@ typedef struct _WND
 	struct _WND *lastActive;   // 48h Last active owned popup window
 	HANDLE  hMenuSystem;       // 4Ch handle to the system menu
 	DWORD   un1;               // 50h
-	WORD    un2;               // 54h
+	WORD    scrollbarOffset;         // 54h (This might have something to do with the scroll bar) Offset of the window's scrollbar in gSharedInfo
 	WORD    classAtom;         // 56h See also offs. 2 in the field 24 struct ptr
 	DWORD   alternatePID;      // 58h
 	DWORD   alternateTID;      // 5Ch
