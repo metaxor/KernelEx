@@ -43,7 +43,7 @@ NTSTATUS NTAPI NtRaiseHardError(IN NTSTATUS ErrorStatus,
 	LPVOID lpMessage = NULL;
 	BOOL result = FALSE;
 	UINT uType = 0;
-	BOOL fWait = FALSE;
+	BOOL fWait = TRUE;
 
 	if(IsBadReadPtr(Response, sizeof(ULONG)))
 		return STATUS_INVALID_PARAMETER;
