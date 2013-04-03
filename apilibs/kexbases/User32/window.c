@@ -882,9 +882,34 @@ int APIENTRY InternalGetWindowText_new(HWND hWnd, LPWSTR lpString, int nMaxCount
 	return nLength;
 }
 
+/* MAKE_EXPORT IsChild_nothunk=IsChild */
 BOOL WINAPI IsChild_nothunk(HWND hWndParent, HWND hWnd)
 {
 	return TestChild(hWnd, hWndParent);
+}
+
+/* MAKE_EXPORT IsGUIThread_new=IsGUIThread */
+BOOL WINAPI IsGUIThread_new(BOOL bConvert)
+{
+	GUITHREADINFO gti;
+	BOOL result;
+
+	memset(&gti, 0, sizeof(GUITHREADINFO));
+	gti.cbSize = sizeof(GUITHREADINFO);
+
+	result = GetGUIThreadInfo(GetCurrentThreadId(), &gti);
+
+	if(!result)
+	{
+		MSG msg;
+
+		if(!bConvert)
+			return FALSE;
+
+		PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE);
+	}
+
+	return TRUE;
 }
 
 /* MAKE_EXPORT IsHungAppWindow_new=IsHungAppWindow */
