@@ -125,40 +125,45 @@ typedef struct _K32OBJHEAD
 typedef struct _K32EVENT
 {
     BYTE        Type;           // 00 K32OBJ_EVENT
-    BYTE        Flags;          // 01
-    WORD        cReferences;    // 02
+    BYTE        Flags;          // 01 Flags
+    WORD        cReferences;    // 02 References
     DWORD       un1;            // 04
-    BOOL        Signaled;       // 08
-    LPSTR       lpName;         // 0C
+    BOOL        Signaled;       // 08 Event state
+    LPSTR       lpName;         // 0C Name
 } K32EVENT, *PK32EVENT;
 
 typedef struct _THREADINFO
 {
-    DWORD               UniqueThreadId;
-    struct _DESKTOP     *rpdesk;
-    struct _DESKTOPINFO *pDeskInfo;
-    HDESK               hdesk;
+    DWORD               UniqueThreadId;			// ID
+    struct _DESKTOP     *rpdesk;				// Desktop
+    struct _DESKTOPINFO *pDeskInfo;				// Desktop info
+    HDESK               hdesk;					// Handle to the desktop 
     union
     {
-        PVOID                   Thread;
-        struct _WINDOWSTATION   *rpwinsta;
+        PVOID                   Thread;			// Pointer to the thread database
+        struct _WINDOWSTATION   *rpwinsta;		// Pointer to the thread window station
     };
-	BOOL				fGhosted;
+	BOOL				fGhosted;				// Internal use for hung threads
+
+	FILETIME			CreationTime;			// Creation time
+	FILETIME			ExitTime;				// Exit time
+	FILETIME			KernelTime;				// Kernel time
+	FILETIME			UserTime;				// User time
 } THREADINFO, *PTHREADINFO;
 
 typedef struct _PROCESSINFO
 {
-    DWORD           UniqueProcessId;
-    struct _DESKTOP *rpdeskStartup;
-    HDESK           hdeskStartup;
-    struct _WINSTATION_OBJECT *rpwinsta;
-    HWINSTA         hwinsta;
+    DWORD           UniqueProcessId;			// ID
+    struct _DESKTOP *rpdeskStartup;				// Startup desktop
+    HDESK           hdeskStartup;				// Startup desktop handle
+    struct _WINSTATION_OBJECT *rpwinsta;		// Current window station
+    HWINSTA         hwinsta;					// Current window station handle
 
-    DWORD           SessionId;
-    BOOL            WindowsGhosting;
-	DWORD			ShutdownLevel;
-	DWORD			ShutdownFlags;
-    PVOID           Process;
+    DWORD           SessionId;					// Session ID (MIGHT BE USED IN THE FUTURE)
+    BOOL            WindowsGhosting;			// Windows ghosting (for hung threads)
+	DWORD			ShutdownLevel;				// Shutdown order
+	DWORD			ShutdownFlags;				// Shutdown flags
+    PVOID           Process;					// Pointer to the process database
 } PROCESSINFO, *PPROCESSINFO;
 
 // Structured Exception Handler
@@ -183,7 +188,7 @@ typedef struct _NODE
 {
 	struct _NODE*  next;
 	struct _NODE*  prev;
-	PVOID          data;
+	PVOID          data;			// Pointer to the thread database
 } NODE, *PNODE;
 
 // List
