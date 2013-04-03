@@ -588,44 +588,72 @@ BOOL WINAPI EnumWindows_nothunk(WNDENUMPROC lpEnumFunc,
 	return EnumWindows(lpEnumFunc, lParam);//EnumWindowsEx(0, lpEnumFunc, lParam, FALSE, NULL, FALSE);
 }
 
-/* MAKE_EXPORT GetParent_nothunk=GetParent */
-HWND WINAPI GetParent_nothunk(HWND hWnd)
+/* MAKE_EXPORT GetAncestor_nothunk=GetAncestor */
+HWND APIENTRY GetAncestor_nothunk(HWND hwnd, UINT gaFlags)
 {
-	PWND pwnd = NULL;
-	HWND hwndParent = NULL;
+	PWND pWnd = HWNDtoPWND(hwnd);
+	PWND pwndAncestor, pwndParent;
+	HWND hwndAncestor;
+
+	if(pWnd == NULL)
+		return FALSE;
+
+	hwndAncestor = NULL;
+
+	TRACE_OUT("GetAncestor\n");
 
 	GrabWin16Lock();
 
-	pwnd = HWNDtoPWND(hWnd);
+	switch(gaFlags)
+	{
+		case GA_PARENT:
+			pwndAncestor = REBASEPWND(pWnd->spwndParent);
+			break;
 
-	if(pwnd == NULL)
-		goto _ret;
+		case GA_ROOT:
+			pwndAncestor = pWnd;
 
-	if((pwnd->style & (WS_CHILD | WS_POPUP)) == WS_TILED)
-		goto _ret;
+			do
+			{
+				pwndParent = REBASEPWND(pwndAncestor->spwndParent);
 
-	if ((pwnd->style & (WS_CHILD | WS_POPUP)) == WS_CHILD)
-		pwnd = (PWND)REBASEUSER(pwnd->spwndParent);
-	else
-		pwnd = (PWND)REBASEUSER(pwnd->spwndOwner);
+				if(pwndParent == NULL || pwndParent == pwndDesktop)
+					break;
 
-	if(pwnd != NULL)
-		hwndParent = (HWND)pwnd->hWnd16;
+				pwndAncestor = pwndParent;
+			} while(TRUE);
 
-_ret:
+			break;
+
+		case GA_ROOTOWNER:
+			pwndAncestor = pWnd;
+
+			ReleaseWin16Lock();
+			do
+			{
+				pwndParent = HWNDtoPWND(GetParent_nothunk((HWND)pwndAncestor->hWnd16));
+
+				if(pwndParent == NULL)
+					break;
+
+				pwndAncestor = pwndParent;
+			} while(TRUE);
+			GrabWin16Lock();
+			break;
+
+		default:
+			pwndAncestor = NULL;
+			break;
+	}
+
+	if(pwndAncestor != NULL)
+		hwndAncestor = (HWND)pwndAncestor->hWnd16;
+
 	ReleaseWin16Lock();
-	return hwndParent;
-}
 
-/* MAKE_EXPORT GetAncestor_fix=GetAncestor */
-HWND APIENTRY GetAncestor_fix(HWND hwnd, UINT gaFlags)
-{
-	// Believe it or not, HWND_MESSAGE works under Windows 98 -- and if you call GetAncestor()
-	// on such a window, user32 crashes in 16-bit code. :(
-	if (gaFlags == GA_ROOT && GetParent(hwnd) == NULL)
-		return hwnd;
+	TRACE("ret=0x%X", hwndAncestor);
 
-	return GetAncestor(hwnd, gaFlags);
+	return hwndAncestor;
 }
 
 /* DON'T EXPORT THIS */
@@ -677,6 +705,35 @@ LONG WINAPI GetDialogBaseUnits_source(VOID)
 	return retval;
 }
 
+/* MAKE_EXPORT GetParent_nothunk=GetParent */
+HWND WINAPI GetParent_nothunk(HWND hWnd)
+{
+	PWND pwnd = NULL;
+	HWND hwndParent = NULL;
+
+	GrabWin16Lock();
+
+	pwnd = HWNDtoPWND(hWnd);
+
+	if(pwnd == NULL)
+		goto _ret;
+
+	if((pwnd->style & (WS_CHILD | WS_POPUP)) == WS_TILED)
+		goto _ret;
+
+	if ((pwnd->style & (WS_CHILD | WS_POPUP)) == WS_CHILD)
+		pwnd = (PWND)REBASEUSER(pwnd->spwndParent);
+	else
+		pwnd = (PWND)REBASEUSER(pwnd->spwndOwner);
+
+	if(pwnd != NULL)
+		hwndParent = (HWND)pwnd->hWnd16;
+
+_ret:
+	ReleaseWin16Lock();
+	return hwndParent;
+}
+
 /* MAKE_EXPORT GetShellWindow_new=GetShellWindow */
 HWND APIENTRY GetShellWindow_new(VOID)
 {
@@ -684,27 +741,23 @@ HWND APIENTRY GetShellWindow_new(VOID)
 	return FindWindow("Shell_TrayWnd", NULL);
 }
 
-/* MAKE_EXPORT GetWindow_nothunk=GetWindow */
+/* Doesn't work, most apps hang on GW_HWNDNEXT and GW_CHILD doesn't return the right value
+   Win9x is sometimes incomprehensible */
+#if 0
 HWND WINAPI GetWindow_nothunk(HWND hWnd, UINT uCmd)
 {
-	PWND pWnd, pWndFound;
-	HWND hWndFound;
+	PWND pWnd, pWndFound = NULL;
+	HWND hWndFound = NULL;
 
 	pWnd = HWNDtoPWND(hWnd);
 
 	if(pWnd == NULL)
-	{
-		SetLastError(ERROR_INVALID_PARAMETER);
 		return NULL;
-	}
 
 	switch(uCmd)
 	{
 		case GW_CHILD:
-			pWndFound = (PWND)REBASEUSER(pWnd->spwndChild);
-
-			if(pWndFound == NULL)
-				SetLastError(ERROR_NOT_CHILD_WINDOW);
+			pWndFound = REBASEPWND(pWnd->spwndChild);
 			break;
 
 		case GW_ENABLEDPOPUP:
@@ -712,42 +765,44 @@ HWND WINAPI GetWindow_nothunk(HWND hWnd, UINT uCmd)
 			break;
 
 		case GW_HWNDFIRST:
-			pWndFound = (PWND)REBASEUSER(pWnd->spwndParent);
-
-			if(REBASEUSER(pWndFound->spwndChild) != NULL)
-				pWndFound = (PWND)REBASEUSER(pWndFound->spwndChild);
+			if(pWnd->spwndParent != NULL)
+			{
+				pWndFound = REBASEPWND(pWnd->spwndParent);
+				pWndFound = REBASEPWND(pWnd->spwndChild);
+			}
 			break;
 
 		case GW_HWNDLAST:
+			TRACE_OUT("GW_HWNDLAST\n");
 			pWndFound = pWnd;
 
 			while(REBASEUSER(pWndFound->spwndNext) != NULL)
-				pWndFound = (PWND)REBASEUSER(pWndFound->spwndNext);
+				pWndFound = REBASEPWND(pWndFound->spwndNext);
 			break;
 
 		case GW_HWNDNEXT:
-			pWndFound = (PWND)REBASEUSER(pWnd->spwndNext);
+			TRACE_OUT("GW_HWNDNEXT\n");
+			pWndFound = REBASEPWND(pWnd->spwndNext);
 			break;
    
 		case GW_HWNDPREV:
+			TRACE_OUT("GW_HWNDPREV\n");
 			/* ?!! No spwndPrev ?? */
 			pWndFound = (PWND)REBASEUSER(pWnd->spwndParent);
 
-			if(pWndFound != NULL && REBASEUSER(pWndFound->spwndChild) != NULL)
+			if(pWndFound != NULL && (pWndFound = (PWND)REBASEUSER(pWndFound->spwndChild)) != NULL)
 			{
-				while(REBASEUSER(pWndFound->spwndNext) != NULL && REBASEUSER(pWndFound->spwndNext) != (DWORD)pWnd)
+				while(REBASEPWND(pWndFound->spwndNext) != NULL && REBASEPWND(pWndFound->spwndNext) != pWnd)
 					pWndFound = (PWND)REBASEUSER(pWndFound->spwndNext);
 			}
 			break;
 
 		case GW_OWNER:
-			pWndFound = (PWND)REBASEUSER(pWnd->spwndOwner);
+			TRACE_OUT("GW_OWNER\n");
+			pWndFound = REBASEPWND(pWnd->spwndOwner);
 			break;
 
 		default:
-			pWnd = NULL;
-			pWndFound = NULL;
-			hWndFound = NULL;
 			SetLastError(ERROR_NOT_SUPPORTED);
 			break;
 	}
@@ -755,8 +810,11 @@ HWND WINAPI GetWindow_nothunk(HWND hWnd, UINT uCmd)
 	if(pWndFound != NULL)
 		hWndFound = (HWND)pWnd->hWnd16;
 
+	TRACE("hWndFound=0x%X\n", hWndFound);
+
 	return hWndFound;
 }
+#endif
 
 /* DON'T EXPORT THIS */
 BOOL WINAPI GetWindowRect_source(HWND hWnd, LPRECT lpRect)
