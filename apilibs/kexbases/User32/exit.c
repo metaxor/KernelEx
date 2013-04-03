@@ -510,12 +510,13 @@ VOID __fastcall LogoffCurrentUser(PSHUTDOWNDATA ShutdownData)
 			}
 
 			Processes = 0;
-			DestroyKernelWnd(ShutdownData);
 		} while(GetUserProcessesCount(ShutdownData) > 0 && !fAborted);
 	}
 	__except(EXCEPTION_EXECUTE_HANDLER)
 	{
 	}
+
+	DestroyKernelWnd(ShutdownData);
 }
 
 DWORD WINAPI ShutdownThread(PVOID lParam)
