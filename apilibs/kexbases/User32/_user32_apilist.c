@@ -50,8 +50,6 @@ BOOL SetParent_fix_init();
 DWORD WINAPI HardErrorThread(PVOID lParam)
 {
 	HANDLE hEvent = NULL;
-	HANDLE hDupEvent = NULL;
-	HANDLE hProcess = NULL;
 	PHARDERRORDATA pData = NULL;
 	LONG CurrentArray = 0;
 	BOOL fFound = FALSE;
@@ -92,22 +90,7 @@ DWORD WINAPI HardErrorThread(PVOID lParam)
 			goto _continue;
 		}
 
-		hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pData->dwProcessId);
-
-		if(hProcess != NULL)
-		{
-			hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
-
-			if(hEvent != NULL)
-			{
-				DuplicateHandle(GetCurrentProcess(), hEvent, hProcess, &hDupEvent, 0, FALSE, DUPLICATE_SAME_ACCESS);
-				pData->hEvent = hDupEvent;
-			}
-			else
-				pData->hEvent = INVALID_HANDLE_VALUE;
-
-			CloseHandle(hProcess);
-		}
+		hEvent = pData->hEvent;
 
 		MessageBox(NULL, pData->lpHardErrorMessage, pData->lpHardErrorTitle, MB_ICONERROR | MB_SYSTEMMODAL | pData->uType);
 
@@ -115,7 +98,6 @@ DWORD WINAPI HardErrorThread(PVOID lParam)
 		{
 			SetEvent(hEvent);
 			CloseHandle(hEvent);
-			CloseHandle(hDupEvent);
 		}
 
 		kexFreeObject((PVOID)pData->lpHardErrorMessage);
@@ -172,17 +154,14 @@ BOOL WINAPI Win32RaiseHardError(LPCSTR lpszMessage, LPCSTR lpszTitle, UINT uMsgT
 
 	if(fWait)
 	{
-		while(pData->hEvent == NULL)
-		{
-			MSG msg;
+		HANDLE hEvent;
 
-			PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE);
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-			Sleep(1);
-		}
+		hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+		pData->hEvent = ConvertToGlobalHandle(hEvent);
 
 		WaitForSingleObject(pData->hEvent, INFINITE);
+
+		CloseHandle(hEvent);
 	}
 	return TRUE;
 }
