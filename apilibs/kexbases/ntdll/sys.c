@@ -51,6 +51,24 @@ NTSTATUS NTAPI ZwQuerySystemInformation(
 	return 0;
 }
 
+/* MAKE_EXPORT ZwQuerySystemTime=NtQuerySystemTime */
+/* MAKE_EXPORT ZwQuerySystemTime=ZwQuerySystemTime */
+NTSTATUS NTAPI ZwQuerySystemTime(PLARGE_INTEGER SystemTime)
+{
+	FILETIME SysTime;
+
+	if(SystemTime == NULL || IsBadWritePtr(SystemTime, sizeof(LARGE_INTEGER)))
+		return STATUS_INVALID_PARAMETER;
+
+	GetSystemTimeAsFileTime(&SysTime);
+
+	SystemTime->LowPart = SystemTime->u.LowPart = SysTime.dwLowDateTime;
+	SystemTime->HighPart = SystemTime->u.HighPart = SysTime.dwHighDateTime;
+	SystemTime->QuadPart = SysTime.dwLowDateTime + SysTime.dwHighDateTime;
+
+	return STATUS_SUCCESS;
+}
+
 /* MAKE_EXPORT ZwShutdownSystem=NtShutdownSystem */
 /* MAKE_EXPORT ZwShutdownSystem=ZwShutdownSystem */
 NTSTATUS NTAPI ZwShutdownSystem(IN SHUTDOWN_ACTION Action)

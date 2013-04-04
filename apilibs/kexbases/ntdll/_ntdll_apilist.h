@@ -139,6 +139,7 @@ NTSTATUS NTAPI RtlTryEnterCriticalSection(RTL_CRITICAL_SECTION *crit);
 NTSTATUS NTAPI RtlGetVersion(OUT PRTL_OSVERSIONINFOW lpVersionInformation);
 NTSTATUS NTAPI RtlVerifyVersionInfo(IN PRTL_OSVERSIONINFOEXW VersionInfo, IN ULONG TypeMask, IN ULONGLONG ConditionMask);
 NTSTATUS NTAPI ZwQuerySystemInformation(IN ULONG SystemInformationClass, IN OUT PVOID SystemInformation, IN ULONG SystemInformationLength, OUT PULONG ReturnLength OPTIONAL);
+NTSTATUS NTAPI ZwQuerySystemTime(PLARGE_INTEGER SystemTime);
 NTSTATUS NTAPI ZwShutdownSystem(IN SHUTDOWN_ACTION Action);
 NTSTATUS NTAPI ZwAdjustPrivilegesToken(IN HANDLE TokenHandle, IN BOOLEAN DisableAllPrivileges, IN PTOKEN_PRIVILEGES TokenPrivileges, IN ULONG PreviousPrivilegesLength, OUT PTOKEN_PRIVILEGES PreviousPrivileges OPTIONAL, OUT PULONG RequiredLength OPTIONAL);
 NTSTATUS NTAPI ZwOpenProcessToken(IN HANDLE ProcessHandle, IN ACCESS_MASK DesiredAccess, OUT PHANDLE TokenHandle);
