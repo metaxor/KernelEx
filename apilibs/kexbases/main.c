@@ -87,6 +87,8 @@ BOOL ppi_init(PPDB98 Process)
 
 	Process->Win32Process = ppi;
 
+	memset(ppi, 0, sizeof(PROCESSINFO));
+
 	ppi->Process = Process;
 	ppi->UniqueProcessId = Obfuscator ^ (DWORD)Process;
 	ppi->hdeskStartup = NULL;
@@ -114,8 +116,14 @@ BOOL pti_init(PTDB98 Thread)
 
 	Thread->Win32Thread = pti;
 
+	memset(pti, 0, sizeof(THREADINFO));
+
 	pti->UniqueThreadId = Obfuscator ^ (DWORD)Thread;
 	pti->Thread = Thread;
+
+	GetSystemTimeAsFileTime(&pti->CreationTime);
+	GetSystemTimeAsFileTime(&pti->KernelTime);
+	GetSystemTimeAsFileTime(&pti->UserTime);
 
 	return TRUE;
 }
@@ -133,11 +141,20 @@ BOOL process_init(PPDB98 Process)
 /* Uninitialization phase */
 VOID pti_uninit(PTDB98 Thread)
 {
+	PTHREADINFO pti;
+
 	if(IsBadReadPtr(Thread, sizeof(TDB98)))
 		Thread = get_tdb();
 
-	if(!IsBadReadPtr(Thread->Win32Thread, sizeof(THREADINFO)))
-		kexFreeObject(Thread->Win32Thread);
+	pti = Thread->Win32Thread;
+
+	if(IsBadReadPtr(pti, sizeof(THREADINFO)))
+		return;
+
+	GetSystemTimeAsFileTime(&pti->ExitTime);
+
+	/* Should we free the win32 thread ? One thread could call GetThreadTimes
+	   to retrieve the thread's exit time */
 }
 
 VOID ppi_uninit(PPDB98 Process)
