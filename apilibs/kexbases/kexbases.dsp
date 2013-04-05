@@ -417,6 +417,10 @@ SOURCE=.\Advapi32\_advapi32_stubs.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\Advapi32\logon.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\Advapi32\lsa.c
 # End Source File
 # Begin Source File
