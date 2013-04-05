@@ -25,6 +25,7 @@
 #include "desktop.h"
 #include "resource.h"
 #include "hung.h"
+#include "../advapi32/security.h"
 
 BOOL fShutdown = FALSE;
 BOOL fLoggingOff = FALSE;
@@ -406,9 +407,8 @@ int ProcessCompare(const void *elem1, const void *elem2)
 	return 0;
 }
 
-VOID __fastcall DestroyKernelWnd(PSHUTDOWNDATA ShutdownData)
+VOID FASTCALL DestroyKernelWnd(PSHUTDOWNDATA ShutdownData, BOOL fCloseAll)
 {
-	int i;
 	int count = 0;
 
 	while(count <= 65536)
@@ -427,26 +427,34 @@ VOID __fastcall DestroyKernelWnd(PSHUTDOWNDATA ShutdownData)
 
 		wndThread = GetWindowThreadProcessId(hWnd, &wndProcess);
 
-		__try
+		if(wndProcess == dwKernelProcessId && wndThread != dwShutdownThreadId && wndThread != ShutdownThreadWndId)
 		{
-			if(wndProcess == dwKernelProcessId && wndThread != dwShutdownThreadId && wndThread != ShutdownThreadWndId)
+			Sleep(TimeBetweenTermination);
+
+			if(GetTickCount() - ShutdownData->StartShutdownTickCount >= LogoffTimeout && !ShutdownData->fLoggingOff)
 			{
-				Sleep(TimeBetweenTermination);
+				fForceShutdown = TRUE;
+				return;
+			}
 
-				if(GetTickCount() - ShutdownData->StartShutdownTickCount >= LogoffTimeout && !ShutdownData->fLoggingOff)
-				{
-					fForceShutdown = TRUE;
-					return;
-				}
-
-				SendMessage(hWnd, WM_COMMAND, IDOK, 0);
+			SendMessage(hWnd, WM_COMMAND, IDOK, 0);
+			__try
+			{
 				EndDialog(hWnd, IDOK);
 			}
+			__except(EXCEPTION_EXECUTE_HANDLER)
+			{
+			}
 		}
-		__except(EXCEPTION_EXECUTE_HANDLER)
-		{
-		}
+
+		if(!fCloseAll)
+			return;
 	}
+}
+
+VOID FASTCALL CleanHardErrorQueue(VOID)
+{
+	int i;
 
 	for(i=0;i<=MAX_HARD_ERRORS;i++)
 	{
@@ -463,7 +471,7 @@ VOID __fastcall DestroyKernelWnd(PSHUTDOWNDATA ShutdownData)
 	}
 }
 
-VOID __fastcall LogoffCurrentUser(PSHUTDOWNDATA ShutdownData)
+VOID FASTCALL LogoffCurrentUser(PSHUTDOWNDATA ShutdownData)
 {
 	DWORD pProcess[1024];
 	DWORD Processes = 0;
@@ -507,6 +515,8 @@ VOID __fastcall LogoffCurrentUser(PSHUTDOWNDATA ShutdownData)
 					break;
 				}
 				pProcess[i] = 0;
+
+				DestroyKernelWnd(ShutdownData, FALSE);
 			}
 
 			Processes = 0;
@@ -515,8 +525,6 @@ VOID __fastcall LogoffCurrentUser(PSHUTDOWNDATA ShutdownData)
 	__except(EXCEPTION_EXECUTE_HANDLER)
 	{
 	}
-
-	DestroyKernelWnd(ShutdownData);
 }
 
 DWORD WINAPI ShutdownThread(PVOID lParam)
@@ -556,7 +564,7 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 
 		//SystemParametersInfo(SPI_SETSCREENSAVERRUNNING, TRUE, 0, 0);
 
-		RegOpenKeyEx(HKEY_CURRENT_USER,  "Control Panel\\Desktop", 0, KEY_ALL_ACCESS, &hKey);
+		RegOpenKeyEx(HKEY_CURRENT_USER, "Control Panel\\Desktop", 0, KEY_ALL_ACCESS, &hKey);
 
 		if(hKey != NULL)
 		{
@@ -621,6 +629,8 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 		if(fForceShutdown)
 			WARN_OUT("Logoff timed out, shutdown is now forced\n");
 
+		DestroyKernelWnd(&sa, TRUE);
+
 		if(sa.ShellProcessId != 0 && !fForceShutdown)
 		{
 			/* Now terminate the shell process */
@@ -649,7 +659,18 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 
 			Sleep(50);
 
-			RegOpenKey(HKEY_USERS, ".DEFAULT", &hKey);
+			if(!IntSwitchUser(".DEFAULT", TRUE))
+			{
+				DWORD LastErr = GetLastError();
+				char buffer[255];
+				LPVOID lpString = NULL;
+
+				kexErrorCodeToString(LastErr, (LPSTR)&lpString);
+				wsprintf(buffer, "Logging off failed with error %d : %s", LastErr, lpString);
+				Win32RaiseHardError(buffer, "Shut down", MB_OK, TRUE);
+			}
+
+			/*RegOpenKey(HKEY_USERS, ".DEFAULT", &hKey);
 			if(hKey != NULL)
 			{
 				RegRemapPreDefKey(HKEY_CURRENT_USER, hKey);
@@ -664,7 +685,7 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 				kexErrorCodeToString(LastErr, (LPSTR)&lpString);
 				wsprintf(buffer, "%s (Error %d)", lpString, LastErr);
 				Win32RaiseHardError(buffer, "Shut down", MB_OK, FALSE);
-			}
+			}*/
 
 			RegOpenKey(HKEY_LOCAL_MACHINE, "System\\CurrentControlSet\\Control", &hKey);
 
