@@ -227,7 +227,7 @@ BOOL WINAPI GetUserObjectSecurity_new(HANDLE hObj, PSECURITY_INFORMATION pSIRequ
 BOOL WINAPI LockWorkStation_new(void);
 BOOL WINAPI LockWindowStation_new(HWINSTA hWinSta);
 HWINSTA WINAPI OpenWindowStationA_new(LPSTR lpszWinSta, BOOL fInherit, ACCESS_MASK dwDesiredAccess);
-BOOL WINAPI RegisterLogonProcess_new(DWORD dwProcessId, BOOL fUnknown);
+BOOL WINAPI RegisterLogonProcess_new(DWORD dwProcessId, BOOL fSecure);
 BOOL WINAPI SetLogonNotifyWindow_new(HWINSTA hWinSta, HWND hWnd);
 BOOL WINAPI SetProcessWindowStation_new(HWINSTA hWinSta);
 BOOL WINAPI SetUserObjectInformationA_new(HANDLE hObj, int nIndex, PVOID pvInfo, DWORD nLength);

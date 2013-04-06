@@ -502,11 +502,11 @@ HWINSTA WINAPI OpenWindowStationA_new(LPSTR lpszWinSta, BOOL fInherit, ACCESS_MA
 }
 
 /* MAKE_EXPORT RegisterLogonProcess_new=RegisterLogonProcess */
-BOOL WINAPI RegisterLogonProcess_new(DWORD dwProcessId, BOOL fUnknown)
+BOOL WINAPI RegisterLogonProcess_new(DWORD dwProcessId, BOOL fSecure)
 {
 	if(gpidMpr != 0)
 	{
-		TRACE("The logon process is already registered ! (pid=0x%X, fUnknown=0x%X", dwProcessId, fUnknown);
+		TRACE("The logon process is already registered ! (pid=0x%X, fSecure=0x%X", dwProcessId, fSecure);
 		SetLastError(ERROR_ACCESS_DENIED);
 		return FALSE;
 	}
