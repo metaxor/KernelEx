@@ -37,9 +37,9 @@ DWORD FASTCALL GetProfileRegString(HKEY hKey,
 	DWORD dwBufSize;
 	LONG result = 0;
 
-	RegOpenKeyEx(hKey, lpKeyName, NULL, KEY_ALL_ACCESS, &hkResult);
+	result = RegOpenKeyEx(hKey, lpKeyName, NULL, KEY_ALL_ACCESS, &hkResult);
 
-	if(hkResult == NULL)
+	if(result != ERROR_SUCCESS)
 	{
 		strcpy(lpReturnedString, lpDefault);
 		return strlen(lpReturnedString);
@@ -103,9 +103,9 @@ BOOL FASTCALL GetProfileRegStruct(HKEY hKey,
 	DWORD dwBufSize;
 	LONG result = 0;
 
-	RegOpenKeyEx(hKey, lpKeyName, NULL, KEY_ALL_ACCESS, &hkResult);
+	result = RegOpenKeyEx(hKey, lpKeyName, NULL, KEY_ALL_ACCESS, &hkResult);
 
-	if(hkResult == NULL)
+	if(result != ERROR_SUCCESS)
 		return FALSE;
 
 	dwBufSize = uSizeStruct;
@@ -284,19 +284,32 @@ void SetNewColors()
 
 DWORD WINAPI SessionSwitchThread(LPVOID lParam)
 {
+	PCHAR lpDeskPath = "Control Panel\\Desktop";
+	PCHAR lpMousePath = "Control Panel\\Mouse";
+	PCHAR lpKeyboardPath = "Control Panel\\Keyboard";
 	ANIMATIONINFO ai;
 	NONCLIENTMETRICS ncm;
-	int border = 0;
-	BOOL fDragFullWindows = 0;
-	BOOL fMenuDropAlignment = 0;
-	BOOL fScreenSaverEnabled = 0;
+	BOOL fDragFullWindows, fMenuDropAlignment, fScreenSaverEnabled, fSmoothFont, fSwapMouseButtons = FALSE;
 	int ScreenSaverTimeout = 0;
-	BOOL fSmoothFont = 0;
 	RECT rect;
 	CHAR Wallpaper[255];
-	PCHAR lpKeyPath = "Control Panel\\Desktop";
+	HKEY hKey = NULL;
+	LPCSTR lpUserName = (LPCSTR)lParam;
+	LONG result;
+	int DoubleClickTime, DoubleClickHeight, DoubleClickWidth, MouseSpeed = 0;
+	int KeyboardDelay, KeyboardSpeed = 0;
 
-	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_IDLE); // Could it crash the CPU?
+	#define GETPROFILEVALUE(path, val, def) GetProfileRegInt(HKEY_CURRENT_USER, path, val, def)
+
+	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_IDLE);
+
+	result = RegOpenKeyEx(HKEY_LOCAL_MACHINE, "System\\CurrentControlSet\\Control", NULL, KEY_ALL_ACCESS, &hKey);
+
+	if(result == ERROR_SUCCESS)
+	{
+		RegSetValueEx(hKey, "Current User", 0, REG_SZ, (BYTE*)lpUserName, strlen(lpUserName));
+		RegCloseKey(hKey);
+	}
 
 	memset(&ai, 0, sizeof(ANIMATIONINFO));
 	memset(&ncm, 0, sizeof(NONCLIENTMETRICS));
@@ -309,28 +322,43 @@ DWORD WINAPI SessionSwitchThread(LPVOID lParam)
 	rect.right = 15;
 	rect.bottom = GetSystemMetrics(SM_CXBORDER);
 
-	// Set up cursors
-
-	//SystemParametersInfo(SPI_SETCURSORS, 0, NULL, SPIF_SENDCHANGE);
-	SystemParametersInfo(SPI_SETMOUSEBUTTONSWAP, GetSystemMetrics(SM_SWAPBUTTON), 0, SPIF_SENDCHANGE);
-
 	// Retrieves settings in HKEY_CURRENT_USER
 
-	GetProfileRegString(HKEY_CURRENT_USER, lpKeyPath, "Wallpaper", "", Wallpaper, sizeof(Wallpaper));
+	GetProfileRegString(HKEY_CURRENT_USER, lpDeskPath, "Wallpaper", "", Wallpaper, sizeof(Wallpaper));
 
-	fDragFullWindows = GetProfileRegInt(HKEY_CURRENT_USER, lpKeyPath, "DragFullWindows", 0);
-	fSmoothFont = GetProfileRegInt(HKEY_CURRENT_USER, lpKeyPath, "FontSmoothing", 0);
-	fScreenSaverEnabled = GetProfileRegInt(HKEY_CURRENT_USER, lpKeyPath, "ScreenSaveActive", 0);
-	ScreenSaverTimeout = GetProfileRegInt(HKEY_CURRENT_USER, lpKeyPath, "ScreenSaveTimeout", 840);
+	fDragFullWindows		= GETPROFILEVALUE(lpDeskPath, "DragFullWindows", 0);
+	fSmoothFont				= GETPROFILEVALUE(lpDeskPath, "FontSmoothing", 0);
+
+	fScreenSaverEnabled		= GETPROFILEVALUE(lpDeskPath, "ScreenSaveActive", 0);
+	ScreenSaverTimeout		= GETPROFILEVALUE(lpDeskPath, "ScreenSaveTimeout", 840);
+
+	fSwapMouseButtons		= GETPROFILEVALUE(lpMousePath, "SwapMouseButtons", 0);
+	DoubleClickTime			= GETPROFILEVALUE(lpMousePath, "DoubleClickSpeed", 500);
+	DoubleClickHeight		= GETPROFILEVALUE(lpMousePath, "DoubleClickHeight", 4);
+	DoubleClickWidth		= GETPROFILEVALUE(lpMousePath, "DoubleClickWidth", 4);
+	MouseSpeed				= GETPROFILEVALUE(lpMousePath, "MouseSpeed", 1);
+
+	KeyboardDelay			= GETPROFILEVALUE(lpKeyboardPath, "KeyboardDelay", 1);
+	KeyboardSpeed			= GETPROFILEVALUE(lpKeyboardPath, "KeyboardSpeed", 31);
 
 	SystemParametersInfo(SPI_GETANIMATION, 0, &ai, 0);
 
-	//SystemParametersInfo(SPI_GETNONCLIENTMETRICS, sizeof(NONCLIENTMETRICS), &ncm, 0);
 	GetNonClientMetrics(&ncm);
 
-	border = ncm.iBorderWidth;
-
 	SystemParametersInfo(SPI_GETMENUDROPALIGNMENT, 0, &fMenuDropAlignment, 0);
+
+	// Set up mouse
+
+	SystemParametersInfo(SPI_SETMOUSEBUTTONSWAP, fSwapMouseButtons, 0, SPIF_SENDCHANGE);
+	SystemParametersInfo(SPI_SETDOUBLECLICKTIME, DoubleClickTime, 0, SPIF_SENDCHANGE);
+	SystemParametersInfo(SPI_SETDOUBLECLKHEIGHT, DoubleClickHeight, 0, SPIF_SENDCHANGE);
+	SystemParametersInfo(SPI_SETDOUBLECLKWIDTH, DoubleClickWidth, 0, SPIF_SENDCHANGE);
+	SystemParametersInfo(SPI_SETMOUSESPEED, MouseSpeed, 0, SPIF_SENDCHANGE);
+
+	// Set up keyboard
+
+	SystemParametersInfo(SPI_SETKEYBOARDDELAY, KeyboardDelay, 0, SPIF_SENDCHANGE);
+	SystemParametersInfo(SPI_SETKEYBOARDSPEED, KeyboardSpeed, 0, SPIF_SENDCHANGE);
 
 	// Set up the wallpaper, pattern, screen-saver, and other options
 
@@ -376,27 +404,28 @@ DWORD WINAPI SessionSwitchThread(LPVOID lParam)
 BOOL WINAPI IntSwitchUser(LPCSTR lpszUsername, BOOL fWait)
 {
 	DWORD dwThreadId = 0;
-	HKEY hKey;
+	HKEY hKey = NULL;
 	HANDLE hThread;
-	LONG result;
+	LONG result = 0;
 	REGREMAPPREDEFKEY RegRemapPreDefKey = (REGREMAPPREDEFKEY)kexGetProcAddress(GetModuleHandle("ADVAPI32.DLL"), "RegRemapPreDefKey");
 	CHAR CurrentUser[UNLEN + 1];
 	DWORD dwUserSize = sizeof(CurrentUser);
 
-	if((result = GetUserName(CurrentUser, &dwUserSize)))
-		RegUnLoadKey(HKEY_USERS, CurrentUser);
+	result = GetUserName(CurrentUser, &dwUserSize);
 
 	/* Don't switch if the user name is the current user name */
 	if(strcmp(CurrentUser, lpszUsername) == 0 || (!result && strcmp(lpszUsername, ".DEFAULT") == 0))
 		return TRUE;
 
-	result = RegOpenKey(HKEY_USERS, lpszUsername, &hKey);
+	result = RegOpenKeyEx(HKEY_USERS, lpszUsername, NULL, KEY_ALL_ACCESS, &hKey);
 
 	if(result != ERROR_SUCCESS)
 	{
 		SetLastError(result);
 		return FALSE;
 	}
+
+	RegFlushKey(HKEY_CURRENT_USER);
 
 	/* Change HKEY_CURRENT_USER to a new key  */
 	result = RegRemapPreDefKey(hKey, HKEY_CURRENT_USER);
@@ -409,10 +438,11 @@ BOOL WINAPI IntSwitchUser(LPCSTR lpszUsername, BOOL fWait)
 		return FALSE;
 	}
 
-	RegCloseKey(hKey);
+	if(result)
+		RegUnLoadKey(HKEY_USERS, CurrentUser);
 
 	/* This should be a kernel thread, to avoid corruptions */
-	hThread = CreateKernelThread(NULL, 0, SessionSwitchThread, NULL, 0, &dwThreadId);
+	hThread = CreateKernelThread(NULL, 0, SessionSwitchThread, (LPVOID)lpszUsername, 0, &dwThreadId);
 
 	if(hThread == NULL)
 		return FALSE;
