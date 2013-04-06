@@ -103,8 +103,12 @@ typedef struct _USERDGROUP
 	BYTE	un11[0x3B6];				// E90h
 	WORD	wForegroundIndex;			// 1246h - Index to the foreground window ( *(DWORD*)((DWORD)gSharedInfo + wForegroundIndex) to get the PWND)
 	HWND	hwndDesktop;				// 1248h - Desktop window
+	BYTE	un12[0x3A0];				// 124Ch
+	DWORD	*SysColorTable;				// 15ECh - Pointer to the system color table (array of 28 colors)
+	BYTE	un13[0x2CE];				// 15F0h
+	WORD	*SysColorBrushTable;		// 18BEh - Pointer to the system brush color table (array of 28 colors)
 
-	/* The rest are unknown (from dseg34:1248 to dseg34:1B6F)*/
+	/* The rest are unknown (from dseg34:18C0 to dseg34:1B6F)*/
 } USERDGROUP, *PUSERDGROUP;
 
 typedef struct _MSGQUEUE
