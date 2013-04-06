@@ -341,7 +341,7 @@ HWND FASTCALL CreateGhostWindow(DWORD dwProcessId, DWORD dwThreadId, HWND hwndRe
 	pwndReplace = HWNDtoPWND(hwndReplace);
 
 	if(hProcess == NULL || Process == NULL || Thread == NULL || pwndReplace == NULL || phunginf == NULL ||
-		Process == pKernelProcess || ppi == NULL || pti == NULL || Process == pKernelProcess)
+		Process == pKernelProcess || ppi == NULL || pti == NULL || Process == pKernelProcess || phunginf == NULL)
 	{
 		TRACE_OUT("CreateGhostWindow failed\n");
 		return NULL;
