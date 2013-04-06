@@ -25,63 +25,136 @@
 
 typedef LONG (WINAPI *REGREMAPPREDEFKEY)(HKEY hKey, HKEY hNewHKey);
 
+DWORD FASTCALL GetProfileRegString(HKEY hKey,
+	LPCSTR lpKeyName,
+	LPCSTR lpValueName,
+	LPCSTR lpDefault,
+	LPSTR lpReturnedString,
+	DWORD nSize
+)
+{
+	HKEY hkResult = NULL;
+	DWORD dwBufSize;
+	LONG result = 0;
+
+	RegOpenKeyEx(hKey, lpKeyName, NULL, KEY_ALL_ACCESS, &hkResult);
+
+	if(hkResult == NULL)
+	{
+		strcpy(lpReturnedString, lpDefault);
+		return strlen(lpReturnedString);
+	}
+
+	dwBufSize = nSize;
+
+	result = RegQueryValueEx(hkResult,
+					lpValueName,
+					NULL, NULL,
+					(LPBYTE)lpReturnedString,
+					&dwBufSize);
+
+	RegCloseKey(hkResult);
+
+	if(result != ERROR_SUCCESS)
+	{
+		strcpy(lpReturnedString, lpDefault);
+		return strlen(lpReturnedString);
+	}
+
+	return dwBufSize;
+}
+
+LONG FASTCALL GetProfileRegInt(HKEY hKey, 
+	LPCSTR lpKeyName,
+	LPCSTR lpValueName,
+	INT nDefault
+)
+{
+	CHAR KeyValue[11];
+	CHAR Default[11];
+	int intKeyValue;
+
+	wsprintf(Default, "%d", nDefault);
+
+	GetProfileRegString(hKey, lpKeyName, lpValueName, Default, KeyValue, sizeof(KeyValue));
+
+	intKeyValue = 0;
+
+	__try
+	{
+		StrToIntEx(KeyValue, STIF_DEFAULT, &intKeyValue);
+	}
+	__except(EXCEPTION_EXECUTE_HANDLER)
+	{
+		intKeyValue = nDefault;
+	}
+
+	return intKeyValue;
+}
+
+BOOL FASTCALL GetProfileRegStruct(HKEY hKey,
+	LPCSTR lpKeyName,
+	LPCSTR lpValueName,
+	LPVOID lpStruct,
+	UINT uSizeStruct
+)
+{
+	HKEY hkResult = NULL;
+	DWORD dwBufSize;
+	LONG result = 0;
+
+	RegOpenKeyEx(hKey, lpKeyName, NULL, KEY_ALL_ACCESS, &hkResult);
+
+	if(hkResult == NULL)
+		return FALSE;
+
+	dwBufSize = uSizeStruct;
+
+	result = RegQueryValueEx(hkResult,
+					lpValueName,
+					NULL, NULL,
+					(LPBYTE)lpStruct,
+					&dwBufSize);
+
+	RegCloseKey(hkResult);
+
+	if(result != ERROR_SUCCESS)
+		return FALSE;
+
+	return dwBufSize;
+}
+
 BOOL FASTCALL GetNonClientMetrics(PNONCLIENTMETRICS pncm)
 {
-	CHAR chKeyValue[7];
-	HKEY hKey = NULL;
-	DWORD dwLength;
+	PCHAR lpKeyPath = "Control Panel\\Desktop\\WindowMetrics";
+
+	#define GETMETRICVALUE(name, defval) GetProfileRegInt(HKEY_CURRENT_USER, lpKeyPath, name, defval) / -15
 
 	SystemParametersInfo(SPI_GETNONCLIENTMETRICS, sizeof(NONCLIENTMETRICS), pncm, 0);
 
-	RegOpenKeyEx(HKEY_CURRENT_USER, "Control Panel\\Desktop\\WindowMetrics", 0, KEY_ALL_ACCESS, &hKey);
+	pncm->iBorderWidth		= GETMETRICVALUE("BorderWidth", -15);
+	pncm->iCaptionHeight	= GETMETRICVALUE("CaptionHeight", -270);
+	pncm->iCaptionWidth		= GETMETRICVALUE("CaptionWidth", -270);
+	pncm->iMenuHeight		= GETMETRICVALUE("MenuHeight", -270);
+	pncm->iMenuWidth		= GETMETRICVALUE("MenuWidth", -270);
+	pncm->iScrollHeight		= GETMETRICVALUE("ScrollHeight", -240);
+	pncm->iScrollWidth		= GETMETRICVALUE("ScrollWidth", -240);
+	pncm->iSmCaptionHeight	= GETMETRICVALUE("SmCaptionHeight", -255);
+	pncm->iSmCaptionWidth	= GETMETRICVALUE("SmCaptionWidth", -195);
 
-	if(hKey == NULL)
-		return FALSE;
+/*
+	GetProfileRegStruct(HKEY_CURRENT_USER, lpKeyPath, "CaptionFont", &pncm->lfCaptionFont, sizeof(LOGFONT));
+	GetProfileRegStruct(HKEY_CURRENT_USER, lpKeyPath, "MenuFont", &pncm->lfMenuFont, sizeof(LOGFONT));
+	GetProfileRegStruct(HKEY_CURRENT_USER, lpKeyPath, "MessageFont", &pncm->lfMessageFont, sizeof(LOGFONT));
+	GetProfileRegStruct(HKEY_CURRENT_USER, lpKeyPath, "SmCaptionFont", &pncm->lfSmCaptionFont, sizeof(LOGFONT));
+	GetProfileRegStruct(HKEY_CURRENT_USER, lpKeyPath, "StatusFont", &pncm->lfStatusFont, sizeof(LOGFONT));
 
-	dwLength = sizeof(chKeyValue);
-	
-	RegQueryValueEx(hKey, "BorderWidth", NULL, NULL, (LPBYTE)chKeyValue, &dwLength);
-	pncm->iBorderWidth = atoi(chKeyValue);
-
-	dwLength = sizeof(chKeyValue);
-
-	RegQueryValueEx(hKey, "CaptionHeight", NULL, NULL, (LPBYTE)chKeyValue, &dwLength);
-	pncm->iCaptionHeight = atoi(chKeyValue);
-
-	dwLength = sizeof(chKeyValue);
-
-	RegQueryValueEx(hKey, "CaptionWidth", NULL, NULL, (LPBYTE)chKeyValue, &dwLength);
-	pncm->iCaptionWidth = atoi(chKeyValue);
-
-	dwLength = sizeof(chKeyValue);
-
-	RegQueryValueEx(hKey, "MenuHeight", NULL, NULL, (LPBYTE)chKeyValue, &dwLength);
-	pncm->iMenuHeight = atoi(chKeyValue);
-
-	dwLength = sizeof(chKeyValue);
-
-	RegQueryValueEx(hKey, "MenuWidth", NULL, NULL, (LPBYTE)chKeyValue, &dwLength);
-	pncm->iMenuWidth = atoi(chKeyValue);
-
-	dwLength = sizeof(chKeyValue);
-
-	RegQueryValueEx(hKey, "ScrollHeight", NULL, NULL, (LPBYTE)chKeyValue, &dwLength);
-	pncm->iScrollHeight = atoi(chKeyValue);
-
-	dwLength = sizeof(chKeyValue);
-
-	RegQueryValueEx(hKey, "ScrollWidth", NULL, NULL, (LPBYTE)chKeyValue, &dwLength);
-	pncm->iScrollWidth = atoi(chKeyValue);
-
-	dwLength = sizeof(chKeyValue);
-
-	RegQueryValueEx(hKey, "SmCaptionHeight", NULL, NULL, (LPBYTE)chKeyValue, &dwLength);
-	pncm->iSmCaptionHeight = atoi(chKeyValue);
-
-	dwLength = sizeof(chKeyValue);
-
-	RegQueryValueEx(hKey, "SmCaptionWidth", NULL, NULL, (LPBYTE)chKeyValue, &dwLength);
-	pncm->iSmCaptionWidth = atoi(chKeyValue);
+	pncm->lfCaptionFont.lfHeight = pncm->lfCaptionFont.lfHeight > 0 ? -pncm->lfCaptionFont.lfHeight : pncm->lfCaptionFont.lfHeight;
+	pncm->lfMenuFont.lfHeight = pncm->lfMenuFont.lfHeight > 0 ? -pncm->lfMenuFont.lfHeight : pncm->lfMenuFont.lfHeight;
+	pncm->lfMessageFont.lfHeight = pncm->lfMessageFont.lfHeight > 0 ? -pncm->lfMessageFont.lfHeight : pncm->lfMessageFont.lfHeight;
+	pncm->lfSmCaptionFont.lfHeight = pncm->lfSmCaptionFont.lfHeight > 0 ? -pncm->lfSmCaptionFont.lfHeight : pncm->lfSmCaptionFont.lfHeight;
+	pncm->lfStatusFont.lfHeight = pncm->lfStatusFont.lfHeight > 0 ? -pncm->lfStatusFont.lfHeight : pncm->lfStatusFont.lfHeight;
+*/
 
 	return TRUE;
 }
@@ -90,11 +163,11 @@ int ReadColors(char *ColorType)
 {
 	char KeyName[255];
 	char *pch;
-	char *buff[2];
-	int i;
+	char *chRed, *chGreen, *chBlue;
 	HKEY hKey;
 	DWORD dwLength;
-	int red, green, blue = 0;
+	int red, green, blue;
+	BYTE i;
 
 	if(RegOpenKeyEx(HKEY_CURRENT_USER, "Control Panel\\Colors", 0, KEY_ALL_ACCESS, &hKey) != ERROR_SUCCESS)
 		return 0;
@@ -107,17 +180,28 @@ int ReadColors(char *ColorType)
 		return 0;
 	}
 
+	i = 0;
+
 	pch = strtok(KeyName, " ");
 	while(pch != NULL)
 	{
+		if(i == 0)
+			chRed = pch;
+		else if(i == 1)
+			chGreen = pch;
+		else if(i == 2)
+			chBlue = pch;
+
 		pch = strtok(NULL, " ");
-		buff[i] = pch;
 		i++;
 	}
 
-	StrToIntEx(buff[0], STIF_DEFAULT, &red);
-	StrToIntEx(buff[1], STIF_DEFAULT, &green);
-	StrToIntEx(buff[2], STIF_DEFAULT, &blue);
+	if(chRed == NULL || chGreen == NULL || chBlue == NULL)
+		return 0;
+
+	red = atoi(chRed);
+	green = atoi(chGreen);
+	blue = atoi(chBlue);
 
 	return RGB(red, green, blue);
 }
@@ -125,8 +209,8 @@ int ReadColors(char *ColorType)
 void SetNewColors()
 {
 	int i;
-	int IndexArray[21];
-	DWORD NewColors[20];
+	int IndexArray[28];
+	DWORD NewColors[28];
 
 	NewColors[0] = ReadColors("ScrollBar");
 	NewColors[1] = ReadColors("Background");
@@ -149,16 +233,25 @@ void SetNewColors()
 	NewColors[18] = ReadColors("ButtonText");
 	NewColors[19] = ReadColors("InactiveTitleText");
 	NewColors[20] = ReadColors("ButtonHighlight");
-	if (NewColors[0] == 0) { NewColors[0] = RGB(192, 192, 192); }
-	if (NewColors[1] == 0) { NewColors[1] = RGB(0, 128, 128); }
-	if (NewColors[2] == 0) { NewColors[2] = RGB(0, 0, 128); }
-	if (NewColors[3] == 0) { NewColors[3] = RGB(128, 128, 128); }
-	if (NewColors[4] == 0) { NewColors[4] = RGB(192, 192, 192); }
-	if (NewColors[5] == 0) { NewColors[5] = RGB(255, 255, 255); }
-	if (NewColors[6] == 0) { NewColors[6] = RGB(0, 0, 0); }
-	if (NewColors[7] == 0) { NewColors[7] = RGB(0, 0, 0); }
-	if (NewColors[8] == 0) { NewColors[8] = RGB(0, 0, 0); }
-	if (NewColors[9] == 0) { NewColors[9] = RGB(255, 255, 255); }
+	NewColors[21] = ReadColors("ButtonDkShadow");
+	NewColors[22] = ReadColors("ButtonLight");
+	NewColors[23] = ReadColors("InfoText");
+	NewColors[24] = ReadColors("InfoWindow");
+	NewColors[25] = 0;
+	NewColors[26] = ReadColors("HotTrackingColor");
+	NewColors[27] = ReadColors("GradientActiveTitle");
+	NewColors[28] = ReadColors("GradientInactiveTitle");
+
+	if (NewColors[0]  == 0) { NewColors[0] = RGB(192, 192, 192); }
+	if (NewColors[1]  == 0) { NewColors[1] = RGB(0, 128, 128); }
+	if (NewColors[2]  == 0) { NewColors[2] = RGB(0, 0, 128); }
+	if (NewColors[3]  == 0) { NewColors[3] = RGB(128, 128, 128); }
+	if (NewColors[4]  == 0) { NewColors[4] = RGB(192, 192, 192); }
+	if (NewColors[5]  == 0) { NewColors[5] = RGB(255, 255, 255); }
+	if (NewColors[6]  == 0) { NewColors[6] = RGB(0, 0, 0); }
+	if (NewColors[7]  == 0) { NewColors[7] = RGB(0, 0, 0); }
+	if (NewColors[8]  == 0) { NewColors[8] = RGB(0, 0, 0); }
+	if (NewColors[9]  == 0) { NewColors[9] = RGB(255, 255, 255); }
 	if (NewColors[10] == 0) { NewColors[10] = RGB(192, 192, 192); }
 	if (NewColors[11] == 0) { NewColors[11] = RGB(192, 192, 192); }
 	if (NewColors[12] == 0) { NewColors[12] = RGB(128, 128, 128); }
@@ -170,11 +263,23 @@ void SetNewColors()
 	if (NewColors[18] == 0) { NewColors[18] = RGB(0, 0, 0); }
 	if (NewColors[19] == 0) { NewColors[19] = RGB(192, 192, 192); }
 	if (NewColors[20] == 0) { NewColors[20] = RGB(255, 255, 255); }
+	if (NewColors[21] == 0) { NewColors[21] = RGB(0, 0, 0); }
+	if (NewColors[22] == 0) { NewColors[22] = RGB(223, 223, 223); }
+	if (NewColors[23] == 0) { NewColors[23] = RGB(0, 0, 0); }
+	if (NewColors[24] == 0) { NewColors[24] = RGB(255, 255, 225); }
+	if (NewColors[26] == 0) { NewColors[26] = RGB(0, 0, 255); }
+	if (NewColors[27] == 0) { NewColors[27] = RGB(0, 0, 128); }
+	if (NewColors[28] == 0) { NewColors[28] = RGB(128, 128, 128); }
 
-	for(i=0;i<=21;i++)
+	for(i=0;i<=28;i++)
+	{
+		if(i == 25)
+			continue;
+
 		IndexArray[i] = i;
+	}
 
-	SetSysColors(21, IndexArray, NewColors);
+	SetSysColors(28, IndexArray, NewColors);
 }
 
 DWORD WINAPI SessionSwitchThread(LPVOID lParam)
@@ -189,19 +294,12 @@ DWORD WINAPI SessionSwitchThread(LPVOID lParam)
 	BOOL fSmoothFont = 0;
 	RECT rect;
 	CHAR Wallpaper[255];
-	CHAR chDragFullWindows[7], chFontSmoothing[7], chScreenSaveActive[7], chScreenSaveTimeout[11];
-	HKEY hKey = NULL;
-	DWORD dwLength;
+	PCHAR lpKeyPath = "Control Panel\\Desktop";
 
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_IDLE); // Could it crash the CPU?
 
 	memset(&ai, 0, sizeof(ANIMATIONINFO));
 	memset(&ncm, 0, sizeof(NONCLIENTMETRICS));
-
-	strcpy(chDragFullWindows, "0");
-	strcpy(chFontSmoothing, "0");
-	strcpy(chScreenSaveActive, "0");
-	strcpy(chScreenSaveTimeout, "0");
 
 	ai.cbSize = sizeof(ai);
 	ncm.cbSize = sizeof(NONCLIENTMETRICS);
@@ -218,38 +316,21 @@ DWORD WINAPI SessionSwitchThread(LPVOID lParam)
 
 	// Retrieves settings in HKEY_CURRENT_USER
 
-	RegOpenKeyEx(HKEY_CURRENT_USER, "Control Panel\\Desktop", 0, KEY_ALL_ACCESS, &hKey);
+	GetProfileRegString(HKEY_CURRENT_USER, lpKeyPath, "Wallpaper", "", Wallpaper, sizeof(Wallpaper));
 
-	if(hKey != NULL)
-	{
-		dwLength = sizeof(Wallpaper);
-		RegQueryValueEx(hKey, "Wallpaper", NULL, NULL, (LPBYTE)Wallpaper, &dwLength);
-
-		dwLength = 7 * sizeof(CHAR);
-		RegQueryValueEx(hKey, "DragFullWindows", NULL, NULL, (LPBYTE)chDragFullWindows, &dwLength);
-
-		RegQueryValueEx(hKey, "FontSmoothing", NULL, NULL, (LPBYTE)chFontSmoothing, &dwLength);
-
-		RegQueryValueEx(hKey, "ScreenSaveActive", NULL, NULL, (LPBYTE)chScreenSaveActive, &dwLength);
-
-		dwLength = 11 * sizeof(CHAR);
-		RegQueryValueEx(hKey, "ScreenSaveTimeout", NULL, NULL, (LPBYTE)chScreenSaveTimeout, &dwLength);
-	}
+	fDragFullWindows = GetProfileRegInt(HKEY_CURRENT_USER, lpKeyPath, "DragFullWindows", 0);
+	fSmoothFont = GetProfileRegInt(HKEY_CURRENT_USER, lpKeyPath, "FontSmoothing", 0);
+	fScreenSaverEnabled = GetProfileRegInt(HKEY_CURRENT_USER, lpKeyPath, "ScreenSaveActive", 0);
+	ScreenSaverTimeout = GetProfileRegInt(HKEY_CURRENT_USER, lpKeyPath, "ScreenSaveTimeout", 840);
 
 	SystemParametersInfo(SPI_GETANIMATION, 0, &ai, 0);
 
-	fDragFullWindows = atoi(chDragFullWindows);
-	SystemParametersInfo(SPI_GETNONCLIENTMETRICS, sizeof(NONCLIENTMETRICS), &ncm, 0);
-
-	//GetNonClientMetrics(&ncm);
+	//SystemParametersInfo(SPI_GETNONCLIENTMETRICS, sizeof(NONCLIENTMETRICS), &ncm, 0);
+	GetNonClientMetrics(&ncm);
 
 	border = ncm.iBorderWidth;
 
 	SystemParametersInfo(SPI_GETMENUDROPALIGNMENT, 0, &fMenuDropAlignment, 0);
-
-	fScreenSaverEnabled = atoi(chScreenSaveActive);
-	ScreenSaverTimeout = atoi(chScreenSaveTimeout);
-	fSmoothFont = atoi(chFontSmoothing);
 
 	// Set up the wallpaper, pattern, screen-saver, and other options
 
