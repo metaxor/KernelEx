@@ -32,9 +32,14 @@ static BOOL WINAPI TestChild(HWND hwnd, HWND hwndNewParent)
 {
 	BOOL ret = FALSE;
 	PWND pwnd, pwndT;
+
+	TRACE_OUT("TestChild\n");
+
 	GrabWin16Lock();
+
 	pwnd = HWNDtoPWND(hwnd);
 	pwndT = HWNDtoPWND(hwndNewParent);
+
 	if ( pwnd && pwndT )
 	{
 		for ( ; pwndT != NULL; pwndT = (PWND)REBASEUSER(pwndT->spwndParent))
@@ -46,7 +51,9 @@ static BOOL WINAPI TestChild(HWND hwnd, HWND hwndNewParent)
 			}
 		}
 	}
+
 	ReleaseWin16Lock();	
+
 	return ret;
 }
 
@@ -275,6 +282,8 @@ BOOL WINAPI AnyPopup_nothunk(VOID)
 	PWND pwnd = HWNDtoPWND(GetDesktopWindow());
 	PWND pwndChild = HWNDtoPWND(GetDesktopWindow());
 	BOOL fFound = FALSE;
+
+	TRACE_OUT("AnyPopup\n");
 
 	GrabWin16Lock();
 
@@ -711,6 +720,8 @@ HWND WINAPI GetParent_nothunk(HWND hWnd)
 	PWND pwnd = NULL;
 	HWND hwndParent = NULL;
 
+	TRACE_OUT("GetParent\n");
+
 	GrabWin16Lock();
 
 	pwnd = HWNDtoPWND(hWnd);
@@ -977,6 +988,8 @@ BOOL WINAPI SetForegroundWindow_fix(HWND hWnd)
 
 	pwnd = HWNDtoPWND(hWnd);
 
+	TRACE_OUT("SetForegroundWindow\n");
+
 	GrabWin16Lock();
 
 	pti = get_tdb()->Win32Thread;
@@ -1067,6 +1080,8 @@ HWND WINAPI SetParent_nothunk(HWND hWndChild, HWND hWndNewParent)
 	HWND hwndPrevParent = NULL;
 	PMSGQUEUE pQueue = NULL;
 	PMSGQUEUE pQueueParent = NULL;
+
+	TRACE_OUT("SetParent\n");
 
 	GrabWin16Lock();
 
