@@ -666,33 +666,8 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 				LPVOID lpString = NULL;
 
 				kexErrorCodeToString(LastErr, (LPSTR)&lpString);
-				wsprintf(buffer, "Logging off failed with error %d : %s", LastErr, lpString);
+				wsprintf(buffer, "Switching to the default user failed with error %d : %s", LastErr, lpString);
 				Win32RaiseHardError(buffer, "Shut down", MB_OK, TRUE);
-			}
-
-			/*RegOpenKey(HKEY_USERS, ".DEFAULT", &hKey);
-			if(hKey != NULL)
-			{
-				RegRemapPreDefKey(HKEY_CURRENT_USER, hKey);
-				CloseHandle(hKey);
-			}
-			else
-			{
-				DWORD LastErr = GetLastError();
-				char buffer[255];
-				LPVOID lpString = NULL;
-
-				kexErrorCodeToString(LastErr, (LPSTR)&lpString);
-				wsprintf(buffer, "%s (Error %d)", lpString, LastErr);
-				Win32RaiseHardError(buffer, "Shut down", MB_OK, FALSE);
-			}*/
-
-			RegOpenKey(HKEY_LOCAL_MACHINE, "System\\CurrentControlSet\\Control", &hKey);
-
-			if(hKey != NULL)
-			{
-				RegDeleteValue(hKey, "Current User");
-				CloseHandle(hKey);
 			}
 
 			SetWindowText(hwndGlobalText, "Please wait while the system is terminating services processes.");
