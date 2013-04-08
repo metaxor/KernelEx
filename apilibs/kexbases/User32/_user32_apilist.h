@@ -56,11 +56,14 @@ typedef struct _HARDERRORDATA
 } HARDERRORDATA, *PHARDERRORDATA;
 
 extern PPDB98 Msg32Process;
+extern DWORD Msg32ProcessId;
 extern PPDB98 MprProcess;
 extern DWORD gpidMpr;
 
 extern PTDB98 pHardErrorThread;
 extern DWORD HardErrorThreadId;
+
+extern DWORD HangManagerThreadId;
 
 extern PTDB98 pShutdownThread;
 
