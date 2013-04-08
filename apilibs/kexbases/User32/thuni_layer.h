@@ -75,6 +75,9 @@ static const char c_szDBCSProp[]="kexDBCS";
 #define USUD_FREE_MEMORY        11
 #define USUD_UNKNOWN            7
 
+/* Undocumented ExitWindowsEx flags */
+#define EWX_FASTRESTART			0x00000040
+
 /* The hwnd9x header will need some functions from the thuni layer */
 #include "hwnd9x.h"
 
