@@ -175,6 +175,12 @@ typedef struct tagPDEVICE {
 extern LIST_ENTRY WindowStationList;
 extern PWINSTATION_OBJECT InputWindowStation;
 extern PDESKTOP gpdeskInputDesktop;
+extern PDESKTOP gpdeskScreenSaver;
+extern PDESKTOP gpdeskWinlogon;
+
+extern LPCRITICAL_SECTION gpdeskLock;
+
+extern BOOL fNewDesktop;
 
 extern HANDLE gpdeskSwitchEvent;
 
