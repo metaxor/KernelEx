@@ -234,6 +234,9 @@ BOOL InitDesktops()
 
 			psi = ParentProcess->pEDB->pStartupInfo;
 			DesktopPath = (PCHAR)psi->lpDesktop;
+
+			if(DesktopPath != NULL && !IsBadStringPtr(DesktopPath, -1))
+				break;
 		}
 	}
 	__except(EXCEPTION_EXECUTE_HANDLER)
@@ -1216,6 +1219,7 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
     }
 
 	/* Check if the process is associated with a secured desktop (Winlogon or Screen-Saver) */
+
 	if((kexFindObjectHandle(Process, gpdeskWinlogon, K32OBJ_DESKTOP, &Object) ||
 		kexFindObjectHandle(Process, gpdeskScreenSaver, K32OBJ_DESKTOP, &Object)) && Process != MprProcess)
 	{
