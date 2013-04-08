@@ -307,6 +307,9 @@ DWORD WINAPI SessionSwitchThread(LPVOID lParam)
 
 	if(result == ERROR_SUCCESS)
 	{
+		if(strcmp(lpUserName, ".DEFAULT") == 0)
+			lpUserName = "";
+
 		RegSetValueEx(hKey, "Current User", 0, REG_SZ, (BYTE*)lpUserName, strlen(lpUserName));
 		RegCloseKey(hKey);
 	}
@@ -354,6 +357,7 @@ DWORD WINAPI SessionSwitchThread(LPVOID lParam)
 	SystemParametersInfo(SPI_SETDOUBLECLKHEIGHT, DoubleClickHeight, 0, SPIF_SENDCHANGE);
 	SystemParametersInfo(SPI_SETDOUBLECLKWIDTH, DoubleClickWidth, 0, SPIF_SENDCHANGE);
 	SystemParametersInfo(SPI_SETMOUSESPEED, MouseSpeed, 0, SPIF_SENDCHANGE);
+	SystemParametersInfo(SPI_SETCURSORS, 0, 0, SPIF_SENDCHANGE);
 
 	// Set up keyboard
 
@@ -394,6 +398,9 @@ DWORD WINAPI SessionSwitchThread(LPVOID lParam)
  * Parameters:
  * @lpszUserName : User name, it must be loaded with the same name in HKEY_USERS
  * @fWait : If TRUE, wait for the user to be fully loaded
+ * @dwMaxMilliseconds : Max milliseconds to wait for the user switch specify -1 or INFINITE
+ * to not return until the user is switched
+ * @fAllowReload : If TRUE and lpszUsername is the current user, then reload the profile
  *
  * Return value:
  * If the function succeeds, the return value is TRUE.
@@ -401,7 +408,7 @@ DWORD WINAPI SessionSwitchThread(LPVOID lParam)
  *
  *
  */
-BOOL WINAPI IntSwitchUser(LPCSTR lpszUsername, BOOL fWait)
+BOOL WINAPI IntSwitchUser(LPCSTR lpszUsername, BOOL fWait, DWORD dwMaxMilliseconds, BOOL fAllowReload)
 {
 	DWORD dwThreadId = 0;
 	HKEY hKey = NULL;
@@ -414,7 +421,7 @@ BOOL WINAPI IntSwitchUser(LPCSTR lpszUsername, BOOL fWait)
 	result = GetUserName(CurrentUser, &dwUserSize);
 
 	/* Don't switch if the user name is the current user name */
-	if(strcmp(CurrentUser, lpszUsername) == 0 || (!result && strcmp(lpszUsername, ".DEFAULT") == 0))
+	if((strcmp(CurrentUser, lpszUsername) == 0 || ((strcmp(CurrentUser, "") == 0 || !result) && strcmp(lpszUsername, ".DEFAULT") == 0)) && !fAllowReload)
 		return TRUE;
 
 	result = RegOpenKeyEx(HKEY_USERS, lpszUsername, NULL, KEY_ALL_ACCESS, &hKey);
@@ -448,7 +455,7 @@ BOOL WINAPI IntSwitchUser(LPCSTR lpszUsername, BOOL fWait)
 		return FALSE;
 
 	if(fWait)
-		WaitForSingleObject(hThread, INFINITE);
+		WaitForSingleObject(hThread, dwMaxMilliseconds);
 
 	CloseHandle(hThread);
 
