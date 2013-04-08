@@ -41,6 +41,7 @@ int TimeBetweenTermination = 250;
 ULONG LogoffTimeout = 2 * 1250 * 60; // 2 minutes 30 seconds - shut down doesn't take more than 2 minutes
 
 HWND hwndGlobalText = NULL;
+HWND hwndShutdownDlg = NULL;
 
 /* RegRemapPreDefKey - Remap a predefined key (e.g: HKEY_CURRENT_USER) to a new key
    HKEY hKey: Handle to a predefined key
@@ -52,6 +53,8 @@ typedef LONG (WINAPI *REGREMAPPREDEFKEY)(HKEY hKey, HKEY hNewHKey);
 /* ByeByeGDI - Destroy the first GDI heap
    DWORD Unknown: currently unknown, but seems to point to a module */
 typedef VOID (WINAPI *BYEBYEGDI)(DWORD Unknown);
+
+typedef BOOLEAN (WINAPI *ISPWRSHUTDOWNALLOWED)(void);
 
 typedef struct _SHUTDOWNDATA
 {
@@ -75,6 +78,138 @@ typedef struct _SHUTDOWNDATA
    instead of enumerating processes, threads and windows, they used the simple
    BroadcastSystemMessage API...
 */
+
+VOID TerminateAllProcesses()
+{
+	DWORD pProcess[255];
+	DWORD dwProcesses = 0;
+	ULONG i;
+
+	kexEnumProcesses(pProcess, sizeof(pProcess), &dwProcesses);
+
+	dwProcesses /= 4;
+
+	for(i=0;i<=dwProcesses;i++)
+	{
+		HANDLE hProcess;
+		PPDB98 Process;
+
+		Process = (PPDB98)kexGetProcess(pProcess[i]);
+
+		if(Process == pKernelProcess || Process == Msg32Process || Process == MprProcess)
+			continue;
+
+		hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pProcess[i]);
+
+		if(hProcess == NULL)
+			continue;
+
+		TerminateProcess(hProcess, 0);
+		CloseHandle(hProcess);
+	}
+}
+
+void ReloadMPRServices()
+{    
+    char regValue[255];
+    char regName[255];
+    HKEY hKey;
+    DWORD dwSizeName = sizeof(regName);
+	DWORD dwSizeValue = sizeof(regValue);
+    DWORD dwIndex = 0;
+    
+    if (RegOpenKey(HKEY_LOCAL_MACHINE, "Software\\Microsoft\\Windows\\CurrentVersion\\RunServices", &hKey) != ERROR_SUCCESS)
+        return;
+
+	regName[0] = '\0';
+
+    while (RegEnumValue(hKey, dwIndex, regName, &dwSizeName, NULL, NULL, (LPBYTE)regValue, &dwSizeValue) == ERROR_SUCCESS)
+    {
+		STARTUPINFO si;
+		PROCESS_INFORMATION pi;
+
+		dwSizeName = sizeof(regName);
+		dwSizeValue = sizeof(regValue);
+
+		memset(&si, 0, sizeof(STARTUPINFO));
+		memset(&pi, 0, sizeof(PROCESS_INFORMATION));
+
+		si.cb = sizeof(STARTUPINFO);
+
+		CreateProcess(NULL,
+					regValue,
+					NULL,
+					NULL,
+					FALSE,
+					0,
+					NULL,
+					NULL,
+					&si,
+					&pi);
+
+		CloseHandle(pi.hProcess);
+		CloseHandle(pi.hThread);
+
+        dwIndex++;
+
+		regName[0] = '\0';
+    }
+
+    RegCloseKey(hKey);
+}
+
+DWORD WINAPI MprReinit(PVOID lParam)
+{
+	SendMessage(hwndShutdownDlg, WM_INITDIALOG, 0, 0);
+	SetWindowText(hwndGlobalText, "Windows is starting up...");
+
+	IntSwitchUser(".DEFAULT", TRUE, INFINITE, TRUE);
+
+	SetCursorPos(GetSystemMetrics(SM_CXSCREEN)/2, GetSystemMetrics(SM_CYSCREEN)/2);
+
+	ExitWindowsEx(EWX_LOGOFF | EWX_FORCE, 0);
+
+	ReloadMPRServices();
+
+	return 0;
+}
+
+VOID IntReinitialize()
+{
+	HANDLE hProcess, hThread;
+	MSG msg;
+
+	hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, gpidMpr);
+
+	//TerminateAllProcesses();
+
+	hThread = CreateRemoteThread_new(hProcess, NULL, 0, MprReinit, NULL, 0, NULL);
+
+	if(hThread == NULL)
+	{
+		CloseHandle(hProcess);
+		EnableOEMLayer();
+		SendMessage(hwndShutdownDlg, WM_USER+20, 0, 0);
+		return;
+	}
+
+	WaitForSingleObject(hThread, INFINITE);
+
+	CloseHandle(hThread);
+	CloseHandle(hProcess);
+
+	while(GetForegroundWindow() == hwndShutdownDlg)
+	{
+		Sleep(1);
+		PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE);
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+
+	SendMessage(hwndShutdownDlg, WM_USER+20, 0, 0);
+
+	return;
+}
 
 BOOL CALLBACK EnumThreadWndProc(HWND hwnd, LPARAM lParam)
 {
@@ -168,14 +303,14 @@ BOOL CALLBACK EnumProcessesProc(DWORD dwProcessId, PSHUTDOWNDATA ShutdownData)
 	kexGetProcessName(dwProcessId, ProcessName);
 
 	/* Skip services processes */
-	if((Process->Flags & fServiceProcess || Process == Msg32Process || !strcmp(ProcessName, "SYSTRAY.EXE")) && !ShutdownData->fEndServices)
+	if((Process->Flags & fServiceProcess || !strcmp(ProcessName, "SYSTRAY.EXE")) && !ShutdownData->fEndServices)
 		return TRUE;
 
-	if(!(Process->Flags & fServiceProcess) && Process != Msg32Process && strcmp(ProcessName, "SYSTRAY.EXE") && ShutdownData->fEndServices)
+	if(!(Process->Flags & fServiceProcess) && ShutdownData->fEndServices)
 		return TRUE;
 
 	/* Fail if the process is the MPR process or the process is the system tray */
-	if(Process == MprProcess)
+	if(Process == MprProcess || Process == Msg32Process)
 		return TRUE;
 
 	ShutdownData->ShellProcessId = GetWindowProcessId(GetShellWindow_new());
@@ -237,13 +372,13 @@ ULONG GetUserProcessesCount(PSHUTDOWNDATA sa)
 
 		kexGetProcessName(pProcess[index], ProcessName);
 
-		if((Process->Flags & fServiceProcess || Process == Msg32Process || !strcmp(ProcessName, "SYSTRAY.EXE")) && !sa->fEndServices)
+		if((Process->Flags & fServiceProcess || !strcmp(ProcessName, "SYSTRAY.EXE")) && !sa->fEndServices)
 			continue;
 
-		if(!(Process->Flags & fServiceProcess) && Process != Msg32Process && strcmp(ProcessName, "SYSTRAY.EXE") && sa->fEndServices)
+		if(!(Process->Flags & fServiceProcess) && sa->fEndServices)
 			continue;
 
-		if(Process == pKernelProcess || Process == MprProcess)
+		if(Process == pKernelProcess || Process == MprProcess || Process == Msg32Process)
 			continue;
 
 		/* Skip the shell process because it must be the last process running
@@ -273,60 +408,47 @@ INT_PTR CALLBACK DialogProc(HWND hwndDlg,
     int Width;
     int Height;
     RECT rc;
-	HFONT hFont;
 
 	switch(uMsg)
 	{
-	case WM_INITDIALOG:
-		SetWindowText(hwndDlg, "Shutdown in Progress");
+		case WM_INITDIALOG:
 
-		hFont = CreateFont(8,
-						0,
-						0,
-						0,
-						FW_DONTCARE,
-						FALSE,
-						FALSE,
-						FALSE,
-						ANSI_CHARSET, 
-						OUT_TT_PRECIS,
-						CLIP_DEFAULT_PRECIS,
-						DEFAULT_QUALITY, 
-						DEFAULT_PITCH | FF_DONTCARE, "MS Shell Dlg");
+			hwndGlobalText = GetDlgItem(hwndDlg, IDT_TEXT);
+			hwndShutdownDlg = hwndDlg;
 
-		hwndGlobalText = CreateWindowEx(WS_EX_NOPARENTNOTIFY,
-					"STATIC",
-					"Please wait while the system writes unsaved data to the disk.",
-					SS_LEFT | WS_CHILD | WS_VISIBLE | WS_GROUP,
-					11*2,
-					10*2,
-					112*3/2,
-					18*2,
-					hwndDlg,
-					NULL,
-					GetModuleHandle(0),
-					NULL);
+			screenWidth = GetSystemMetrics(SM_CXSCREEN);
+			screenHeight = GetSystemMetrics(SM_CYSCREEN);
 
-		SendMessage(hwndGlobalText, WM_SETFONT, (WPARAM)hFont, TRUE);
+			GetWindowRect(hwndDlg, &rc);
 
-		screenWidth = GetSystemMetrics(SM_CXSCREEN);
-		screenHeight = GetSystemMetrics(SM_CYSCREEN);
+			Width = rc.right - rc.left;
+			Height = rc.bottom - rc.top;
+			x = (screenWidth - Width)/2;
+			y = (screenHeight - Height)/3;
 
-		GetWindowRect(hwndDlg, &rc);
+			SetWindowPos(hwndDlg,
+						NULL,
+						x, y, 0, 0,
+						SWP_NOSIZE | SWP_NOZORDER | SWP_SHOWWINDOW);
+			break;
 
-		Width = rc.right - rc.left;
-		Height = rc.bottom - rc.top;
-		x = (screenWidth - Width)/2;
-		y = (screenHeight - Height)/3;
+		case WM_PAINT:
+			break;
 
-		SetWindowPos(hwndDlg,
-					NULL,
-					x, y, 0, 0,
-					SWP_NOSIZE | SWP_NOZORDER | SWP_SHOWWINDOW);
-		break;
+		case WM_USER+20:
+			PostQuitMessage(0);
+			DestroyWindow(hwndDlg);
+			return 1;
 
-	case WM_PAINT:
-		break;
+		case WM_COMMAND:
+			switch(LOWORD(wParam))
+			{
+				case IDC_RESTART:
+					EnableWindow_fix(GetDlgItem(hwndDlg, IDC_RESTART), FALSE);
+					SetDlgItemText(hwndDlg, IDC_RESTART, "Restarting...");
+					ZwShutdownSystem(ShutdownReboot);
+					return 1;
+			}
 
 	}
 
@@ -335,29 +457,38 @@ INT_PTR CALLBACK DialogProc(HWND hwndDlg,
 
 DWORD WINAPI CreateShutdownWindow(PVOID lParam)
 {
-	HGLOBAL hGlobal = GlobalAlloc(GMEM_ZEROINIT, sizeof(DLGTEMPLATE)*2);
-	LPDLGTEMPLATE pDlg = (LPDLGTEMPLATE)GlobalLock(hGlobal);
 	MSG msg;
 	BOOL result;
 	HWND hWnd;
-	HANDLE hEvent = lParam;
+	HANDLE hEvent = (HANDLE)LOWORD(lParam);
+	BOOL fShuttingDown = HIWORD(lParam);
+	CHAR Directory[255];
+	CHAR Path[255];
+	HMODULE hModule = NULL;
+	BOOL fLoaded = FALSE;
 
-	pDlg->cdit = 0;
-	pDlg->cx = 105;
-	pDlg->cy = 34;
-	pDlg->dwExtendedStyle = 0;
-	pDlg->style = DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION;
-	pDlg->x = 0;
-	pDlg->y = 0;
+	memset(Directory, 0, sizeof(Directory));
+	memset(Path, 0, sizeof(Path));
 
-	GlobalUnlock(hGlobal);
+	kexGetKernelExDirectory(Directory, sizeof(Directory));
 
-	hWnd = CreateDialogIndirect(GetModuleHandle(0),
-							(LPDLGTEMPLATE)hGlobal,
-							NULL,
-							DialogProc);
+	wsprintf(Path, "%sKEXBASES.DLL", Directory);
 
-	GlobalFree(hGlobal);
+	hModule = GetModuleHandle(Path);
+
+	if(hModule == NULL)
+	{
+		fLoaded = TRUE;
+		hModule = LoadLibrary(Path);
+	}
+
+	hWnd = CreateDialog(hModule,
+						fShuttingDown ? MAKEINTRESOURCE(IDD_SHUTTINGDOWN) : MAKEINTRESOURCE(IDD_SHUTDOWN_SAFE),
+						NULL,
+						DialogProc);
+
+	if(fLoaded)
+		FreeLibrary(hModule);
 
 	SetEvent(hEvent);
 
@@ -378,6 +509,27 @@ DWORD WINAPI CreateShutdownWindow(PVOID lParam)
 	}
 
 	return 0;
+}
+
+VOID CreateShutdownDialog(BOOL fShuttingDown)
+{
+	HANDLE hEvent;
+	HANDLE hThread;
+
+	hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+
+	hThread = CreateThread(NULL,
+						0,
+						CreateShutdownWindow,
+						(LPVOID)MAKELONG((WORD)hEvent, fShuttingDown),
+						0,
+						&ShutdownThreadWndId);
+
+	if(hThread != NULL)
+		WaitForSingleObject(hEvent, INFINITE);
+
+	CloseHandle(hEvent);
+	CloseHandle(hThread);
 }
 
 /* Sort processes by their shutdown level or ID */
@@ -536,8 +688,10 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 	HKEY hKey = NULL;
 	HANDLE hThread = NULL;
 	HANDLE hEvent = NULL;
+	HMODULE hPowrprof = LoadLibrary("POWRPROF.DLL");
 	REGREMAPPREDEFKEY RegRemapPreDefKey = (REGREMAPPREDEFKEY)kexGetProcAddress(GetModuleHandle("ADVAPI32.DLL"), "RegRemapPreDefKey");
 	BYEBYEGDI ByeByeGDI = (BYEBYEGDI)kexGetProcAddress(GetModuleHandle("GDI32.DLL"), "ByeByeGDI");
+	ISPWRSHUTDOWNALLOWED IsPwrShutdownAllowed = (ISPWRSHUTDOWNALLOWED)kexGetProcAddress(hPowrprof, "IsPwrShutdownAllowed");
 
 	pShutdownThread = get_tdb();
 
@@ -643,23 +797,41 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 			}
 		}
 
+
 		Sleep(750);
 
 		if(!fLoggingOff)
 		{
 			HKEY hKey = NULL;
 
-			hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
-			hThread = CreateThread(NULL, 0, CreateShutdownWindow, hEvent, 0, &ShutdownThreadWndId);
-			if(hThread != NULL)
-				WaitForSingleObject(hEvent, INFINITE);
+			CreateShutdownDialog(TRUE);
+
+			if(Msg32Process->Flags & INVALID_FLAGS)
+			{
+				if((sa.uFlags & EWX_SHUTDOWN) || (sa.uFlags & EWX_POWEROFF))
+				{
+					SetWindowText(hwndGlobalText, "32-bit message VxD server terminated. Shutting down...");
+					ZwShutdownSystem(ShutdownPowerOff);
+				}
+				else if((sa.uFlags & EWX_REBOOT) || (sa.uFlags & EWX_FASTRESTART))
+				{
+					SetWindowText(hwndGlobalText, "32-bit message VxD server terminated. Rebooting...");
+					ZwShutdownSystem(ShutdownReboot);
+				}
+				else
+				{
+					SetWindowText(hwndGlobalText, "msgsrv32 terminated. You can now turn of your computer.");
+					ZwShutdownSystem(ShutdownNoReboot);
+				}
+
+				while(1){}
+			}
+
 			SetWindowText(hwndGlobalText, "Please wait while the system is logging off.");
-			CloseHandle(hEvent);
-			CloseHandle(hThread);
 
 			Sleep(50);
 
-			if(!IntSwitchUser(".DEFAULT", TRUE))
+			if(!IntSwitchUser(".DEFAULT", TRUE, INFINITE, FALSE))
 			{
 				DWORD LastErr = GetLastError();
 				char buffer[255];
@@ -703,9 +875,26 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 		if(hwndGlobalText != NULL)
 			SetWindowText(hwndGlobalText, "Please wait while the system is shutting down.");
 
+	
+		if(IsPwrShutdownAllowed != NULL)
+		{
+			if(!IsPwrShutdownAllowed() && (sa.uFlags & EWX_SHUTDOWN || sa.uFlags & EWX_POWEROFF))
+			{
+				CreateShutdownDialog(FALSE);
+				goto finished;
+			}
+		}
+
 		Sleep(50);
 
-		if(sa.uFlags & EWX_REBOOT)
+		if(sa.uFlags & EWX_FASTRESTART)
+		{
+			SetWindowText(hwndGlobalText, "Windows is restarting...");
+			Sleep(1000);
+			IntReinitialize();
+			goto finished;
+		}
+		else if(sa.uFlags & EWX_REBOOT)
 		{
 			ByeByeGDI(0);
 			ZwShutdownSystem(ShutdownReboot);
@@ -752,7 +941,7 @@ BOOL WINAPI ExitWindowsEx_fix(UINT uFlags, DWORD dwReserved)
 		return TRUE;
 
 	/* Check if the flags does not exceed the maximum shutdown type */
-	if(uFlags & ~(EWX_LOGOFF | EWX_SHUTDOWN | EWX_REBOOT | EWX_FORCE | EWX_POWEROFF | EWX_FORCEIFHUNG))
+	if(uFlags & ~(EWX_LOGOFF | EWX_SHUTDOWN | EWX_REBOOT | EWX_FORCE | EWX_POWEROFF | EWX_FORCEIFHUNG | EWX_FASTRESTART))
 		return FALSE;
 
 	ppi = get_pdb()->Win32Process;
