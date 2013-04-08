@@ -66,6 +66,7 @@ MAKE_HEADER(void __stdcall MakeCriticalSectionGlobal(CRITICAL_SECTION* cs))
 MAKE_HEADER(HANDLE __stdcall ConvertToGlobalHandle(HANDLE hObject))
 MAKE_HEADER(BOOL __stdcall CloseSystemHandle(HANDLE hObject))
 MAKE_HEADER(HANDLE __stdcall CreateKernelThread(LPSECURITY_ATTRIBUTES lpThreadAttributes, SIZE_T dwStackSize, LPTHREAD_START_ROUTINE lpStartAddress, LPVOID lpParameter, DWORD dwCreationFlags, LPDWORD lpThreadId))
+MAKE_HEADER(BOOL __stdcall RegisterServiceProcess(DWORD dwProcessId, BOOL fRegister))
 
 MAKE_HEADER(ULONG __stdcall CommonUnimpStub())
 

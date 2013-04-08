@@ -23,6 +23,7 @@ EXPORTS
 	ConvertToGlobalHandle
 	CloseSystemHandle
 	CreateKernelThread
+	RegisterServiceProcess
     MapSL
     LoadLibrary16 @35 NONAME
 	FreeLibrary16 @36 NONAME
