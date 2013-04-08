@@ -141,7 +141,7 @@ WNetVerifyPasswordW(
 	return Result;
 }
 
-BOOL WINAPI IntSwitchUser(LPCSTR lpszUsername, BOOL fWait);
+BOOL WINAPI IntSwitchUser(LPCSTR lpszUsername, BOOL fWait, DWORD dwMaxMilliseconds, BOOL fAllowReload);
 
 #ifdef UNICODE
 #define WNetVerifyPassword  WNetVerifyPasswordW
