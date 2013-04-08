@@ -183,6 +183,58 @@ typedef struct _HANDLE_TABLE {
     HANDLE_TABLE_ENTRY array[1];    // An array (number is given by cEntries)
 } HANDLE_TABLE, *PHANDLE_TABLE;
 
+// Win16 Task database
+typedef struct W16TDB
+{
+	WORD	Next;						// 000h - Next task in dispatch queue end with 0, where is the first ?
+	WORD	TaskSP;						// 002h - Saved SS:SP for this task
+	WORD	TaskSS;						// 004h
+	WORD	nEvents;					// 006h - Task event counter
+	BYTE	Priority;					// 008h - Task priority (0 is highest)
+	BYTE	tdbOrdinal;					// 009h - Ordinal number of this thread
+	WORD	tdbNext;					// 00Ah - Next thread
+	WORD	tdbCurrent;					// 00Ch - The real TDB for this task
+	WORD	tdbList;					// 00Eh - List of allocated thread structures
+	WORD	tdbFree;					// 010h - Free list of available thread structures
+	WORD	tdbCount;					// 012h - Total count of tread structures
+	WORD	FCW;						// 014h - Floating point control word
+	WORD	Flags;						// 016h - Task flags
+	WORD	ErrMode;					// 018h - Error mode for this task
+	WORD	ExpWinVer;					// 01Ah - Expected Windows version for this task
+	WORD	HInstance;					// 01Ch - Instance handle of task
+	WORD	HMODULE;					// 01Eh - Module database for task  selector ptr to 'NE' W16Module go
+	WORD	Queue;						// 020h - Task Event Queue pointer
+	WORD	Parent;						// 022h - TDB of the task that started this up
+	WORD	SigAction;					// 024h - Action for app task signal
+	FARPROC	ASignalProc;				// 026h - App's signal procedure address
+	FARPROC	USignalProc;				// 02Ah - User's Task Signal procedure address
+	FARPROC	GNotifyProc;				// 02Eh - Task global discard notify proc.
+	FARPROC	INTVECS[7];					// 032h - Task specfic hardware interrupts
+	DWORD	CompatFlags;				// 04Eh - Compatibility flags
+	WORD	SelectorFS;					// 052h - Same selector as FS (points inside TCB)
+	DWORD	Ring3TCB;					// 054h - 32 bit address of KERNEL32 thread database Ring3TCB go
+	WORD	ThunkStackSS;				// 058h - Selector used for stack during thunking
+	WORD	un1[3];						// 05Ah - Appears to be unused
+	WORD	PSP;						// 060h - MSDOS Process Data Block (aka, the PSP)
+	LPBYTE	DTA;						// 062h - MSDOS Disk Transfer Address
+	BYTE	Drive;						// 066h - MSDOS current drive
+	char	DosDir[65];					// 067h - MSDOS current directory
+	WORD	Validity;					// 0A8h - Initial AX to be passed to a task
+	WORD	DirectedYield;				// 0AAh - DirectedYield arg stored here
+	WORD	LibInitSeg;					// 0ACh - Segment address of libraries to init
+	WORD	LibInitOff;					// 0AEh - MakeProcInstance thunks live here.
+	WORD	SelectorMPI;				// 0B0h - Code selector for thunks
+	WORD	Thunks;						// 0B2h - selector of segment with more MPI thunks
+	WORD	Signature;					// 0B4h - 'PT'
+	WORD	un2;						// 0B6h
+	WORD	NextMPIThunk;				// 0B8h
+	char	MPIThunks[0x38];			// 0BAh
+	char	ModName[8];					// 0F2h - Name of Module.
+	WORD	sig;						// 0FAh - 'TD' Signature word to detect bogus code
+	DWORD	unused2;					// 0FCh
+	char	CurrentDirectory[0x110];	// 100h - Current directory
+} W16TDB, *PW16TDB;
+
 // List node
 typedef struct _NODE
 {
