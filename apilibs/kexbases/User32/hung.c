@@ -25,6 +25,8 @@
 #include "../kernel32/_kernel32_apilist.h"
 #include "_user32_apilist.h"
 
+DWORD HangManagerThreadId = 0;
+
 typedef struct _HUNGINFO
 {
 	DWORD dwProcessId;
@@ -441,6 +443,8 @@ BOOL CALLBACK EnumHungWindowsProc(HWND hwnd, LPARAM lParam)
 DWORD WINAPI HangManagerThread(PVOID lpParameter)
 {
 	MSG msg;
+
+	HangManagerThreadId = GetCurrentThreadId();
 
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_LOWEST);
 
