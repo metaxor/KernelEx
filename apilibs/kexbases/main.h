@@ -21,6 +21,8 @@
  
 #pragma once
 
+extern DWORD Obfuscator;
+
 BOOL ppi_init(PPDB98 Process);
 BOOL pti_init(PTDB98 Thread);
 BOOL thread_init(PTDB98 Thread);
