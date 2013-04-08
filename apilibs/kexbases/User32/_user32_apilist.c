@@ -33,6 +33,8 @@ IsHungThread_t IsHungThread_pfn;
 DrawCaptionTempA_t DrawCaptionTempA_pfn;
 
 PPDB98 Msg32Process = NULL;
+DWORD Msg32ProcessId = 0;
+
 PPDB98 MprProcess = NULL;
 DWORD gpidMpr = 0;
 
@@ -335,7 +337,8 @@ BOOL init_user32()
 	gpidMpr = GetCurrentProcessId();
 
 	/* Get MSGSRV32 */
-	Msg32Process = MprProcess->ParentPDB->ParentPDB;
+	Msg32Process = MprProcess->ParentPDB;
+	Msg32ProcessId = (DWORD)Msg32Process ^ Obfuscator;
 
 	IsHungThread_pfn = (IsHungThread_t)kexGetProcAddress(hUser32, "IsHungThread");
 	DrawCaptionTempA_pfn = (DrawCaptionTempA_t)kexGetProcAddress(hUser32, "DrawCaptionTempA");
@@ -349,10 +352,13 @@ BOOL init_user32()
 	SetWindowText(hwndStartupText, "Windows is starting up (creating window station and desktops)...");
 
 	if(gpdeskInputDesktop == NULL)
+	{
 		if(!CreateWindowStationAndDesktops())
 			goto _ret;
+	}
 
-		Sleep(25);
+	Sleep(25);
+
 	SetWindowText(hwndStartupText, "Windows is starting up (creating system threads)...");
 
 	/* Create the desktop thread */
@@ -416,6 +422,8 @@ BOOL init_user32()
 				NULL,
 				&si,
 				&pi);
+
+	RegisterServiceProcess(pi.dwProcessId, TRUE);
 #endif
 
 _ret:
