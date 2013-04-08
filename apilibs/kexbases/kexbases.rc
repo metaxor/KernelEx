@@ -143,6 +143,25 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,131,112,65,14
 END
 
+IDD_SHUTDOWN_SAFE DIALOG DISCARDABLE  45, 22, 164, 52
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION
+CAPTION "Shutdown Computer"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT           "It is now safe to turn off your computer.",IDT_TEXT,20,
+                    13,132,8
+    DEFPUSHBUTTON   "&Restart",IDC_RESTART,55,32,51,14
+END
+
+IDD_SHUTTINGDOWN DIALOG DISCARDABLE  69, 73, 132, 42
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION
+CAPTION "Shutdown in Progress"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT           "Please wait while the system writes unsaved data to the disk.",
+                    IDT_TEXT,11,12,112,18
+END
+
 #endif    // English (U.K.) resources
 /////////////////////////////////////////////////////////////////////////////
 
