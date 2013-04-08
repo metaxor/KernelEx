@@ -115,3 +115,15 @@ BOOL WINAPI IsBadUnicodeStringPtr(LPCWSTR lpsz, UINT_PTR ucchMax)
     /* Return exception status */
     return Result;
 }
+
+VOID FASTCALL CallRing0(DWORD ProcAddress, PVOID lParam)
+{
+	HANDLE hThread;
+	DWORD dwThreadId = 0;
+
+	hThread = CreateKernelThread(NULL, 0, (LPTHREAD_START_ROUTINE)ProcAddress, lParam, 0, &dwThreadId);
+
+	WaitForSingleObject(hThread, INFINITE);
+
+	CloseHandle(hThread);
+}

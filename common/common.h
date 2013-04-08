@@ -49,6 +49,7 @@ size_t lstrlenAnull(LPCSTR s);
 size_t lstrlenWnull(LPCWSTR s);
 
 BOOL WINAPI IsBadUnicodeStringPtr(LPCWSTR lpsz, UINT_PTR ucchMax);
+VOID FASTCALL CallRing0(DWORD ProcAddress, PVOID lParam);
 
 #ifdef __cplusplus
 };
