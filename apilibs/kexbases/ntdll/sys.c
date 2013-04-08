@@ -20,6 +20,33 @@
  */
 
 #include "_ntdll_apilist.h"
+#include "../user32/desktop.h"
+
+DWORD WINAPI Ring0Idle(PVOID lParam)
+{
+	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
+
+	DisableOEMLayer();
+
+	while(1)
+	{
+		__asm {
+			cli
+		}
+	}
+
+	return 0;
+}
+
+DWORD WINAPI Ring0Reboot(PVOID lParam)
+{
+
+	// FIXME : jump at FFFF:0000h
+
+	__asm int	19h ; Bootstrap loader
+
+	return Ring0Idle(NULL);
+}
 
 /* MAKE_EXPORT RtlGetVersion=RtlGetVersion */
 NTSTATUS NTAPI RtlGetVersion(
@@ -80,14 +107,12 @@ NTSTATUS NTAPI ZwShutdownSystem(IN SHUTDOWN_ACTION Action)
 	switch(Action)
 	{
 	case ShutdownNoReboot:
-		ExitWindowsEx(EWX_SHUTDOWN | EWX_FORCE, 0);
+		CallRing0((DWORD)Ring0Idle, NULL);
 		return STATUS_SUCCESS;
-		break;
 
 	case ShutdownReboot:
-		ExitWindowsEx(EWX_REBOOT | EWX_FORCE, 0);
+		CallRing0((DWORD)Ring0Reboot, NULL);
 		return STATUS_SUCCESS;
-		break;
 
 	case ShutdownPowerOff:
 		hModule = (HMODULE)LoadLibrary16("KRNL386.EXE");
