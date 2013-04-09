@@ -569,6 +569,10 @@ SOURCE=..\..\common\k32ord.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\common\listhead.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\shlord.h
 # End Source File
 # Begin Source File
