@@ -51,18 +51,15 @@ BOOL IntValidateWindowStationHandle(HWINSTA hWindowStation, PWINSTATION_OBJECT *
 {
 	PWINSTATION_OBJECT Object;
 
+	if(IsBadWritePtr(WindowStationObject, sizeof(DWORD)))
+		return FALSE;
+
 	Object = (PWINSTATION_OBJECT)kexGetHandleObject(hWindowStation, K32OBJ_WINSTATION, 0);
 
 	if(Object == NULL)
 		return FALSE;
 
-	if(!IsBadWritePtr(WindowStationObject, sizeof(DWORD)))
-		*WindowStationObject = Object;
-	else
-	{
-		kexDereferenceObject(Object);
-		return FALSE;
-	}
+	*WindowStationObject = Object;
 
 	return TRUE;
 }
@@ -121,14 +118,11 @@ HWINSTA WINAPI CreateWindowStationA_new(LPCSTR lpwinsta, DWORD dwFlags, ACCESS_M
     PWINSTATION_OBJECT WindowStationObject = NULL;
     HWINSTA WindowStation = NULL;
     PCHAR WindowStationPath;
-    PPDB98 Process = NULL;
 	DWORD flags;
 	HANDLE hEvent;
 
 	if(IsBadStringPtr(lpwinsta, -1))
 		return NULL;
-
-    Process = get_pdb();
 
 	if(!IsBadReadPtr(lpsa, sizeof(SECURITY_ATTRIBUTES)) && lpsa->bInheritHandle == TRUE)
 		flags |= HF_INHERIT;
@@ -143,7 +137,7 @@ HWINSTA WINAPI CreateWindowStationA_new(LPCSTR lpwinsta, DWORD dwFlags, ACCESS_M
 		dwDesiredAccess = WINSTA_WRITE;
 
 	/* Try to open an existing window station */
-	if((WindowStation = (HWINSTA)OpenWindowStationA_new((LPTSTR)lpwinsta, flags & HF_INHERIT, dwDesiredAccess)) != NULL)
+	if((WindowStation = (HWINSTA)OpenWindowStationA_new((LPSTR)lpwinsta, flags & HF_INHERIT, dwDesiredAccess)) != NULL)
 	{
 		SetLastError(ERROR_ALREADY_EXISTS);
 		return WindowStation;
@@ -157,7 +151,15 @@ HWINSTA WINAPI CreateWindowStationA_new(LPCSTR lpwinsta, DWORD dwFlags, ACCESS_M
 		return NULL;
 	}
 
-	WindowStationName = (PCHAR)lpwinsta;
+	WindowStationName = (PCHAR)kexAllocObject(strlen(lpwinsta));
+
+	if(WindowStationName == NULL)
+	{
+		SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+		return NULL;
+	}
+
+	strcpy(WindowStationName, lpwinsta);
 
 	WindowStationPath = (PCHAR)kexAllocObject(strlen(WINSTA_ROOT_NAME) + strlen(WindowStationName) + 1);
 
@@ -175,12 +177,18 @@ HWINSTA WINAPI CreateWindowStationA_new(LPCSTR lpwinsta, DWORD dwFlags, ACCESS_M
     WindowStationObject->pName = kexAllocObjectName(WindowStationObject, WindowStationPath);
 	WindowStationObject->lpName = (PCHAR)WindowStationName;
 
+	if(WindowStationObject->pName == NULL)
+	{
+		kexFreeObject(WindowStationName);
+		kexFreeObject(WindowStationObject);
+		SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+		return NULL;
+	}
+
 	if(InputWindowStation == NULL)
 		InputWindowStation = WindowStationObject;
 
-	WindowStation = (HWINSTA)kexAllocHandle(Process, WindowStationObject, dwDesiredAccess | flags);
-
-	SetLastError(0);
+	WindowStation = (HWINSTA)kexAllocHandle(NULL, WindowStationObject, dwDesiredAccess | flags);
 
 	/* Create the desktop switch event */
 	hEvent = CreateEvent(NULL, FALSE, FALSE, "WinSta0_DesktopSwitch");
@@ -475,22 +483,33 @@ BOOL WINAPI LockWindowStation_new(HWINSTA hWinSta)
 /* MAKE_EXPORT OpenWindowStationA_new=OpenWindowStationA */
 HWINSTA WINAPI OpenWindowStationA_new(LPSTR lpszWinSta, BOOL fInherit, ACCESS_MASK dwDesiredAccess)
 {
-	HWINSTA WindowStation = NULL;
-	CHAR WindowStationPath[MAX_PATH];
-	PCHAR WindowStationName = NULL;
-	DWORD flags = 0;
+	HWINSTA WindowStation;
+	PWINSTATION_OBJECT WindowStationObject;
+	DWORD flags;
+	PLIST_ENTRY WinStaList;
 
 	if(IsBadStringPtr(lpszWinSta, -1))
+	{
+		SetLastError(ERROR_INVALID_PARAMETER);
 		return NULL;
+	}
 
 	if(fInherit)
 		flags |= HF_INHERIT;
 
-	WindowStationName = lpszWinSta;
+	WindowStation = NULL;
 
-	sprintf(WindowStationPath, "%s\\%s", WINSTA_ROOT_NAME, WindowStationName);
+	/* Find the window station name in the global window station list */
+	for(WinStaList = WindowStationList.Flink; WinStaList != &WindowStationList; WinStaList = WinStaList->Flink)
+	{
+		WindowStationObject = CONTAINING_RECORD(WinStaList, WINSTATION_OBJECT, ListEntry);
 
-	WindowStation = (HWINSTA)kexOpenObjectByName(WindowStationPath, K32OBJ_WINSTATION, dwDesiredAccess | flags);
+		if(strcmpi(WindowStationObject->lpName, lpszWinSta) == 0)
+		{
+			WindowStation = (HWINSTA)kexAllocHandle(NULL, WindowStationObject, dwDesiredAccess | flags);
+			break;
+		}
+	}
 
 	if(WindowStation == NULL)
 	{
@@ -506,7 +525,7 @@ BOOL WINAPI RegisterLogonProcess_new(DWORD dwProcessId, BOOL fSecure)
 {
 	if(gpidMpr != 0)
 	{
-		TRACE("The logon process is already registered ! (pid=0x%X, fSecure=0x%X", dwProcessId, fSecure);
+		TRACE("The logon process is already registered ! (pid=0x%X, fSecure=0x%X)\n", dwProcessId, fSecure);
 		SetLastError(ERROR_ACCESS_DENIED);
 		return FALSE;
 	}
