@@ -159,23 +159,38 @@ BOOL WINAPI CreateWindowStationAndDesktops()
 	hWindowStation = CreateWindowStationA_new("WinSta0", 0, WINSTA_ALL_ACCESS, &sa);
 
 	if(hWindowStation == NULL)
+	{
+		ERR("Failed to create window station WinSta0 (error %d)\n", GetLastError());
 		return FALSE;
+	}
 
 	if(!SetProcessWindowStation_new(hWindowStation))
+	{
+		ERR("Failed to set the process window station (error %d)\n", GetLastError());
 		return FALSE;
+	}
 
 	hDefault = CreateDesktopA_new("Default", NULL, NULL, 0, GENERIC_ALL, &sa);
 	hWinlogon = CreateDesktopA_new("Winlogon", NULL, NULL, 0, GENERIC_ALL, &sa);
 	hScreenSaver = CreateDesktopA_new("Screen-Saver", NULL, NULL, 0, GENERIC_ALL, &sa);
 
 	if(!hDefault || !hWinlogon || !hScreenSaver)
+	{
+		ERR("Failed to create desktops (error %d)\n", GetLastError());
 		return FALSE;
+	}
 
 	if(!SetThreadDesktop_new(hDefault))
+	{
+		ERR("Failed to set the thread desktop (error %d)\n", GetLastError());
 		return FALSE;
+	}
 
 	if(!SwitchDesktop_new(hDefault))
+	{
+		ERR("Failed to switch to the default desktop (error %d)\n", GetLastError());
 		return FALSE;
+	}
 
 	return TRUE;
 }
@@ -234,9 +249,6 @@ BOOL InitDesktops()
 
 			psi = ParentProcess->pEDB->pStartupInfo;
 			DesktopPath = (PCHAR)psi->lpDesktop;
-
-			if(DesktopPath != NULL && !IsBadStringPtr(DesktopPath, -1))
-				break;
 		}
 	}
 	__except(EXCEPTION_EXECUTE_HANDLER)
@@ -298,7 +310,8 @@ BOOL InitDesktops()
 
 		if(hWindowStation == NULL)
 		{
-			TRACE("Failed to open window station %s\n", pszWinSta);
+			TRACE("Failed to open window station %s ", pszWinSta);
+			DBGPRINTF(("(error %d)\n", GetLastError()));
 			goto error;
 		}
 
@@ -363,18 +376,15 @@ BOOL IntValidateDesktopHandle(HDESK hDesktop, PDESKTOP *DesktopObject)
 {
 	PDESKTOP Object;
 
+	if(IsBadWritePtr(DesktopObject, sizeof(DWORD)))
+		return FALSE;
+
 	Object = (PDESKTOP)kexGetHandleObject(hDesktop, K32OBJ_DESKTOP, 0);
 
 	if(Object == NULL)
 		return FALSE;
 
-	if(!IsBadWritePtr(DesktopObject, sizeof(DWORD)))
-		*DesktopObject = Object;
-	else
-	{
-		kexDereferenceObject(Object);
-		return FALSE;
-	}
+	*DesktopObject = Object;
 
 	return TRUE;
 }
@@ -795,6 +805,14 @@ HDESK WINAPI CreateDesktopA_new(LPCSTR lpszDesktop, LPCSTR lpszDevice, LPDEVMODE
 
 	/* Copy the desktop name to a shared memory string */
 	DesktopName = (PCHAR)kexAllocObject(strlen(lpszDesktop));
+
+	if(DesktopName == NULL)
+	{
+		SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+		ReleaseWin16Lock();
+		return NULL;
+	}
+
 	strcpy(DesktopName, lpszDesktop);
 
 	/* Add \Path to the desktop name */
@@ -811,19 +829,29 @@ HDESK WINAPI CreateDesktopA_new(LPCSTR lpszDesktop, LPCSTR lpszDevice, LPDEVMODE
 	DesktopObject->lpName = (PCHAR)DesktopName;
 	DesktopObject->rpwinstaParent = Process->Win32Process->rpwinsta;
 	DesktopObject->pdev = pdev;
-	DesktopObject->DesktopWindow = GetDesktopWindow();
+	DesktopObject->DesktopWindow = GetDesktopWindow_new();
 
 	DesktopObject->pheapDesktop = (DWORD)gSharedInfo; // Using USER32's Heap for each desktop
 	DesktopObject->ulHeapSize = 4194304; // USER32's Heap size
 
+	if(DesktopObject->pName == NULL)
+	{
+		kexFreeObject(DesktopName);
+		kexFreeObject(DesktopObject);
+		SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+		ReleaseWin16Lock();
+		return NULL;
+	}
+
 	hDesktop = (HDESK)kexAllocHandle(Process, DesktopObject, dwDesiredAccess | flags);
 
-	if(strcmp(lpszDesktop, "Winlogon") == 0 && gpdeskWinlogon == NULL)
+	if(strcmpi(lpszDesktop, "Winlogon") == 0 && gpdeskWinlogon == NULL)
 		gpdeskWinlogon = DesktopObject;
-	else if(strcmp(lpszDesktop, "Screen-Saver") == 0 && gpdeskScreenSaver == NULL)
+	else if(strcmpi(lpszDesktop, "Screen-Saver") == 0 && gpdeskScreenSaver == NULL)
 		gpdeskScreenSaver = DesktopObject;
 
 	ReleaseWin16Lock();
+
     return hDesktop;
 }
 
@@ -948,6 +976,9 @@ BOOL WINAPI EnumDesktopWindows_new(HDESK hDesktop, WNDENUMPROC lpfn, LPARAM lPar
 /* MAKE_EXPORT GetDesktopWindow_new=GetDesktopWindow */
 HWND WINAPI GetDesktopWindow_new(VOID)
 {
+	if(pwndDesktop == NULL)
+		return NULL;
+
 	return (HWND)pwndDesktop->hWnd16;
 
 	/*
@@ -1043,7 +1074,7 @@ HDESK WINAPI OpenDesktopA_new(LPSTR lpszDesktop, DWORD dwFlags, BOOL fInherit, A
 		if(strcmpi(Desktop->lpName, DesktopName) == 0)
 		{
 			hDesktop = (HDESK)kexAllocHandle(Process, Desktop, dwDesiredAccess | flags);
-			goto validatedesktop;
+			break;
 		}
 	}
 
@@ -1053,8 +1084,6 @@ HDESK WINAPI OpenDesktopA_new(LPSTR lpszDesktop, DWORD dwFlags, BOOL fInherit, A
 globalsearch:
 
 	sprintf(DesktopPath, "\\%s", DesktopName);
-
-	Sleep(1);
 
 	hDesktop = (HDESK)kexOpenObjectByName(DesktopPath, K32OBJ_DESKTOP, dwDesiredAccess | flags);
 
