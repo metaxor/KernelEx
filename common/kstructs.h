@@ -184,7 +184,7 @@ typedef struct _HANDLE_TABLE {
 } HANDLE_TABLE, *PHANDLE_TABLE;
 
 // Win16 Task database
-typedef struct W16TDB
+typedef struct _W16TDB
 {
 	WORD	Next;						// 000h - Next task in dispatch queue end with 0, where is the first ?
 	WORD	TaskSP;						// 002h - Saved SS:SP for this task
