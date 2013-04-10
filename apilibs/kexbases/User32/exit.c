@@ -59,6 +59,7 @@ typedef BOOLEAN (WINAPI *ISPWRSHUTDOWNALLOWED)(void);
 typedef struct _SHUTDOWNDATA
 {
 	UINT uFlags;
+	DWORD SessionId;
 	PWINSTATION_OBJECT WindowStation;
 	DWORD Result;
 	DWORD ShellProcessId;
@@ -313,6 +314,9 @@ BOOL CALLBACK EnumProcessesProc(DWORD dwProcessId, PSHUTDOWNDATA ShutdownData)
 	if(Process == MprProcess || Process == Msg32Process)
 		return TRUE;
 
+	if(Process->Win32Process != NULL && Process->Win32Process->SessionId != ShutdownData->SessionId)
+		return TRUE;
+
 	ShutdownData->ShellProcessId = GetWindowProcessId(GetShellWindow_new());
 
 	/* Don't terminate the shell now because the user could abort the shutdown process */
@@ -379,6 +383,9 @@ ULONG GetUserProcessesCount(PSHUTDOWNDATA sa)
 			continue;
 
 		if(Process == pKernelProcess || Process == MprProcess || Process == Msg32Process)
+			continue;
+
+		if(Process->Win32Process != NULL && Process->Win32Process->SessionId != sa->SessionId)
 			continue;
 
 		/* Skip the shell process because it must be the last process running
@@ -764,6 +771,7 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 			HungAppTimeout = 5000;
 
 		sa.uFlags = msg.wParam;
+		sa.SessionId = msg.lParam;
 		sa.WindowStation = NULL;
 		sa.Result = 1;
 		sa.dwProcessId = 0;
@@ -796,7 +804,6 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 				CloseHandle(hProcess);
 			}
 		}
-
 
 		Sleep(750);
 
@@ -880,6 +887,7 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 		{
 			if(!IsPwrShutdownAllowed() && (sa.uFlags & EWX_SHUTDOWN || sa.uFlags & EWX_POWEROFF))
 			{
+				SendMessage(hwndShutdownDlg, WM_USER+20, 0, 0);
 				CreateShutdownDialog(FALSE);
 				goto finished;
 			}
@@ -954,5 +962,5 @@ BOOL WINAPI ExitWindowsEx_fix(UINT uFlags, DWORD dwReserved)
 			return FALSE;
 	}
 
-	return PostThreadMessage(dwShutdownThreadId, WM_QUERYENDSESSION, uFlags, 0);
+	return PostThreadMessage(dwShutdownThreadId, WM_QUERYENDSESSION, uFlags, ppi->SessionId);
 }
