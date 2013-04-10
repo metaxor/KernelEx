@@ -22,6 +22,7 @@
 #include "common.h"
 
 UNIMPL_FUNC(ByeByeGDI, 1); // Adding this as a stub to prevent bad apps to call this and make the system crash
+UNIMPL_FUNC(GdiAlphaBlend, 11);
 UNIMPL_FUNC(GetDCBrushColor, 1);
 UNIMPL_FUNC(GetDCPenColor, 1);
 UNIMPL_FUNC(SetDCBrushColor, 2);
