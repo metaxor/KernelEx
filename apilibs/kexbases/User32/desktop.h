@@ -56,6 +56,8 @@ typedef struct _DESKTOP
 	PCHAR lpName;								// 10
     LIST_ENTRY ListEntry;
 
+	DWORD SessionId;
+
     struct _WINSTATION_OBJECT *rpwinstaParent; 
     DWORD dwDTFlags;
     PWND spwndForeground;
@@ -168,19 +170,28 @@ typedef struct _WINSTATION_OBJECT
 
 } WINSTATION_OBJECT, *PWINSTATION_OBJECT;
 
+typedef struct _PERPROCESSDATA
+{
+	DWORD SessionId;
+	LPSTR lpSessionName;
+
+	LIST_ENTRY WindowStationList;
+	LIST_ENTRY ListEntry;
+
+	PWINSTATION_OBJECT InputWindowStation;
+	PDESKTOP gpdeskInputDesktop;
+	PDESKTOP gpdeskScreenSaver;
+	PDESKTOP gpdeskWinlogon;
+
+	BOOL fNewDesktop;
+
+} PERPROCESSDATA, *PPERPROCESSDATA;
+
 typedef struct tagPDEVICE {
     short pdType;
 } PDEVICE, *PPDEVICE, *LPPDEVICE;
 
-extern LIST_ENTRY WindowStationList;
-extern PWINSTATION_OBJECT InputWindowStation;
-extern PDESKTOP gpdeskInputDesktop;
-extern PDESKTOP gpdeskScreenSaver;
-extern PDESKTOP gpdeskWinlogon;
-
 extern LPCRITICAL_SECTION gpdeskLock;
-
-extern BOOL fNewDesktop;
 
 extern HANDLE gpdeskSwitchEvent;
 
@@ -190,6 +201,8 @@ extern DWORD dwDesktopThreadId;
 extern DWORD dwKernelProcessId;
 
 extern PWND pwndDesktop;
+
+extern PPERPROCESSDATA gpdcs;
 
 BOOL WINAPI CreateWindowStationAndDesktops();
 
@@ -205,3 +218,8 @@ VOID RepaintScreen(VOID);
 VOID DisableOEMLayer();
 VOID EnableOEMLayer();
 VOID APIENTRY RedrawDesktop();
+
+BOOL FASTCALL WTSInitializeSession(void);
+BOOL WINAPI WTSCreateSession(PPERPROCESSDATA *Session);
+BOOL WINAPI WTSGetSessionById(DWORD SessionId, PPERPROCESSDATA *Session);
+BOOL WINAPI WTSDeleteSession(PPERPROCESSDATA Session);
