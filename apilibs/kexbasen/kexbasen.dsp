@@ -365,6 +365,10 @@ SOURCE=.\ole32\_ole32_apilist.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\ole32\_ole32_stubs.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\ole32\CoWaitForMultipleHandles.c
 # End Source File
 # End Group
