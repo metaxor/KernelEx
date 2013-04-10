@@ -73,6 +73,7 @@ BOOL init_once()
 BOOL ppi_init(PPDB98 Process)
 {
 	PPROCESSINFO ppi = NULL;
+	PPROCESSINFO ppiParent = NULL;
 
 	if(IsBadReadPtr(Process, sizeof(PDB98)))
 		Process = get_pdb();
@@ -85,6 +86,9 @@ BOOL ppi_init(PPDB98 Process)
 		return FALSE;
 	}
 
+	if(Process->ParentPDB != NULL)
+		ppiParent = Process->ParentPDB->Win32Process;
+
 	Process->Win32Process = ppi;
 
 	memset(ppi, 0, sizeof(PROCESSINFO));
@@ -95,6 +99,20 @@ BOOL ppi_init(PPDB98 Process)
 	ppi->rpdeskStartup = NULL;
 	ppi->ShutdownLevel = 0x280;
 	ppi->WindowsGhosting = TRUE;
+
+	if(ppiParent != NULL)
+	{
+		ppi->pSession = ppiParent->pSession;
+		ppi->SessionId = ppiParent->SessionId;
+	}
+	else
+	{
+		if(gpdcs != NULL)
+		{
+			ppi->pSession = gpdcs;
+			ppi->SessionId = gpdcs->SessionId;
+		}
+	}
 
 	return TRUE;
 }
