@@ -34,7 +34,7 @@ LONG WINAPI ChangeDisplaySettingsExA_fix(
 	PDESKTOP Desktop = NULL;
 	LONG result;
 
-	if(gpdeskInputDesktop == NULL)
+	if(gpdcs->gpdeskInputDesktop == NULL)
 		return ChangeDisplaySettingsEx(lpszDeviceName, lpDevMode, hwnd, dwflags, lParam);
 
 	if(lpDevMode != NULL && IsBadReadPtr(lpDevMode, sizeof(DEVMODE)))
@@ -54,11 +54,11 @@ LONG WINAPI ChangeDisplaySettingsExA_fix(
 		Desktop = get_tdb()->Win32Thread->rpdesk;
 
 		if(Desktop == NULL)
-			Desktop = gpdeskInputDesktop;
+			Desktop = gpdcs->gpdeskInputDesktop;
 	}
 	__except(EXCEPTION_EXECUTE_HANDLER)
 	{
-		Desktop = gpdeskInputDesktop;
+		Desktop = gpdcs->gpdeskInputDesktop;
 	}
 
 	result = ChangeDisplaySettingsExA(lpszDeviceName, lpDevMode, hwnd, dwflags, lParam);
