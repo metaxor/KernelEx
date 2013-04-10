@@ -34,3 +34,17 @@ SC_HANDLE WINAPI OpenSCManagerW_stub(LPCWSTR lpMachineName, LPCWSTR lpDatabaseNa
 {
 	return (SC_HANDLE) 0xCAFE;
 }
+
+/* MAKE_EXPORT ChangeServiceConfig2A_stub=ChangeServiceConfig2A */
+BOOL WINAPI ChangeServiceConfig2A_stub(SC_HANDLE hService, DWORD dwInfoLevel, LPVOID lpInfo)
+{
+	SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+	return FALSE;
+}
+
+/* MAKE_EXPORT ChangeServiceConfig2W_stub=ChangeServiceConfig2W */
+BOOL WINAPI ChangeServiceConfig2W_stub(SC_HANDLE hService, DWORD dwInfoLevel, LPVOID lpInfo)
+{
+	SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+	return FALSE;
+}
