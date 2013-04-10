@@ -23,8 +23,6 @@
 
 DWORD dwKernelProcessId = 0;
 PPDB98 pKernelProcess = NULL;
-PWINSTATION_OBJECT InputWindowStation = NULL;
-LIST_ENTRY WindowStationList;
 
 /* Desktop switch event (WinSta0_DesktopSwitch) */
 HANDLE gpdeskSwitchEvent = NULL;
@@ -120,8 +118,18 @@ HWINSTA WINAPI CreateWindowStationA_new(LPCSTR lpwinsta, DWORD dwFlags, ACCESS_M
     PCHAR WindowStationPath;
 	DWORD flags;
 	HANDLE hEvent;
+	PPROCESSINFO ppi = get_pdb()->Win32Process;
+	PPERPROCESSDATA ppdp;
 
 	if(IsBadStringPtr(lpwinsta, -1))
+		return NULL;
+
+	if(ppi == NULL)
+		return NULL;
+
+	ppdp = (PPERPROCESSDATA)ppi->pSession;
+
+	if(ppdp == NULL)
 		return NULL;
 
 	if(!IsBadReadPtr(lpsa, sizeof(SECURITY_ATTRIBUTES)) && lpsa->bInheritHandle == TRUE)
@@ -168,7 +176,7 @@ HWINSTA WINAPI CreateWindowStationA_new(LPCSTR lpwinsta, DWORD dwFlags, ACCESS_M
 	InitializeListHead(&WindowStationObject->DesktopListHead);
 	InitializeListHead(&WindowStationObject->ListEntry);
 
-	InsertTailList(&WindowStationList, &WindowStationObject->ListEntry);
+	InsertTailList(&gpdcs->WindowStationList, &WindowStationObject->ListEntry);
 
     WindowStationObject->Type = K32OBJ_WINSTATION;
 	WindowStationObject->cReferences = 0;
@@ -185,8 +193,8 @@ HWINSTA WINAPI CreateWindowStationA_new(LPCSTR lpwinsta, DWORD dwFlags, ACCESS_M
 		return NULL;
 	}
 
-	if(InputWindowStation == NULL)
-		InputWindowStation = WindowStationObject;
+	if(ppdp->InputWindowStation == NULL)
+		ppdp->InputWindowStation = WindowStationObject;
 
 	WindowStation = (HWINSTA)kexAllocHandle(NULL, WindowStationObject, dwDesiredAccess | flags);
 
@@ -216,6 +224,8 @@ BOOL WINAPI EnumWindowStationsA_new(WINSTAENUMPROCA lpEnumFunc, LPARAM lParam)
 	PWINSTATION_OBJECT WindowStationObject;
 	HANDLE hWindowStation;
 	PLIST_ENTRY WinStaList;
+	PPROCESSINFO ppi;
+	PPERPROCESSDATA ppdp;
 
 	if(IsBadCodePtr((FARPROC)lpEnumFunc))
 	{
@@ -223,7 +233,17 @@ BOOL WINAPI EnumWindowStationsA_new(WINSTAENUMPROCA lpEnumFunc, LPARAM lParam)
 		return FALSE;
 	}
 
-	for(WinStaList = WindowStationList.Flink; WinStaList != &WindowStationList; WinStaList = WinStaList->Flink)
+	ppi = get_pdb()->Win32Process;
+
+	if(ppi == NULL || ppi->pSession == NULL)
+	{
+		SetLastError(ERROR_ACCESS_DENIED);
+		return FALSE;
+	}
+
+	ppdp = (PPERPROCESSDATA)ppi->pSession;
+
+	for(WinStaList = ppdp->WindowStationList.Flink; WinStaList != &ppdp->WindowStationList; WinStaList = WinStaList->Flink)
 	{
 		if(kexFindObjectHandle(get_pdb(), WindowStationObject, K32OBJ_WINSTATION, &hWindowStation))
 		{
@@ -487,6 +507,8 @@ HWINSTA WINAPI OpenWindowStationA_new(LPSTR lpszWinSta, BOOL fInherit, ACCESS_MA
 	PWINSTATION_OBJECT WindowStationObject;
 	DWORD flags;
 	PLIST_ENTRY WinStaList;
+	PPROCESSINFO ppi;
+	PPERPROCESSDATA ppdp;
 
 	if(IsBadStringPtr(lpszWinSta, -1))
 	{
@@ -494,13 +516,23 @@ HWINSTA WINAPI OpenWindowStationA_new(LPSTR lpszWinSta, BOOL fInherit, ACCESS_MA
 		return NULL;
 	}
 
+	ppi = get_pdb()->Win32Process;
+
+	if(ppi == NULL || ppi->pSession == NULL)
+	{
+		SetLastError(ERROR_ACCESS_DENIED);
+		return FALSE;
+	}
+
+	ppdp = (PPERPROCESSDATA)ppi->pSession;
+
 	if(fInherit)
 		flags |= HF_INHERIT;
 
 	WindowStation = NULL;
 
 	/* Find the window station name in the global window station list */
-	for(WinStaList = WindowStationList.Flink; WinStaList != &WindowStationList; WinStaList = WinStaList->Flink)
+	for(WinStaList = ppdp->WindowStationList.Flink; WinStaList != &ppdp->WindowStationList; WinStaList = WinStaList->Flink)
 	{
 		WindowStationObject = CONTAINING_RECORD(WinStaList, WINSTATION_OBJECT, ListEntry);
 
