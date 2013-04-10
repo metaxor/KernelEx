@@ -425,10 +425,6 @@ SOURCE=.\Advapi32\lsa.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Advapi32\OpenSCManager_stub.c
-# End Source File
-# Begin Source File
-
 SOURCE=.\Advapi32\reg.c
 # End Source File
 # Begin Source File
@@ -442,6 +438,10 @@ SOURCE=.\Advapi32\security.c
 # Begin Source File
 
 SOURCE=.\Advapi32\security.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Advapi32\services.c
 # End Source File
 # Begin Source File
 
