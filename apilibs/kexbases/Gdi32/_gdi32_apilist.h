@@ -59,6 +59,7 @@ BOOL WINAPI ExtTextOutW_new(HDC hdc, int X, int Y, UINT fuOptions, CONST RECT* l
 BOOL WINAPI PolyTextOutA_new(HDC hdc, const POLYTEXTA *pptxt, INT cStrings);
 BOOL WINAPI PolyTextOutW_new(HDC hdc, const POLYTEXTW *pptxt, INT cStrings);
 STUB ByeByeGDI_stub;
+STUB GdiAlphaBlend_stub;
 STUB GetDCBrushColor_stub;
 STUB GetDCPenColor_stub;
 STUB SetDCBrushColor_stub;

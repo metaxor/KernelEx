@@ -52,6 +52,7 @@ static const apilib_named_api gdi32_named_apis[] =
 	DECL_API("ExtCreatePen", ExtCreatePen_fix),
 	DECL_API("ExtTextOutA", ExtTextOutA_new),
 	DECL_API("ExtTextOutW", ExtTextOutW_new),
+	DECL_API("GdiAlphaBlend", GdiAlphaBlend_stub),
 	DECL_API("GetCharWidth32A", GetCharWidthA),
 	DECL_API("GetCharWidth32W", GetCharWidthW),
 	DECL_API("GetDCBrushColor", GetDCBrushColor_stub),
