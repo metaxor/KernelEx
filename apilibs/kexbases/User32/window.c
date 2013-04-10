@@ -261,7 +261,7 @@ DWORD ConfirmShowCommand(HWND hWnd, int nCmdShow)
 	if(nCmdShow == SW_HIDE)
 		pwnd->style &= ~WS_INTERNAL_WASVISIBLE;
 
-	if(pti->rpdesk != gpdeskInputDesktop && nCmdShow != SW_HIDE)
+	if(pti->rpdesk != gpdcs->gpdeskInputDesktop && nCmdShow != SW_HIDE)
 	{
 		newCmdShow = SW_HIDE;
 		pwnd->style |= WS_INTERNAL_WASVISIBLE;
@@ -322,7 +322,7 @@ HWND WINAPI CreateMDIWindowA_fix(LPCSTR lpClassName, LPCSTR lpWindowName, DWORD 
 
 	if(newStyle & WS_VISIBLE)
 	{
-		if(pti->rpdesk != gpdeskInputDesktop)
+		if(pti->rpdesk != gpdcs->gpdeskInputDesktop)
 		{
 			newStyle &= ~WS_VISIBLE;
 			fWasVisible = TRUE;
@@ -351,7 +351,7 @@ HWND WINAPI CreateMDIWindowA_fix(LPCSTR lpClassName, LPCSTR lpWindowName, DWORD 
 	TRACE("MDI Window hwnd 0x%X object ", hwnd);
 	DBGPRINTF(("%p created\n", pwnd));
 
-	if(pti != NULL && pti->rpdesk != gpdeskInputDesktop && pwnd->style & WS_VISIBLE)
+	if(pti != NULL && pti->rpdesk != gpdcs->gpdeskInputDesktop && pwnd->style & WS_VISIBLE)
 	{
 		if(!(pwnd->style & WS_CHILD))
 		{
@@ -427,7 +427,7 @@ HWND WINAPI CreateWindowExA_fix(DWORD dwExStyle,
 
 	TRACE("Window hwnd 0x%X object ", hwnd);
 	DBGPRINTF(("%p created\n", pwnd));
-	if(pti != NULL && pti->rpdesk != gpdeskInputDesktop && pwnd->style & WS_VISIBLE)
+	if(pti != NULL && pti->rpdesk != gpdcs->gpdeskInputDesktop && pwnd->style & WS_VISIBLE)
 	{
 		if(!(pwnd->style & WS_CHILD))
 		{
