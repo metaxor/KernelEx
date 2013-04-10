@@ -29,16 +29,10 @@
    sometimes have messed up scrollbars
 */
 
-/* Desktops */
-PDESKTOP gpdeskInputDesktop = NULL;
-PDESKTOP gpdeskScreenSaver = NULL;
-PDESKTOP gpdeskWinlogon = NULL;
-
 LPCRITICAL_SECTION gpdeskLock;
 
 PTDB98 pDesktopThread = NULL;
 DWORD dwDesktopThreadId = NULL;
-BOOL fNewDesktop = FALSE;
 
 PWND pwndDesktop = NULL;
 
@@ -154,7 +148,7 @@ BOOL WINAPI CreateWindowStationAndDesktops()
 	sa.lpSecurityDescriptor = NULL;
 	sa.bInheritHandle = TRUE;
 
-	InitializeListHead(&WindowStationList);
+	InitializeListHead(&gpdcs->WindowStationList);
 
 	hWindowStation = CreateWindowStationA_new("WinSta0", 0, WINSTA_ALL_ACCESS, &sa);
 
@@ -211,15 +205,24 @@ BOOL InitDesktops()
 	PDESKTOP DesktopObject = NULL;
 	PWINSTATION_OBJECT WindowStationObject = NULL;
 	BOOL fNewPath = FALSE;
+	PPERPROCESSDATA ppdp;
 
 	Process = get_pdb();
 
 	ppi = Process->Win32Process;
 	pti = get_tdb()->Win32Thread;
 
+	ppdp = (PPERPROCESSDATA)ppi->pSession;
+
+	if(ppdp == NULL)
+	{
+		TRACE_OUT("The process session is currently NULL, skipping\n");
+		return TRUE;
+	}
+
 	/* Don't assign desktops and window stations to process/threads
 	   if there is not input desktop set yet */
-    if(gpdeskInputDesktop == NULL)
+    if(ppdp->gpdeskInputDesktop == NULL)
 	{
 		TRACE_OUT("InputDesktop is NULL, don't allocate desktop handles yet\n");
         return TRUE;
@@ -356,6 +359,7 @@ BOOL InitDesktops()
 		goto error;
 	}
 
+	ppi->SessionId = DesktopObject->SessionId;
 	ppi->rpdeskStartup = DesktopObject;
 	ppi->hdeskStartup = hDesktop;
 
@@ -434,22 +438,22 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
 			WindowStationObject = Process->ParentPDB->Win32Process->rpwinsta;
 			if(WindowStationObject == NULL)
 			{
-				WindowStationObject = InputWindowStation;
-				DesktopObject = gpdeskInputDesktop;
+				WindowStationObject = gpdcs->InputWindowStation;
+				DesktopObject = gpdcs->gpdeskInputDesktop;
 				__leave;
 			}
 
 			DesktopObject = Process->ParentPDB->Win32Process->rpdeskStartup;
 			if(DesktopObject == NULL)
 			{
-				WindowStationObject = InputWindowStation;
-				DesktopObject = gpdeskInputDesktop;
+				WindowStationObject = gpdcs->InputWindowStation;
+				DesktopObject = gpdcs->gpdeskInputDesktop;
 			}
 		}
 		__except(EXCEPTION_EXECUTE_HANDLER)
 		{
-			WindowStationObject = InputWindowStation;
-			DesktopObject = gpdeskInputDesktop;
+			WindowStationObject = gpdcs->InputWindowStation;
+			DesktopObject = gpdcs->gpdeskInputDesktop;
 		}
 
 		ppi_init(Process);
@@ -491,7 +495,7 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
 	if(pwnd->style & WS_CHILD)
 		return TRUE;
 
-	if(pti->rpdesk != gpdeskInputDesktop)
+	if(pti->rpdesk != gpdcs->gpdeskInputDesktop)
 	{
 		/* Window's thread isn't in the input desktop, hide it */
 		if(pwnd->style & WS_VISIBLE)
@@ -565,7 +569,7 @@ DWORD WINAPI DesktopThread(PVOID lParam)
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 
-		if(pWin16Mutex->LockCount == 0 && fNewDesktop == FALSE)
+		if(pWin16Mutex->LockCount == 0 && gpdcs->fNewDesktop == FALSE)
 			continue;
 
 		/* Only enum windows when necessary (the user lock has been grabbed), e.g : a window is created,
@@ -577,12 +581,12 @@ DWORD WINAPI DesktopThread(PVOID lParam)
 		exception handling, crash happen when there is no free memory */
 		__try
 		{
-			if(!fNewDesktop)
+			if(!gpdcs->fNewDesktop)
 				EnumWindows_nothunk(EnumWindowsProc, 0);
 
-			EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, gpdeskInputDesktop->pdev);
+			EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, gpdcs->gpdeskInputDesktop->pdev);
 
-			if(InterlockedExchange((volatile long *)&fNewDesktop, FALSE) == TRUE)
+			if(InterlockedExchange((volatile long *)&gpdcs->fNewDesktop, FALSE) == TRUE)
 			{
 				EnumWindows_nothunk(EnumWindowsProc, TRUE);
 				TRACE_OUT("Input desktop has changed, redrawing screen... ");
@@ -717,6 +721,7 @@ HDESK WINAPI CreateDesktopA_new(LPCSTR lpszDesktop, LPCSTR lpszDevice, LPDEVMODE
 	PPROCESSINFO ppi = Process->Win32Process;
 	DWORD flags = 0;
 	PDEVMODE pdev = pDevmode;
+	PPERPROCESSDATA ppdp;
 
 	GrabWin16Lock();
 
@@ -733,6 +738,8 @@ HDESK WINAPI CreateDesktopA_new(LPCSTR lpszDesktop, LPCSTR lpszDevice, LPDEVMODE
 		ReleaseWin16Lock();
 		return NULL;
 	}
+
+	ppdp = (PPERPROCESSDATA)ppi->pSession;
 
 	WindowStationObject = ppi->rpwinsta;
 
@@ -825,6 +832,7 @@ HDESK WINAPI CreateDesktopA_new(LPCSTR lpszDesktop, LPCSTR lpszDevice, LPDEVMODE
 
 	DesktopObject->Type = K32OBJ_DESKTOP;
 	DesktopObject->cReferences = 0;
+	DesktopObject->SessionId = ppi->SessionId;
 	DesktopObject->pName = kexAllocObjectName(DesktopObject, DesktopPath);
 	DesktopObject->lpName = (PCHAR)DesktopName;
 	DesktopObject->rpwinstaParent = Process->Win32Process->rpwinsta;
@@ -845,10 +853,10 @@ HDESK WINAPI CreateDesktopA_new(LPCSTR lpszDesktop, LPCSTR lpszDevice, LPDEVMODE
 
 	hDesktop = (HDESK)kexAllocHandle(Process, DesktopObject, dwDesiredAccess | flags);
 
-	if(strcmpi(lpszDesktop, "Winlogon") == 0 && gpdeskWinlogon == NULL)
-		gpdeskWinlogon = DesktopObject;
-	else if(strcmpi(lpszDesktop, "Screen-Saver") == 0 && gpdeskScreenSaver == NULL)
-		gpdeskScreenSaver = DesktopObject;
+	if(strcmpi(lpszDesktop, "Winlogon") == 0 && ppdp->gpdeskWinlogon == NULL)
+		ppdp->gpdeskWinlogon = DesktopObject;
+	else if(strcmpi(lpszDesktop, "Screen-Saver") == 0 && ppdp->gpdeskScreenSaver == NULL)
+		ppdp->gpdeskScreenSaver = DesktopObject;
 
 	ReleaseWin16Lock();
 
@@ -998,9 +1006,19 @@ HDESK WINAPI GetInputDesktop_new(VOID)
 	/* It seems to always return an handle of the input desktop found in the process */
 	/* return NULL if there is no handle to the current desktop in the process */
 	PPDB98 Process = get_pdb();
+	PPROCESSINFO ppi = Process->Win32Process;
+	PPERPROCESSDATA ppdp;
 	HDESK hDesktop;
 
-	if(kexFindObjectHandle((PVOID)Process, gpdeskInputDesktop, K32OBJ_DESKTOP, (PHANDLE)&hDesktop))
+	if(ppi == NULL)
+		return NULL;
+
+	ppdp = (PPERPROCESSDATA)ppi->pSession;
+
+	if(ppdp == NULL)
+		return NULL;
+
+	if(kexFindObjectHandle((PVOID)Process, ppdp->gpdeskInputDesktop, K32OBJ_DESKTOP, (PHANDLE)&hDesktop))
 		return hDesktop;
 
 	return NULL;
@@ -1102,17 +1120,34 @@ HDESK WINAPI OpenInputDesktop_new(DWORD dwFlags, BOOL fInherit, ACCESS_MASK dwDe
 {
 	HDESK hDesktop;
 	PPDB98 Process;
+	PPROCESSINFO ppi;
+	PPERPROCESSDATA ppdp;
 	DWORD flags;
 
 	GrabWin16Lock();
 
 	Process = get_pdb();
+	ppi = Process->Win32Process;
+
+	if(ppi == NULL)
+	{
+		ReleaseWin16Lock();
+		return NULL;
+	}
+
+	ppdp = (PPERPROCESSDATA)ppi->pSession;
+
+	if(ppdp == NULL)
+	{
+		ReleaseWin16Lock();
+		return NULL;
+	}
 
 	if(fInherit)
 		flags |= HF_INHERIT;
 
 	/* OpenInputDesktop allocate an handle of the input desktop */
-	hDesktop = (HDESK)kexAllocHandle(Process, gpdeskInputDesktop, dwDesiredAccess | flags);
+	hDesktop = (HDESK)kexAllocHandle(Process, ppdp->gpdeskInputDesktop, dwDesiredAccess | flags);
 
 	ReleaseWin16Lock();
 
@@ -1201,12 +1236,14 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
     PDESKTOP DesktopObject = NULL;
     PWINSTATION_OBJECT WindowStationObject = NULL;
     HWINSTA hWinSta = GetProcessWindowStation_new();
-	BOOL fFirstSwitch = (gpdeskInputDesktop == NULL);
+	BOOL fFirstSwitch;
 	BOOL fParent = FALSE;
 	PDEVMODE pdev = NULL;
 	PDEVMODE polddev = NULL;
 	PVOID Object = NULL;
 	PPDB98 Process = get_pdb();
+	PPROCESSINFO ppi;
+	PPERPROCESSDATA ppdp;
 
     GrabWin16Lock();
 
@@ -1220,7 +1257,27 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
         return FALSE;
     }
 
-	if(DesktopObject == gpdeskInputDesktop)
+	ppi = Process->Win32Process;
+
+	if(ppi == NULL)
+	{
+		ERR("Process 0x%X doesn't have a Win32 structure !!\n", Process);
+		kexDereferenceObject(DesktopObject);
+		ReleaseWin16Lock();
+		return FALSE;
+	}
+
+	ppdp = (PPERPROCESSDATA)ppi->pSession;
+
+	if(ppdp == NULL)
+	{
+		ERR("Process 0x%X has no session !\n", Process);
+		kexDereferenceObject(DesktopObject);
+		ReleaseWin16Lock();
+		return FALSE;
+	}
+
+	if(DesktopObject == ppdp->gpdeskInputDesktop)
 	{
 		/* Nothing to do */
 		TRACE("hDesktop 0x%X is already the current desktop !\n", hDesktop);
@@ -1249,8 +1306,8 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
 
 	/* Check if the process is associated with a secured desktop (Winlogon or Screen-Saver) */
 
-	if((kexFindObjectHandle(Process, gpdeskWinlogon, K32OBJ_DESKTOP, &Object) ||
-		kexFindObjectHandle(Process, gpdeskScreenSaver, K32OBJ_DESKTOP, &Object)) && Process != MprProcess)
+	if((kexFindObjectHandle(Process, ppdp->gpdeskWinlogon, K32OBJ_DESKTOP, &Object) ||
+		kexFindObjectHandle(Process, ppdp->gpdeskScreenSaver, K32OBJ_DESKTOP, &Object)) && Process != MprProcess)
 	{
 		ERR("Process 0x%X is associated with a secured desktop !!\n", Process);
 		kexDereferenceObject(DesktopObject);
@@ -1258,11 +1315,13 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
 		return FALSE;
 	}
 
-    if(InputWindowStation != NULL)
+	fFirstSwitch = (ppdp->gpdeskInputDesktop == NULL);
+
+    if(ppdp->InputWindowStation != NULL)
     {
 		/* Don't allow desktop switch if the input window station is locked and the process
 		   isn't mpr process */
-        if(InputWindowStation->Flags & WSS_LOCKED && GetCurrentProcessId() != gpidMpr)
+        if(ppdp->InputWindowStation->Flags & WSS_LOCKED && GetCurrentProcessId() != gpidMpr)
         {
 			SetLastError(ERROR_ACCESS_DENIED);
 			ERR("Switching to desktop 0x%X denied because the current window station is locked !\n", hDesktop);
@@ -1272,32 +1331,32 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
             return FALSE;
         }
 
-		InputWindowStation->ActiveDesktop = NULL; /* Should it be NULL ? */
+		ppdp->InputWindowStation->ActiveDesktop = NULL; /* Should it be NULL ? */
     }
 
 	/* FIXME: Disable DirectDraw while switching desktop */
 	/* FIXME: Should we use input device ? */
 
 	TRACE("Switching to desktop object 0x%X\n", DesktopObject);
-	fParent = (DesktopObject->rpwinstaParent == InputWindowStation);
+	fParent = (DesktopObject->rpwinstaParent == ppdp->InputWindowStation);
 
-	if(fParent == FALSE)
+	if(fParent == FALSE && !fFirstSwitch)
 	{
 		TRACE_OUT("new desktop's parent window station is different than the current one, Disabling OEM layer...\n");
 		DisableOEMLayer(); /* FIXME: We should have a reason of calling this */
 	}
 
 	pdev = DesktopObject->pdev;
-	polddev = gpdeskInputDesktop == NULL ? DesktopObject->pdev : gpdeskInputDesktop->pdev;
+	polddev = ppdp->gpdeskInputDesktop == NULL ? DesktopObject->pdev : ppdp->gpdeskInputDesktop->pdev;
 
 	/* Set the global state */
-	gpdeskInputDesktop = DesktopObject;
+	ppdp->gpdeskInputDesktop = DesktopObject;
 
 	/* Set the current window station to the desktop's parent */
-	InputWindowStation = gpdeskInputDesktop->rpwinstaParent;
+	ppdp->InputWindowStation = ppdp->gpdeskInputDesktop->rpwinstaParent;
 
 	/* Set the window station's active desktop */
-	InputWindowStation->ActiveDesktop = gpdeskInputDesktop;
+	ppdp->InputWindowStation->ActiveDesktop = ppdp->gpdeskInputDesktop;
 
 	if(pdev->dmBitsPerPel != polddev->dmBitsPerPel || pdev->dmPelsWidth != polddev->dmPelsWidth
 		|| pdev->dmPelsHeight != polddev->dmPelsHeight || pdev->dmDisplayFlags != polddev->dmDisplayFlags
@@ -1309,7 +1368,7 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
 		ChangeDisplaySettings(DesktopObject->pdev, CDS_UPDATEREGISTRY);
 	}
 
-	if(fParent == FALSE)
+	if(fParent == FALSE && !fFirstSwitch)
 	{
 		TRACE_OUT("Re-enabling OEM layer...\n");
 		EnableOEMLayer();
@@ -1321,7 +1380,7 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
 
 	ReleaseWin16Lock();
 
-	InterlockedExchange((volatile long *)&fNewDesktop, TRUE);
+	InterlockedExchange((volatile long *)&ppdp->fNewDesktop, TRUE);
 
 	if(!fFirstSwitch)
 	{
