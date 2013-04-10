@@ -160,6 +160,7 @@ typedef struct _PROCESSINFO
     HWINSTA         hwinsta;					// Current window station handle
 
     DWORD           SessionId;					// Session ID (MIGHT BE USED IN THE FUTURE)
+	PVOID			pSession;					// Pointer to a per process data structure
     BOOL            WindowsGhosting;			// Windows ghosting (for hung threads)
 	DWORD			ShutdownLevel;				// Shutdown order
 	DWORD			ShutdownFlags;				// Shutdown flags
