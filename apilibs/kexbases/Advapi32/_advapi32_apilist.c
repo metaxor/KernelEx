@@ -35,6 +35,8 @@ static const apilib_named_api advapi32_named_apis[] =
 	DECL_API("AddAccessAllowedAce", AddAccessAllowedAce_new),
 	DECL_API("AdjustTokenPrivileges", AdjustTokenPrivileges_new),
 	DECL_API("AllocateAndInitializeSid", AllocateAndInitializeSid_new),
+	DECL_API("ChangeServiceConfig2A", ChangeServiceConfig2A_stub),
+	DECL_API("ChangeServiceConfig2W", ChangeServiceConfig2W_stub),
 	DECL_API("CheckTokenMembership", CheckTokenMembership_new),
 	DECL_API("ConvertSecurityDescriptorToStringSecurityDescriptorA", ConvertSecurityDescriptorToStringSecurityDescriptorA_stub),
 	DECL_API("ConvertSecurityDescriptorToStringSecurityDescriptorW", ConvertSecurityDescriptorToStringSecurityDescriptorW_stub),
