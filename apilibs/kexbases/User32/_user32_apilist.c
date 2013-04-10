@@ -309,6 +309,7 @@ BOOL init_user32()
 	PROCESS_INFORMATION pi;
 	HANDLE hEvent;
 	HANDLE hGlobalEvent;
+	PPROCESSINFO ppi = get_pdb()->Win32Process;
 
 	hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 
@@ -351,7 +352,15 @@ BOOL init_user32()
 	Sleep(25);
 	SetWindowText(hwndStartupText, "Windows is starting up (creating window station and desktops)...");
 
-	if(gpdeskInputDesktop == NULL)
+	if(!WTSInitializeSession())
+		goto _ret;
+
+	ppi->pSession = gpdcs;
+	ppi->SessionId = gpdcs->SessionId;
+
+	InitDesktops();
+
+	if(gpdcs->InputWindowStation == NULL)
 	{
 		if(!CreateWindowStationAndDesktops())
 			goto _ret;
