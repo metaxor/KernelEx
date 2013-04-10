@@ -68,7 +68,7 @@ typedef struct _WND
 	DWORD   alternateTID;      // 5Ch
 } WND, *PWND;
 
-typedef struct _USERDGROUP
+typedef struct _USERDGROUP // Size = 0x1B6F (from USER)
 {
 	/* Almost every fields of this struct are NULL, what's wrong ? */
 
@@ -107,8 +107,7 @@ typedef struct _USERDGROUP
 	DWORD	*SysColorTable;				// 15ECh - Pointer to the system color table (array of 28 colors)
 	BYTE	un13[0x2CE];				// 15F0h
 	WORD	*SysColorBrushTable;		// 18BEh - Pointer to the system brush color table (array of 28 colors)
-
-	/* The rest are unknown (from dseg34:18C0 to dseg34:1B6F)*/
+	BYTE	un14[0x2AF];				// 18C0h
 } USERDGROUP, *PUSERDGROUP;
 
 typedef struct _MSGQUEUE
