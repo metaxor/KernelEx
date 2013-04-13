@@ -181,6 +181,14 @@ SOURCE=.\Kernel32\module.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\Kernel32\namedpipe.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\Kernel32\pipe.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\Kernel32\pointer.c
 # End Source File
 # Begin Source File
