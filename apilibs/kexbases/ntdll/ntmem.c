@@ -21,9 +21,9 @@
 
 #include "_ntdll_apilist.h"
 
-/* MAKE_EXPORT ZwAllocateVirtualMemory=NtAllocateVirtualMemory */
-/* MAKE_EXPORT ZwAllocateVirtualMemory=ZwAllocateVirtualMemory */
-NTSTATUS ZwAllocateVirtualMemory(IN HANDLE ProcessHandle,
+/* MAKE_EXPORT NtAllocateVirtualMemory=NtAllocateVirtualMemory */
+/* MAKE_EXPORT NtAllocateVirtualMemory=ZwAllocateVirtualMemory */
+NTSTATUS NtAllocateVirtualMemory(IN HANDLE ProcessHandle,
 	IN OUT PVOID *BaseAddress,
 	IN ULONG_PTR ZeroBits,
 	IN OUT PSIZE_T RegionSize,
@@ -56,9 +56,9 @@ NTSTATUS ZwAllocateVirtualMemory(IN HANDLE ProcessHandle,
 	return STATUS_SUCCESS;
 }
 
-/* MAKE_EXPORT ZwFreeVirtualMemory=NtFreeVirtualMemory */
-/* MAKE_EXPORT ZwFreeVirtualMemory=ZwFreeVirtualMemory */
-NTSTATUS ZwFreeVirtualMemory(IN HANDLE ProcessHandle,
+/* MAKE_EXPORT NtFreeVirtualMemory=NtFreeVirtualMemory */
+/* MAKE_EXPORT NtFreeVirtualMemory=ZwFreeVirtualMemory */
+NTSTATUS NtFreeVirtualMemory(IN HANDLE ProcessHandle,
 	IN OUT PVOID *BaseAddress,
 	IN OUT PSIZE_T RegionSize,
 	IN ULONG FreeType

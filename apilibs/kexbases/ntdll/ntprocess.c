@@ -21,7 +21,7 @@
 
 #include "_ntdll_apilist.h"
 
-NTSTATUS NTAPI ZwSuspendResumeProcess(IN HANDLE ProcessHandle, DWORD dwOperation)
+NTSTATUS NTAPI NtSuspendResumeProcess(IN HANDLE ProcessHandle, DWORD dwOperation)
 {
 	DWORD pThread[1024];
 	DWORD cThreads = 0;
@@ -65,9 +65,9 @@ _fail:
 	return STATUS_INVALID_PARAMETER;
 }
 
-/* MAKE_EXPORT ZwOpenProcess=NtOpenProcess */
-/* MAKE_EXPORT ZwOpenProcess=ZwOpenProcess */
-NTSTATUS NTAPI ZwOpenProcess(OUT PHANDLE ProcessHandle,
+/* MAKE_EXPORT NtOpenProcess=NtOpenProcess */
+/* MAKE_EXPORT NtOpenProcess=ZwOpenProcess */
+NTSTATUS NTAPI NtOpenProcess(OUT PHANDLE ProcessHandle,
 	IN ACCESS_MASK          AccessMask,
 	IN POBJECT_ATTRIBUTES   ObjectAttributes,
 	IN PCLIENT_ID           ClientId
@@ -85,23 +85,23 @@ NTSTATUS NTAPI ZwOpenProcess(OUT PHANDLE ProcessHandle,
 	return STATUS_SUCCESS;
 }
 
-/* MAKE_EXPORT ZwResumeProcess=NtResumeProcess */
-/* MAKE_EXPORT ZwResumeProcess=ZwResumeProcess */
-NTSTATUS NTAPI ZwResumeProcess(IN HANDLE ProcessHandle)
+/* MAKE_EXPORT NtResumeProcess=NtResumeProcess */
+/* MAKE_EXPORT NtResumeProcess=ZwResumeProcess */
+NTSTATUS NTAPI NtResumeProcess(IN HANDLE ProcessHandle)
 {
-	return ZwSuspendResumeProcess(ProcessHandle, 0);
+	return NtSuspendResumeProcess(ProcessHandle, 0);
 }
 
-/* MAKE_EXPORT ZwSuspendProcess=NtSuspendProcess */
-/* MAKE_EXPORT ZwSuspendProcess=ZwSuspendProcess */
-NTSTATUS NTAPI ZwSuspendProcess(IN HANDLE ProcessHandle)
+/* MAKE_EXPORT NtSuspendProcess=NtSuspendProcess */
+/* MAKE_EXPORT NtSuspendProcess=ZwSuspendProcess */
+NTSTATUS NTAPI NtSuspendProcess(IN HANDLE ProcessHandle)
 {
-	return ZwSuspendResumeProcess(ProcessHandle, 1);
+	return NtSuspendResumeProcess(ProcessHandle, 1);
 }
 
-/* MAKE_EXPORT ZwTerminateProcess=NtTerminateProcess */
-/* MAKE_EXPORT ZwTerminateProcess=ZwTerminateProcess */
-NTSTATUS NTAPI ZwTerminateProcess(IN HANDLE ProcessHandle OPTIONAL,
+/* MAKE_EXPORT NtTerminateProcess=NtTerminateProcess */
+/* MAKE_EXPORT NtTerminateProcess=ZwTerminateProcess */
+NTSTATUS NTAPI NtTerminateProcess(IN HANDLE ProcessHandle OPTIONAL,
 	IN NTSTATUS ExitStatus
 )
 {

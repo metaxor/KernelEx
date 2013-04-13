@@ -21,11 +21,11 @@
 
 #include "_ntdll_apilist.h"
 
-/* MAKE_EXPORT ZwAdjustPrivilegesToken=NtAdjustPrivilegesToken */
-/* MAKE_EXPORT ZwAdjustPrivilegesToken=ZwAdjustPrivilegesToken */
+/* MAKE_EXPORT NtAdjustPrivilegesToken=NtAdjustPrivilegesToken */
+/* MAKE_EXPORT NtAdjustPrivilegesToken=ZwAdjustPrivilegesToken */
 NTSTATUS
 NTAPI
-ZwAdjustPrivilegesToken(
+NtAdjustPrivilegesToken(
 	IN HANDLE TokenHandle,
 	IN BOOLEAN DisableAllPrivileges,
 	IN PTOKEN_PRIVILEGES TokenPrivileges,
@@ -39,11 +39,11 @@ ZwAdjustPrivilegesToken(
 	return STATUS_SUCCESS;
 }
 
-/* MAKE_EXPORT ZwOpenProcessToken=NtOpenProcessToken */
-/* MAKE_EXPORT ZwOpenProcessToken=ZwOpenProcessToken */
+/* MAKE_EXPORT NtOpenProcessToken=NtOpenProcessToken */
+/* MAKE_EXPORT NtOpenProcessToken=ZwOpenProcessToken */
 NTSTATUS
 NTAPI
-ZwOpenProcessToken(
+NtOpenProcessToken(
 	IN HANDLE ProcessHandle,
 	IN ACCESS_MASK DesiredAccess,
 	OUT PHANDLE TokenHandle

@@ -66,9 +66,9 @@ NTSTATUS NTAPI RtlVerifyVersionInfo(
 	return VerifyVersionInfoW_WINXP(VersionInfo, TypeMask, ConditionMask);
 }
 
-/* MAKE_EXPORT ZwQuerySystemInformation=NtQuerySystemInformation */
-/* MAKE_EXPORT ZwQuerySystemInformation=ZwQuerySystemInformation */
-NTSTATUS NTAPI ZwQuerySystemInformation(
+/* MAKE_EXPORT NtQuerySystemInformation=NtQuerySystemInformation */
+/* MAKE_EXPORT NtQuerySystemInformation=ZwQuerySystemInformation */
+NTSTATUS NTAPI NtQuerySystemInformation(
 	IN		ULONG SystemInformationClass,
 	IN OUT	PVOID SystemInformation,
 	IN		ULONG SystemInformationLength,
@@ -78,9 +78,9 @@ NTSTATUS NTAPI ZwQuerySystemInformation(
 	return 0;
 }
 
-/* MAKE_EXPORT ZwQuerySystemTime=NtQuerySystemTime */
-/* MAKE_EXPORT ZwQuerySystemTime=ZwQuerySystemTime */
-NTSTATUS NTAPI ZwQuerySystemTime(PLARGE_INTEGER SystemTime)
+/* MAKE_EXPORT NtQuerySystemTime=NtQuerySystemTime */
+/* MAKE_EXPORT NtQuerySystemTime=ZwQuerySystemTime */
+NTSTATUS NTAPI NtQuerySystemTime(PLARGE_INTEGER SystemTime)
 {
 	FILETIME SysTime;
 
@@ -96,9 +96,9 @@ NTSTATUS NTAPI ZwQuerySystemTime(PLARGE_INTEGER SystemTime)
 	return STATUS_SUCCESS;
 }
 
-/* MAKE_EXPORT ZwShutdownSystem=NtShutdownSystem */
-/* MAKE_EXPORT ZwShutdownSystem=ZwShutdownSystem */
-NTSTATUS NTAPI ZwShutdownSystem(IN SHUTDOWN_ACTION Action)
+/* MAKE_EXPORT NtShutdownSystem=NtShutdownSystem */
+/* MAKE_EXPORT NtShutdownSystem=ZwShutdownSystem */
+NTSTATUS NTAPI NtShutdownSystem(IN SHUTDOWN_ACTION Action)
 {
 	typedef VOID (WINAPI *EXITKERNEL)(VOID);
 	HMODULE hModule = NULL;

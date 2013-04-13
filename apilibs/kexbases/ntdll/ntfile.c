@@ -78,7 +78,7 @@ NTSTATUS NTAPI NtOpenFile(
 			*FileHandle = hObject;
 		else
 		{
-			ZwClose(*FileHandle);
+			NtClose(*FileHandle);
 			return STATUS_ACCESS_DENIED; // what to return in case of this fail ?
 		}
 	}

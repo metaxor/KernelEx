@@ -21,9 +21,9 @@
 
 #include "_ntdll_apilist.h"
 
-/* MAKE_EXPORT ZwClose=NtClose */
-/* MAKE_EXPORT ZwClose=ZwClose */
-NTSTATUS NTAPI ZwClose(IN HANDLE Handle)
+/* MAKE_EXPORT NtClose=NtClose */
+/* MAKE_EXPORT NtClose=ZwClose */
+NTSTATUS NTAPI NtClose(IN HANDLE Handle)
 {
 	BOOL result;
 
@@ -46,9 +46,9 @@ NTSTATUS NTAPI ZwClose(IN HANDLE Handle)
 }
 
 
-/* MAKE_EXPORT ZwDuplicateObject=NtDuplicateObject */
-/* MAKE_EXPORT ZwDuplicateObject=ZwDuplicateObject */
-NTSTATUS NTAPI ZwDuplicateObject(IN HANDLE SourceProcessHandle,
+/* MAKE_EXPORT NtDuplicateObject=NtDuplicateObject */
+/* MAKE_EXPORT NtDuplicateObject=ZwDuplicateObject */
+NTSTATUS NTAPI NtDuplicateObject(IN HANDLE SourceProcessHandle,
 		IN HANDLE		SourceHandle,
 		IN HANDLE		TargetProcessHandle	OPTIONAL,
 		OUT PHANDLE		TargetHandle		OPTIONAL,
@@ -83,9 +83,9 @@ NTSTATUS NTAPI ZwDuplicateObject(IN HANDLE SourceProcessHandle,
 	return STATUS_SUCCESS;
 }
 
-/* MAKE_EXPORT ZwWaitForSingleObject=NtWaitForSingleObject */
-/* MAKE_EXPORT ZwWaitForSingleObject=ZwWaitForSingleObject */
-NTSTATUS WINAPI ZwWaitForSingleObject(IN HANDLE Handle,
+/* MAKE_EXPORT NtWaitForSingleObject=NtWaitForSingleObject */
+/* MAKE_EXPORT NtWaitForSingleObject=ZwWaitForSingleObject */
+NTSTATUS WINAPI NtWaitForSingleObject(IN HANDLE Handle,
 	IN BOOLEAN Alertable,
 	IN PLARGE_INTEGER Timeout
 )

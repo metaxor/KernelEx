@@ -21,7 +21,7 @@
 
 #include "_ntdll_apilist.h"
 
-NTSTATUS NTAPI ZwSuspendResumeThread(
+NTSTATUS NTAPI NtSuspendResumeThread(
 		IN HANDLE ThreadHandle,
 		OUT PULONG PreviousSuspendCount OPTIONAL,
 		IN DWORD dwOperation
@@ -55,9 +55,9 @@ NTSTATUS NTAPI ZwSuspendResumeThread(
 }
 
 
-/* MAKE_EXPORT ZwCreateThread=NtCreateThread */
-/* MAKE_EXPORT ZwCreateThread=ZwCreateThread */
-NTSTATUS NTAPI ZwCreateThread(OUT PHANDLE ThreadHandle,
+/* MAKE_EXPORT NtCreateThread=NtCreateThread */
+/* MAKE_EXPORT NtCreateThread=ZwCreateThread */
+NTSTATUS NTAPI NtCreateThread(OUT PHANDLE ThreadHandle,
 	IN ACCESS_MASK DesiredAccess,
 	IN POBJECT_ATTRIBUTES ObjectAttributes OPTIONAL,
 	IN HANDLE ProcessHandle,
@@ -81,9 +81,9 @@ NTSTATUS NTAPI ZwCreateThread(OUT PHANDLE ThreadHandle,
 	return STATUS_SUCCESS;
 }
 
-/* MAKE_EXPORT ZwGetContextThread=NtGetContextThread */
-/* MAKE_EXPORT ZwGetContextThread=ZwGetContextThread */
-NTSTATUS NTAPI ZwGetContextThread(IN HANDLE ThreadHandle,
+/* MAKE_EXPORT NtGetContextThread=NtGetContextThread */
+/* MAKE_EXPORT NtGetContextThread=ZwGetContextThread */
+NTSTATUS NTAPI NtGetContextThread(IN HANDLE ThreadHandle,
 	OUT PCONTEXT pContext
 )
 {
@@ -107,9 +107,9 @@ NTSTATUS NTAPI ZwGetContextThread(IN HANDLE ThreadHandle,
 	return STATUS_SUCCESS;
 }
 
-/* MAKE_EXPORT ZwSetContextThread=NtSetContextThread */
-/* MAKE_EXPORT ZwSetContextThread=ZwSetContextThread */
-NTSTATUS NTAPI ZwSetContextThread(IN HANDLE ThreadHandle,
+/* MAKE_EXPORT NtSetContextThread=NtSetContextThread */
+/* MAKE_EXPORT NtSetContextThread=ZwSetContextThread */
+NTSTATUS NTAPI NtSetContextThread(IN HANDLE ThreadHandle,
 	IN PCONTEXT Context
 )
 {
@@ -133,9 +133,9 @@ NTSTATUS NTAPI ZwSetContextThread(IN HANDLE ThreadHandle,
 	return STATUS_SUCCESS;
 }
 
-/* MAKE_EXPORT ZwOpenThread=NtOpenThread */
-/* MAKE_EXPORT ZwOpenThread=ZwOpenThread */
-NTSTATUS NTAPI ZwOpenThread(OUT PHANDLE ThreadHandle,
+/* MAKE_EXPORT NtOpenThread=NtOpenThread */
+/* MAKE_EXPORT NtOpenThread=ZwOpenThread */
+NTSTATUS NTAPI NtOpenThread(OUT PHANDLE ThreadHandle,
 	IN ACCESS_MASK          AccessMask,
 	IN POBJECT_ATTRIBUTES   ObjectAttributes,
 	IN PCLIENT_ID           ClientId
@@ -153,29 +153,29 @@ NTSTATUS NTAPI ZwOpenThread(OUT PHANDLE ThreadHandle,
 	return STATUS_SUCCESS;
 }
 
-/* MAKE_EXPORT ZwResumeThread=NtResumeThread */
-/* MAKE_EXPORT ZwResumeThread=ZwResumeThread */
-NTSTATUS NTAPI ZwResumeThread(
+/* MAKE_EXPORT NtResumeThread=NtResumeThread */
+/* MAKE_EXPORT NtResumeThread=ZwResumeThread */
+NTSTATUS NTAPI NtResumeThread(
 		IN HANDLE ThreadHandle,
 		OUT PULONG SuspendCount OPTIONAL
 )
 {
-	return ZwSuspendResumeThread(ThreadHandle, SuspendCount, 0);
+	return NtSuspendResumeThread(ThreadHandle, SuspendCount, 0);
 }
 
-/* MAKE_EXPORT ZwSuspendThread=NtSuspendThread */
-/* MAKE_EXPORT ZwSuspendThread=ZwSuspendThread */
-NTSTATUS NTAPI ZwSuspendThread(
+/* MAKE_EXPORT NtSuspendThread=NtSuspendThread */
+/* MAKE_EXPORT NtSuspendThread=ZwSuspendThread */
+NTSTATUS NTAPI NtSuspendThread(
 		IN HANDLE ThreadHandle,
 		OUT PULONG PreviousSuspendCount OPTIONAL
 )
 {
-	return ZwSuspendResumeThread(ThreadHandle, PreviousSuspendCount, 1);
+	return NtSuspendResumeThread(ThreadHandle, PreviousSuspendCount, 1);
 }
 
-/* MAKE_EXPORT ZwTerminateThread=NtTerminateThread */
-/* MAKE_EXPORT ZwTerminateThread=ZwTerminateThread */
-NTSTATUS NTAPI ZwTerminateThread(IN HANDLE ThreadHandle,
+/* MAKE_EXPORT NtTerminateThread=NtTerminateThread */
+/* MAKE_EXPORT NtTerminateThread=ZwTerminateThread */
+NTSTATUS NTAPI NtTerminateThread(IN HANDLE ThreadHandle,
 	IN NTSTATUS ExitStatus
 )
 {
