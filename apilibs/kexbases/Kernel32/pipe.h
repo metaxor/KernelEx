@@ -20,6 +20,7 @@
  */
 
 #include "common.h"
+#include "listhead.h"
 
 #define K32OBJ_PIPE WIN98_K32OBJ_PIPE
 
@@ -30,6 +31,7 @@ typedef struct tagNAMEDPIPE {
 	HANDLE		hWaitEvent;			// Used by WaitNamedPipe (global event)
 
 	LPSTR		lpName;				// Name
+	LIST_ENTRY	ListEntry;
 
 	DWORD		dwOpenMode;			// Open mode
 	DWORD		dwPipeMode;			// Pipe mode
@@ -38,6 +40,7 @@ typedef struct tagNAMEDPIPE {
 	DWORD		nOutBufferSize;		// Max size of the output buffer
 	DWORD		nInBufferSize;		// Max size of the input buffer
 	DWORD		nTimeout;			// Default timeout value
+	DWORD		nInstances;			// Number of connected instances to the pipe
 
 	LPSTR		lpBuffer;			// Data buffer for the pipe
 } NAMEDPIPE, *PNAMEDPIPE;
