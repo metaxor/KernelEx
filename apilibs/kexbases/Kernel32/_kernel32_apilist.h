@@ -108,7 +108,9 @@ DWORD WINAPI GetModuleFileNameExA_new(HANDLE hProcess, HMODULE hModule, LPSTR lp
 DWORD WINAPI GetModuleFileNameExW_new(HANDLE hProcess, HMODULE hModule, LPWSTR lpFilename, DWORD nSize);
 BOOL WINAPI GetModuleHandleExA_new(DWORD dwFlags, LPCSTR lpModuleName, HMODULE* phModule);
 BOOL WINAPI GetModuleHandleExW_new(DWORD dwFlags, LPCWSTR lpModuleNameW, HMODULE* phModule);
+BOOL WINAPI ConnectNamedPipe_new(HANDLE hNamedPipe, LPOVERLAPPED lpOverlapped);
 HANDLE WINAPI CreateNamedPipeA_new(LPCSTR lpName, DWORD dwOpenMode, DWORD dwPipeMode, DWORD nMaxInstances, DWORD nOutBufferSize, DWORD nInBufferSize, DWORD nDefaultTimeOut, LPSECURITY_ATTRIBUTES lpSecurityAttributes);
+BOOL WINAPI DisconnectNamedPipe_new(HANDLE hNamedPipe);
 PVOID WINAPI XorPointerProcess(PVOID ptr);
 PVOID WINAPI XorPointer(PVOID ptr);
 HANDLE WINAPI CreateIoCompletionPort_new(HANDLE FileHandle, HANDLE ExistingCompletionPort, ULONG_PTR CompletionKey, DWORD NumberOfConcurrentThreads);
