@@ -193,3 +193,12 @@ UINT WINAPI RealGetWindowClassW_new(HWND  hwnd, LPWSTR pszTypeW, UINT cchType)
 		ret = ABUFtoW(pszType, ret, cchType);
 	return ret;
 }
+
+/* MAKE_EXPORT RegisterWindowMessageW_new=RegisterClipboardFormatW */
+/* MAKE_EXPORT RegisterWindowMessageW_new=RegisterWindowMessageW */
+UINT WINAPI RegisterWindowMessageW_new(LPCWSTR lpStringW)
+{
+	ALLOC_WtoA(lpString);
+
+	return RegisterWindowMessageA_nothunk(lpStringA);
+}
