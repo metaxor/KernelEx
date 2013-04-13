@@ -298,12 +298,9 @@ BOOL init_user32()
 {
 	HMODULE hUser32 = GetModuleHandle("USER32.DLL");
 	HMODULE hKernel32 = GetModuleHandle("KERNEL32.DLL");
-	HANDLE hThread = NULL;
-	HANDLE hThread2 = NULL;
-	HANDLE hThread3 = NULL;
-	HANDLE hThread4 = NULL;
+	HANDLE hThread, hThread2, hThread3, hThread4 = NULL;
 	HANDLE hStartupWndThread = NULL;
-	BOOL fInputResult = FALSE;
+	BOOL fInputResult;
 	DWORD dwThreadId = 0;
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
@@ -347,6 +344,7 @@ BOOL init_user32()
 
 	Sleep(25);
 	SetWindowText(hwndStartupText, "Windows is starting up (retrieving the USER input segment)...");
+
 	fInputResult = InitInputSegment();
 
 	Sleep(25);
@@ -440,7 +438,7 @@ _ret:
 	SetWindowText(hwndStartupText, "Windows is starting up...");
 
 	return IsHungThread_pfn && DrawCaptionTempA_pfn && GetMouseMovePoints_pfn
-			&& hThread && hThread2 && hThread3 && fInputResult;
+			&& hThread && hThread2 && hThread3 && hThread4 && fInputResult;
 }
 
 BOOL thread_user32_init(PTDB98 Thread)
@@ -663,10 +661,14 @@ static const apilib_named_api user32_named_apis[] =
 	DECL_API("RealGetWindowClassW", RealGetWindowClassW_new),
 	DECL_API("RegisterClassExW", RegisterClassExW_NEW),
 	DECL_API("RegisterClassW", RegisterClassW_NEW),
+	DECL_API("RegisterClipboardFormatA", RegisterWindowMessageA_nothunk),
+	DECL_API("RegisterClipboardFormatW", RegisterWindowMessageW_new),
 	DECL_API("RegisterLogonProcess", RegisterLogonProcess_new),
 	DECL_API("RegisterRawInputDevices", RegisterRawInputDevices_new),
 	DECL_API("RegisterServicesProcess", RegisterServicesProcess_stub),
 	DECL_API("RegisterShellHookWindow", IsWindow),
+	DECL_API("RegisterWindowMessageA", RegisterWindowMessageA_nothunk),
+	DECL_API("RegisterWindowMessageW", RegisterWindowMessageW_new),
 	DECL_API("SendDlgItemMessageW", SendDlgItemMessageW_NEW),
 	DECL_API("SendMessageA", SendMessageA_fix),
 	DECL_API("SendMessageCallbackW", SendMessageCallbackW_NEW),
