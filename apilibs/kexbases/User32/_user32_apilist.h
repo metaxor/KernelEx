@@ -197,6 +197,7 @@ int WINAPI LoadStringW_new(HINSTANCE hInstance, UINT uID, LPWSTR lpBuffer, int n
 HDESK WINAPI OpenDesktopW_new(LPWSTR lpszDesktopW, DWORD dwFlags, BOOL fInherit, ACCESS_MASK dwDesiredAccess);
 HWINSTA WINAPI OpenWindowStationW_new(LPWSTR lpszWinStaW, BOOL fInherit, ACCESS_MASK dwDesiredAccess);
 UINT WINAPI RealGetWindowClassW_new(HWND hwnd, LPWSTR pszTypeW, UINT cchType);
+UINT WINAPI RegisterWindowMessageW_new(LPCWSTR lpStringW);
 BOOL WINAPI AllowSetForegroundWindow_98(DWORD procid);
 BOOL WINAPI AnyPopup_nothunk(VOID);
 HWND WINAPI CreateMDIWindowA_fix(LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int X, int Y, int nWidth, int nHeight, HWND hWndParent, HINSTANCE hInstance, LPARAM lParam);
@@ -215,6 +216,7 @@ BOOL WINAPI IsGUIThread_new(BOOL bConvert);
 BOOL WINAPI IsHungAppWindow_new(HWND hWnd);
 BOOL WINAPI IsWindowVisible_fix(HWND hWnd);
 BOOL WINAPI LockSetForegroundWindow_98(UINT lockcode);
+UINT WINAPI RegisterWindowMessageA_nothunk(LPCSTR lpString);
 BOOL WINAPI SetForegroundWindow_fix(HWND hWnd);
 BOOL WINAPI SetWindowPos_fix(HWND hWnd, HWND hWndInsertAfter, int X, int Y, int cx, int cy, UINT uFlags);
 BOOL WINAPI ShowWindow_fix(HWND hWnd, int nCmdShow);
