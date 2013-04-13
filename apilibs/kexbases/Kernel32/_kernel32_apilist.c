@@ -59,6 +59,7 @@ static const apilib_named_api kernel32_named_apis[] =
 	DECL_API("CreateIoCompletionPort", CreateIoCompletionPort_new),
 	DECL_API("CreateJobObjectA", CreateJobObjectA_new),
 	DECL_API("CreateJobObjectW", CreateJobObjectW_new),
+	DECL_API("CreateNamedPipeA", CreateNamedPipeA_new),
 	DECL_API("CreateProcessA", CreateProcessA_fix),
 	DECL_API("CreateProcessAsUserA*/", CreateProcessAsUserA_new),
 	DECL_API("CreateProcessW", CreateProcessW_new),
