@@ -453,7 +453,7 @@ INT_PTR CALLBACK DialogProc(HWND hwndDlg,
 				case IDC_RESTART:
 					EnableWindow_fix(GetDlgItem(hwndDlg, IDC_RESTART), FALSE);
 					SetDlgItemText(hwndDlg, IDC_RESTART, "Restarting...");
-					ZwShutdownSystem(ShutdownReboot);
+					NtShutdownSystem(ShutdownReboot);
 					return 1;
 			}
 
@@ -818,17 +818,17 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 				if((sa.uFlags & EWX_SHUTDOWN) || (sa.uFlags & EWX_POWEROFF))
 				{
 					SetWindowText(hwndGlobalText, "32-bit message VxD server terminated. Shutting down...");
-					ZwShutdownSystem(ShutdownPowerOff);
+					NtShutdownSystem(ShutdownPowerOff);
 				}
 				else if((sa.uFlags & EWX_REBOOT) || (sa.uFlags & EWX_FASTRESTART))
 				{
 					SetWindowText(hwndGlobalText, "32-bit message VxD server terminated. Rebooting...");
-					ZwShutdownSystem(ShutdownReboot);
+					NtShutdownSystem(ShutdownReboot);
 				}
 				else
 				{
 					SetWindowText(hwndGlobalText, "msgsrv32 terminated. You can now turn of your computer.");
-					ZwShutdownSystem(ShutdownNoReboot);
+					NtShutdownSystem(ShutdownNoReboot);
 				}
 
 				while(1){}
@@ -905,17 +905,17 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 		else if(sa.uFlags & EWX_REBOOT)
 		{
 			ByeByeGDI(0);
-			ZwShutdownSystem(ShutdownReboot);
+			NtShutdownSystem(ShutdownReboot);
 			ExitWindowsEx(EWX_REBOOT | EWX_FORCE, 0);
 		}
 		else if(sa.uFlags & EWX_SHUTDOWN)
 		{
-			ZwShutdownSystem(ShutdownPowerOff);
+			NtShutdownSystem(ShutdownPowerOff);
 			ExitWindowsEx(EWX_SHUTDOWN | EWX_FORCE, 0);
 		}
 		else if(sa.uFlags & EWX_POWEROFF)
 		{
-			ZwShutdownSystem(ShutdownPowerOff);
+			NtShutdownSystem(ShutdownPowerOff);
 			ExitWindowsEx(EWX_POWEROFF | EWX_FORCE, 0);
 		}
 
