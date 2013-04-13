@@ -714,6 +714,10 @@ InputPath=.\kexbases.def
 
 SOURCE=.\main.c
 # End Source File
+# Begin Source File
+
+SOURCE=..\..\common\vxd.c
+# End Source File
 # End Group
 # Begin Group "Header Files"
 
@@ -746,6 +750,10 @@ SOURCE=.\main.h
 # Begin Source File
 
 SOURCE=..\..\common\ntstatus.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\common\vxd.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"
