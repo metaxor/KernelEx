@@ -978,6 +978,14 @@ BOOL WINAPI OffsetRect_source(LPRECT lprc, int dx, int dy)
 	return TRUE;
 }
 
+/* MAKE_EXPORT RegisterWindowMessageA_nothunk=RegisterClipboardFormatA */
+/* MAKE_EXPORT RegisterWindowMessageA_nothunk=RegisterWindowMessageA */
+UINT WINAPI RegisterWindowMessageA_nothunk(LPCSTR lpString)
+{
+	/* USER directly call AddAtom */
+	return AddAtom(lpString);
+}
+
 /* MAKE_EXPORT SetForegroundWindow_fix=SetForegroundWindow */
 BOOL WINAPI SetForegroundWindow_fix(HWND hWnd)
 {
