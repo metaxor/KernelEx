@@ -21,7 +21,18 @@
 
 #include "pipe.h"
 
+LIST_ENTRY NamedPipeList;
+
 /* Currently unimplemented */
+
+/* MAKE_EXPORT ConnectNamedPipe_new=ConnectNamedPipe */
+BOOL WINAPI ConnectNamedPipe_new(HANDLE hNamedPipe,
+  LPOVERLAPPED lpOverlapped
+)
+{
+	SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+	return NULL;
+}
 
 /* MAKE_EXPORT CreateNamedPipeA_new=CreateNamedPipeA */
 HANDLE WINAPI CreateNamedPipeA_new(LPCSTR lpName,
@@ -34,6 +45,9 @@ HANDLE WINAPI CreateNamedPipeA_new(LPCSTR lpName,
 	LPSECURITY_ATTRIBUTES lpSecurityAttributes
 )
 {
+	if(NamedPipeList.Flink == NULL && NamedPipeList.Blink == NULL)
+		InitializeListHead(&NamedPipeList);
+
 	/* Fail if dwOpenMode is 0 or have an unknown flag */
 	if(dwOpenMode == 0 || dwOpenMode & ~(PIPE_ACCESS_DUPLEX | PIPE_ACCESS_INBOUND | PIPE_ACCESS_OUTBOUND |
 		FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | WRITE_DAC |
@@ -43,6 +57,13 @@ HANDLE WINAPI CreateNamedPipeA_new(LPCSTR lpName,
 		return NULL;
 	}
 
+	SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+	return NULL;
+}
+
+/* MAKE_EXPORT DisconnectNamedPipe_new=DisconnectNamedPipe */
+BOOL WINAPI DisconnectNamedPipe_new(HANDLE hNamedPipe)
+{
 	SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
 	return NULL;
 }
