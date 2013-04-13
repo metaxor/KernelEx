@@ -2,14 +2,15 @@ LIBRARY     KERNEL32.dll
 
 EXPORTS
     CommonUnimpStub @17 NONAME
-    VxDCall1 @1 NONAME
-    VxDCall2 @2 NONAME
-    VxDCall3 @3 NONAME
-    VxDCall4 @4 NONAME
-    VxDCall5 @5 NONAME
-    VxDCall6 @6 NONAME
-    VxDCall7 @7 NONAME
-    VxDCall8 @8 NONAME
+	VxDCall0 @1 NONAME
+    VxDCall1 @2 NONAME
+    VxDCall2 @3 NONAME
+    VxDCall3 @4 NONAME
+    VxDCall4 @5 NONAME
+    VxDCall5 @6 NONAME
+    VxDCall6 @7 NONAME
+    VxDCall7 @8 NONAME
+    VxDCall8 @9 NONAME
 	_ReleaseThunkLock @48 NONAME
 	_RestoreThunkLock @49 NONAME
 	_LeaveSysLevel_NoThk @86 NONAME
@@ -24,9 +25,19 @@ EXPORTS
 	CloseSystemHandle
 	CreateKernelThread
 	RegisterServiceProcess
+	GlobalAlloc16 @24 NONAME
+	GlobalLock16 @25 NONAME
+	GlobalSize16 @32 NONAME
+	GlobalUnlock16 @26 NONAME
+    K32WOWGetVDMPointerFix @68 NONAME
+    K32WOWGetVDMPointerUnfix @69 NONAME
+	MapHModuleLS
     MapSL
+	MapLS
     LoadLibrary16 @35 NONAME
-	FreeLibrary16 @36 NONAME
 	GetProcAddress16 @37 NONAME
+	FreeLibrary16 @36 NONAME
 	QT_Thunk
     K32_RtlNtStatusToDosError
+	GDIReallyCares @23 NONAME
+	ThunkConnect32
