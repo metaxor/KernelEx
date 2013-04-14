@@ -31,26 +31,25 @@ LPCRITICAL_SECTION pWin16Mutex;
 PUSERDGROUP gSharedInfo;
 DWORD UserHeap;
 HMODULE g_hUser32;
+HMODULE g_hUser16;
+HMODULE g_hKernel16;
 
 BOOL InitUniThunkLayerStuff()
 {
-	HINSTANCE hUser16;
+	g_hUser16 = (HMODULE)LoadLibrary16("user");
+	g_hKernel16 = (HMODULE)LoadLibrary16("KRNL386.EXE");
 
-	hUser16 = (HINSTANCE)LoadLibrary16("user");
-
-	if((DWORD)hUser16 < 32)
+	if((DWORD)g_hUser16 < 32 || (DWORD)g_hKernel16 < 32)
 		return FALSE;
 
 	_GetpWin16Lock( &pWin16Mutex );
-	gSharedInfo = (PUSERDGROUP)MapSL((DWORD)hUser16 << 16);
+	gSharedInfo = (PUSERDGROUP)MapSL((DWORD)g_hUser16 << 16);
 	g_hUser32 = GetModuleHandleA("user32");
 
 	if(gSharedInfo != NULL)
 		UserHeap = *(DWORD*)((DWORD)gSharedInfo + 0x1007C);
 
-	//FreeLibrary16(hUser16);
-
-	TRACE("ThunkLayer initialized: gSharedInfo = 0x%X, hUser16 = 0x%X, g_hUser32 = 0x%X\n", gSharedInfo, hUser16, g_hUser32);
+	TRACE("ThunkLayer initialized: gSharedInfo = 0x%X, g_hUser16 = 0x%X, g_hKernel16 = 0x%X, g_hUser32 = 0x%X\n", gSharedInfo, g_hUser16, g_hKernel16, g_hUser32);
 	return (gSharedInfo && g_hUser32);
 }
 

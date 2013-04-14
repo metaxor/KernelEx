@@ -85,6 +85,8 @@ static const char c_szDBCSProp[]="kexDBCS";
 extern LPCRITICAL_SECTION pWin16Mutex;
 extern PUSERDGROUP gSharedInfo;
 extern HMODULE g_hUser32;
+extern HMODULE g_hUser16;
+extern HMODULE g_hKernel16;
 BOOL InitUniThunkLayerStuff();
 void GrabWin16Lock();
 void ReleaseWin16Lock();
