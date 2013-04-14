@@ -127,13 +127,12 @@ BOOL FASTCALL InitInputSegment(void)
 SHORT WINAPI GetAsyncKeyState_nothunk(int vKey)
 {
 	PTDB98 Thread = get_tdb();
-	PPERPROCESSDATA ppdp = get_pdb()->Win32Process != NULL ? (PPERPROCESSDATA)get_pdb()->Win32Process->pSession : NULL;
 	UINT cState = 0;
 	BYTE pKeyState = 0;
 
 	TRACE_OUT("GetAsyncKeyState\n");
 
-	if(ppdp == NULL || Thread->Win32Thread != NULL && Thread->Win32Thread->rpdesk != ppdp->gpdeskInputDesktop)
+	if(Thread->Win32Thread != NULL && Thread->Win32Thread->rpdesk != gpdeskInputDesktop)
 		return 0;
 
 	if(vKey < 0 || vKey >= 0x100)

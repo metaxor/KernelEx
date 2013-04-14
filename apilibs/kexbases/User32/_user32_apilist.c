@@ -353,12 +353,9 @@ BOOL init_user32()
 	if(!WTSInitializeSession())
 		goto _ret;
 
-	ppi->pSession = gpdcs;
-	ppi->SessionId = gpdcs->SessionId;
-
 	InitDesktops();
 
-	if(gpdcs->InputWindowStation == NULL)
+	if(InputWindowStation == NULL)
 	{
 		if(!CreateWindowStationAndDesktops())
 			goto _ret;

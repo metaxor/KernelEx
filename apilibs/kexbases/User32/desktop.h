@@ -193,6 +193,15 @@ typedef struct tagPDEVICE {
 
 extern LPCRITICAL_SECTION gpdeskLock;
 
+extern LIST_ENTRY WindowStationList;
+
+extern PWINSTATION_OBJECT InputWindowStation;
+extern PDESKTOP gpdeskInputDesktop;
+extern PDESKTOP gpdeskScreenSaver;
+extern PDESKTOP gpdeskWinlogon;
+
+extern BOOL fNewDesktop;
+
 extern HANDLE gpdeskSwitchEvent;
 
 extern PPDB98 pKernelProcess;
@@ -200,9 +209,9 @@ extern PTDB98 pDesktopThread;
 extern DWORD dwDesktopThreadId;
 extern DWORD dwKernelProcessId;
 
-extern PWND pwndDesktop;
+extern DWORD gpidSession;
 
-extern PPERPROCESSDATA gpdcs;
+extern PWND pwndDesktop;
 
 BOOL WINAPI CreateWindowStationAndDesktops();
 
