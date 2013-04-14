@@ -113,7 +113,6 @@ BOOL WINAPI WTSSetProcessSessionId(DWORD dwProcessId, DWORD SessionId)
 		return FALSE;
 
 	ppi->SessionId = SessionId;
-	ppi->pSession = Object;
 
 	return TRUE;
 }
