@@ -92,6 +92,8 @@ extern PUSERDGROUP gSharedInfo;
 extern HMODULE g_hUser32;
 extern HMODULE g_hUser16;
 extern HMODULE g_hKernel16;
+extern HWND hwndStatusDlg;
+extern HWND hwndStatusDlgText;
 BOOL InitUniThunkLayerStuff();
 void GrabWin16Lock();
 void ReleaseWin16Lock();
@@ -109,8 +111,8 @@ WNDPROC WINAPI GetWindowProc32(PWND pwnd);
 PMSGQUEUE GetWindowQueue(PWND pwnd);
 
 //windows
-BOOL __fastcall EnumWindowsEx(DWORD dwThreadId, WNDENUMPROC lpEnumFunc, LPARAM lParam, BOOL fEnumThread, HDESK hDesktop, BOOL fEnumDesktop);
-BOOL __fastcall IntCompleteRedrawWindow(PWND pWnd);
+BOOL FASTCALL EnumWindowsEx(DWORD dwThreadId, WNDENUMPROC lpEnumFunc, LPARAM lParam, BOOL fEnumThread, HDESK hDesktop, BOOL fEnumDesktop);
+BOOL FASTCALL IntCompleteRedrawWindow(PWND pWnd);
 
 //conv
 WPARAM wparam_AtoW( HWND hwnd, UINT message, WPARAM wParam, BOOL messDBCS );
@@ -136,6 +138,13 @@ UINT GetFreeSystemResources(UINT uFlags);
 
 //user
 UINT UserSeeUserDo(WORD wAction, WORD wParam1, WORD wParam2, WORD wParam3);
+
+//dialog
+BOOL FASTCALL CenterDialog(HWND hWnd);
+DWORD FASTCALL CreateStatusDialog(LPCSTR lpCaption, LPCSTR lpText);
+VOID FASTCALL DestroyStatusDialog(void);
+VOID FASTCALL SetStatusDialogCaption(LPCSTR lpCaption);
+VOID FASTCALL SetStatusDialogText(LPCSTR lpText);
 
 //unexported remade functions
 BOOL WINAPI GetClientRect_source(HWND hWnd, LPRECT lpRect);
