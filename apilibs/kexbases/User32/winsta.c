@@ -98,11 +98,11 @@ BOOL WINAPI CloseWindowStation_new(HWINSTA hWinSta)
 	kexDereferenceObject(WindowStationObject);
     result = kexDereferenceObject(WindowStationObject);
 
-	TRACE("Object 0x%X dereferenced\n", WindowStationObject);
+	TRACE("Window station 0x%X dereferenced\n", WindowStationObject);
 
 	if(WindowStationObject->cReferences < 1)
 	{
-		TRACE("Removing object 0x%X from the system\n", WindowStationObject);
+		TRACE("Removing windows station 0x%X from the system\n", WindowStationObject);
 		if(RemoveEntryList(&WindowStationObject->ListEntry))
 		{
 			kexFreeObject(WindowStationObject->lpName);
