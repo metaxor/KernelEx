@@ -112,26 +112,21 @@ DWORD WINAPI CreateStatusDlgThread(PVOID lParam)
 	HMODULE hModule = NULL;
 	BOOL fLoaded = FALSE;
 
-	TRACE_OUT("5\n");
 	memset(Directory, 0, sizeof(Directory));
 	memset(Path, 0, sizeof(Path));
 
-	TRACE_OUT("6\n");
 	kexGetKernelExDirectory(Directory, sizeof(Directory));
 
-	TRACE_OUT("7\n");
 	wsprintf(Path, "%sKEXBASES.DLL", Directory);
 
 	hModule = GetModuleHandle(Path);
 
-	TRACE_OUT("8\n");
 	if(hModule == NULL)
 	{
 		fLoaded = TRUE;
 		hModule = LoadLibrary(Path);
 	}
 
-	TRACE_OUT("9\n");
 	hwndStatusDlg = CreateDialogParam(hModule,
 						MAKEINTRESOURCE(IDD_STATUSDLG),
 						NULL,
@@ -141,10 +136,8 @@ DWORD WINAPI CreateStatusDlgThread(PVOID lParam)
 	if(fLoaded)
 		FreeLibrary(hModule);
 
-	TRACE_OUT("10\n");
 	SetEvent(sDlg->hEvent);
 
-	TRACE_OUT("11\n");
 	if(hwndStatusDlg == NULL)
 		return 0;
 
@@ -172,8 +165,6 @@ DWORD FASTCALL CreateStatusDialog(LPCSTR lpCaption, LPCSTR lpText)
 	DWORD dwThreadId = 0;
 	HANDLE hGlobalEvent;
 
-	TRACE_OUT("1\n");
-
 	hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 
 	hGlobalEvent = ConvertToGlobalHandle(hEvent);
@@ -181,7 +172,6 @@ DWORD FASTCALL CreateStatusDialog(LPCSTR lpCaption, LPCSTR lpText)
 	if(hEvent == NULL || hGlobalEvent == NULL)
 		return 0;
 
-	TRACE_OUT("2\n");
 	sDlg->hEvent = hGlobalEvent;
 	sDlg->lpCaption = (LPSTR)kexAllocObject(strlen(lpCaption));
 	sDlg->lpText = (LPSTR)kexAllocObject(strlen(lpText));
@@ -189,7 +179,6 @@ DWORD FASTCALL CreateStatusDialog(LPCSTR lpCaption, LPCSTR lpText)
 	strcpy(sDlg->lpCaption, lpCaption);
 	strcpy(sDlg->lpText, lpText);
 
-	TRACE_OUT("3\n");
 	hThread = CreateKernelThread(NULL,
 						0,
 						CreateStatusDlgThread,
@@ -197,11 +186,9 @@ DWORD FASTCALL CreateStatusDialog(LPCSTR lpCaption, LPCSTR lpText)
 						0,
 						&dwThreadId);
 
-	TRACE_OUT("4\n");
 	if(hThread != NULL)
 		WaitForSingleObject(hGlobalEvent, INFINITE);
 
-	TRACE_OUT("12\n");
 	CloseHandle(hEvent);
 	CloseHandle(hGlobalEvent);
 	CloseHandle(hThread);
