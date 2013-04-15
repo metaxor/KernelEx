@@ -107,7 +107,9 @@ typedef struct _USERDGROUP // Size = 0x1B6F (from USER)
 	DWORD	*SysColorTable;				// 15ECh - Pointer to the system color table (array of 28 colors)
 	BYTE	un13[0x2CE];				// 15F0h
 	WORD	*SysColorBrushTable;		// 18BEh - Pointer to the system brush color table (array of 28 colors)
-	BYTE	un14[0x2AF];				// 18C0h
+	BYTE	un14[0x88];					// 18C0h
+	WORD	POCEFirst;					// 1948h - Head of DCE (Device Context Entry) list
+	BYTE	un15[0x225];				// 194Ah
 } USERDGROUP, *PUSERDGROUP;
 
 typedef struct _MSGQUEUE
