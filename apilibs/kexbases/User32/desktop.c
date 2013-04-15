@@ -581,6 +581,9 @@ DWORD WINAPI DesktopThread(PVOID lParam)
 	pDesktopThread = get_tdb();
 	pKernelProcess = get_pdb();
 
+	/* Prevent the kernel process from being terminated by adding the terminating flag */
+	pKernelProcess->Flags |= fTerminating;
+
 	dwDesktopThreadId = GetCurrentThreadId();
 	dwKernelProcessId = GetCurrentProcessId();
 
