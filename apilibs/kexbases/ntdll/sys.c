@@ -115,25 +115,17 @@ NTSTATUS NTAPI NtShutdownSystem(IN SHUTDOWN_ACTION Action)
 		return STATUS_SUCCESS;
 
 	case ShutdownPowerOff:
-		hModule = (HMODULE)LoadLibrary16("KRNL386.EXE");
 
-		if((DWORD)hModule < 32)
-			return (NTSTATUS)hModule;
-
-		ExitKernel = (EXITKERNEL)GetProcAddress16(hModule, "EXITKERNEL");
+		ExitKernel = (EXITKERNEL)GetProcAddress16(g_hKernel16, "EXITKERNEL");
 
 		if(ExitKernel == NULL)
-		{
-			FreeLibrary16(hModule);
 			return STATUS_INVALID_PARAMETER;
-		}
 
 		__asm	push 0
 		__asm	mov edx, [ExitKernel]
 		__asm	call ds:QT_Thunk
-		FreeLibrary16(hModule);
+
 		return STATUS_SUCCESS;
-		break;
 	}
 
 	return STATUS_INVALID_PARAMETER;
