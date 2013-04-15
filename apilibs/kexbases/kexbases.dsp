@@ -753,6 +753,10 @@ SOURCE=..\..\common\ntstatus.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\resource.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\common\vxd.h
 # End Source File
 # End Group
