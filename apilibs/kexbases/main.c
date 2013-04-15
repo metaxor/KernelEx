@@ -100,18 +100,11 @@ BOOL ppi_init(PPDB98 Process)
 	ppi->ShutdownLevel = 0x280;
 	ppi->WindowsGhosting = TRUE;
 
-	if(ppiParent != NULL)
-	{
-		ppi->pSession = ppiParent->pSession;
+	if(ppiParent != NULL) {
 		ppi->SessionId = ppiParent->SessionId;
 	}
-	else
-	{
-		if(gpdcs != NULL)
-		{
-			ppi->pSession = gpdcs;
-			ppi->SessionId = gpdcs->SessionId;
-		}
+	else {
+		ppi->SessionId = gpidSession;
 	}
 
 	return TRUE;
@@ -214,14 +207,17 @@ BOOL APIENTRY DllMain(HINSTANCE instance, DWORD reason, BOOL load_static)
 	{
 	case DLL_PROCESS_ATTACH:
 
-		TRACE("GDI resources: %u%%\n", GetFreeSystemResources(GFSR_GDIRESOURCES));
-		TRACE("System resources: %u%%\n", GetFreeSystemResources(GFSR_SYSTEMRESOURCES));
-		TRACE("USER resources: %u%%\n", GetFreeSystemResources(GFSR_USERRESOURCES));
-		if(GetFreeSystemResources(GFSR_SYSTEMRESOURCES) < 10)
+		if(inited)
 		{
-			ERR("Out of system resources ! Process %p cannot start\n", Process);
-			TerminateProcess(GetCurrentProcess(), 0);
-			return FALSE;
+			TRACE("GDI resources: %u%%\n", GetFreeSystemResources(GFSR_GDIRESOURCES));
+			TRACE("System resources: %u%%\n", GetFreeSystemResources(GFSR_SYSTEMRESOURCES));
+			TRACE("USER resources: %u%%\n", GetFreeSystemResources(GFSR_USERRESOURCES));
+			if(GetFreeSystemResources(GFSR_SYSTEMRESOURCES) < 10)
+			{
+				ERR("Out of system resources ! Process %p cannot start\n", Process);
+				TerminateProcess(GetCurrentProcess(), 0);
+				return FALSE;
+			}
 		}
 
 		if(fShutdown)
