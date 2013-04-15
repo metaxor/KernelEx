@@ -20,6 +20,7 @@
  */
 
 #include "desktop.h"
+#include "wingdi.h"
 
 /* If desktop and window stations are fully implemented, we could make Windows 98
    run multiples sessions */
@@ -42,97 +43,132 @@ PDESKTOP gpdeskWinlogon = NULL;
 
 BOOL fNewDesktop = FALSE;
 
+BOOL FASTCALL IntSetBrightness(WORD wValue)
+{
+	HDC hDC = GetDC(NULL);
+	BOOL result;
+	ULONG i;
+	WORD wArray[3][256];
+
+	if(hDC == NULL)
+		return FALSE;
+
+	for(i=0;i<256;i++)
+	{
+		ULONG ulValue = i * (wValue + 128);
+
+		if (ulValue > 65535)
+			ulValue = 65535;
+
+		wArray[0][i] = (WORD)ulValue;
+		wArray[1][i] = (WORD)ulValue;
+		wArray[2][i] = (WORD)ulValue;
+	}
+
+	result = SetDeviceGammaRamp(hDC, wArray);
+
+	ReleaseDC(NULL, hDC);
+
+	return result;
+}
+
 VOID RepaintScreen(VOID)
 {
-	HINSTANCE hModule;
-	DWORD RepaintScreen;
+	HMODULE hUser16 = (HMODULE)LoadLibrary16("user");
+	DWORD _RepaintScreen;
 
-	hModule = (HINSTANCE)LoadLibrary16("USER.EXE");
-
-	if((DWORD)hModule < 32)
+	if((DWORD)hUser16 < 32)
 		return;
 
-	RepaintScreen = GetProcAddress16(hModule, "REPAINTSCREEN");
+	_RepaintScreen = GetProcAddress16(hUser16, "REPAINTSCREEN");
 
-	if(RepaintScreen == NULL)
+	if(_RepaintScreen == NULL)
 	{
-		FreeLibrary16(hModule);
+		FreeLibrary16(hUser16);
 		return;
 	}
 
 	/* RepaintScreen has normally no parameters but we need to pass 4 parameters to not crash
 	   the current application... */
-	__asm	push 0
-	__asm	push 0
-	__asm	push 0
-	__asm	push 0
-	__asm	mov edx, [RepaintScreen]
-	__asm	call ds:QT_Thunk
-	__asm	add esp, 10h
+__asm {
 
-	FreeLibrary16(hModule);
+		push	0
+		push	0
+		push	0
+		push	0
+		mov		edx, [_RepaintScreen]
+		call	ds:QT_Thunk
+		add		esp, 10h
+
+	}
+
+	FreeLibrary16(hUser16);
 
 	return;
 }
 
 VOID DisableOEMLayer()
 {
-	HINSTANCE hModule;
+	HMODULE hUser16 = (HMODULE)LoadLibrary16("user");
 	DWORD _DisableOEMLayer;
 
-	hModule = (HINSTANCE)LoadLibrary16("USER.EXE");
-
-	if((DWORD)hModule < 32)
+	if((DWORD)hUser16 < 32)
 		return;
 
-	_DisableOEMLayer = GetProcAddress16(hModule, "DISABLEOEMLAYER");
+	_DisableOEMLayer = GetProcAddress16(hUser16, "DISABLEOEMLAYER");
 
 	if(_DisableOEMLayer == NULL)
 	{
-		FreeLibrary16(hModule);
+		FreeLibrary16(hUser16);
 		return;
 	}
 
-	__asm	push 0
-	__asm	push 0
-	__asm	push 0
-	__asm	push 0
-	__asm	mov edx, [_DisableOEMLayer]
-	__asm	call ds:QT_Thunk
-	__asm	add esp, 10h
+__asm {
 
-	FreeLibrary16(hModule);
+		push	0
+		push	0
+		push	0
+		push	0
+		mov		edx, [_DisableOEMLayer]
+		call	ds:QT_Thunk
+		add		esp, 10h
+
+	}
+
+	FreeLibrary16(hUser16);
 
 	return;
 }
 
 VOID EnableOEMLayer()
 {
-	HINSTANCE hModule;
+	HMODULE hUser16 = (HMODULE)LoadLibrary16("user");
 	DWORD _EnableOEMLayer;
 
-	hModule = (HINSTANCE)LoadLibrary16("USER.EXE");
-
-	if((DWORD)hModule < 32)
+	if((DWORD)hUser16 < 32)
 		return;
 
-	_EnableOEMLayer = GetProcAddress16(hModule, "ENABLEOEMLAYER");
+	_EnableOEMLayer = GetProcAddress16(hUser16, "ENABLEOEMLAYER");
 
 	if(_EnableOEMLayer == NULL)
 	{
-		FreeLibrary16(hModule);
+		FreeLibrary16(hUser16);
 		return;
 	}
 
-	__asm	push 0
-	__asm	push 0
-	__asm	push 0
-	__asm	push 0
-	__asm	mov edx, [_EnableOEMLayer]
-	__asm	call ds:QT_Thunk
-	__asm	add esp, 10h
+__asm {
 
-	FreeLibrary16(hModule);
+		push	0
+		push	0
+		push	0
+		push	0
+		mov		edx, [_EnableOEMLayer]
+		call	ds:QT_Thunk
+		add		esp, 10h
+
+	}
+
+	FreeLibrary16(hUser16);
 
 	return;
 }
@@ -550,8 +586,6 @@ DWORD WINAPI DesktopThread(PVOID lParam)
 
 	kexReleaseLocks();
 
-	//pwndDesktop = gSharedInfo->pwndDesktop;
-
 	pwndDesktop = HWNDtoPWND(GetDesktopWindow());
 
 	gpdeskLock = (LPCRITICAL_SECTION)kexAllocObject(sizeof(CRITICAL_SECTION));
@@ -587,8 +621,8 @@ DWORD WINAPI DesktopThread(PVOID lParam)
 			{
 				EnumWindows_nothunk(EnumWindowsProc, TRUE);
 				TRACE_OUT("Input desktop has changed, redrawing screen... ");
-				RedrawDesktop();
 				RepaintScreen();
+				RedrawDesktop();
 				DBGPRINTF(("successful\n"));
 
 				SetEvent(gpdeskSwitchEvent);
@@ -649,7 +683,7 @@ BOOL WINAPI CloseDesktop_new(HDESK hDesktop)
 	/* Fail if the desktop is the startup desktop */
 	if(ppi->rpdeskStartup == DesktopObject)
 	{
-		TRACE_OUT("Can't close the startup desktop ! \n");
+		TRACE_OUT("Can't close the startup desktop !\n");
 		kexDereferenceObject(DesktopObject);
 		SetLastError(ERROR_ACCESS_DENIED);
 		ReleaseWin16Lock();
@@ -687,11 +721,11 @@ BOOL WINAPI CloseDesktop_new(HDESK hDesktop)
 	kexDereferenceObject(DesktopObject);
 	result = kexDereferenceObject(DesktopObject);
 
-	TRACE("Object 0x%X dereferenced\n", DesktopObject);
+	TRACE("Desktop 0x%X dereferenced\n", DesktopObject);
 
 	if(DesktopObject->cReferences < 1)
 	{
-		TRACE("Removing object 0x%X from the system\n", DesktopObject);
+		TRACE("Removing desktop 0x%X from the system\n", DesktopObject);
 		if(RemoveEntryList(&DesktopObject->ListEntry))
 		{
 			kexFreeObject(DesktopObject->lpName);
@@ -1214,14 +1248,12 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
 {
     PDESKTOP DesktopObject = NULL;
     PWINSTATION_OBJECT WindowStationObject = NULL;
-    HWINSTA hWinSta = GetProcessWindowStation_new();
 	BOOL fFirstSwitch;
 	BOOL fParent = FALSE;
 	PDEVMODE pdev = NULL;
 	PDEVMODE polddev = NULL;
 	PVOID Object = NULL;
 	PPDB98 Process = get_pdb();
-	PPROCESSINFO ppi;
 
     GrabWin16Lock();
 
@@ -1234,16 +1266,6 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
         ReleaseWin16Lock();
         return FALSE;
     }
-
-	ppi = Process->Win32Process;
-
-	if(ppi == NULL)
-	{
-		ERR("Process 0x%X doesn't have a Win32 structure !!\n", Process);
-		kexDereferenceObject(DesktopObject);
-		ReleaseWin16Lock();
-		return FALSE;
-	}
 
 	if(DesktopObject == gpdeskInputDesktop)
 	{
@@ -1262,15 +1284,6 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
 		ReleaseWin16Lock();
 		return FALSE;
 	}
-
-    if(!IntValidateWindowStationHandle(hWinSta, &WindowStationObject))
-    {
-		ERR_OUT("Window station is invalid ! Maybe the process doesn't have one ?\n");
-		SetLastError(ERROR_INVALID_HANDLE);
-		kexDereferenceObject(DesktopObject);
-        ReleaseWin16Lock();
-        return FALSE;
-    }
 
 	/* Check if the process is associated with a secured desktop (Winlogon or Screen-Saver) */
 
@@ -1294,7 +1307,6 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
 			SetLastError(ERROR_ACCESS_DENIED);
 			ERR("Switching to desktop 0x%X denied because the current window station is locked !\n", hDesktop);
 			kexDereferenceObject(DesktopObject);
-			kexDereferenceObject(WindowStationObject);
             ReleaseWin16Lock();
             return FALSE;
         }
@@ -1348,10 +1360,10 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
 
 	ReleaseWin16Lock();
 
-	InterlockedExchange((volatile long *)&fNewDesktop, TRUE);
-
 	if(!fFirstSwitch)
 	{
+		InterlockedExchange((volatile long *)&fNewDesktop, TRUE);
+
 		TRACE("Waiting for desktop 0x%X... ", hDesktop);
 		if(WaitForSingleObject(gpdeskSwitchEvent, INFINITE) == WAIT_FAILED)
 			DBGPRINTF(("WaitForSingleObject failed (err %d)\n", GetLastError()));
@@ -1360,6 +1372,77 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
 	}
 
 	TRACE("Switching to desktop 0x%X successful\n", hDesktop);
+
+	return TRUE;
+}
+
+/* lol, Maybe there will be a future LogonUI for Win9x ? */
+
+/* MAKE_EXPORT SwitchDesktopWithFade_new=SwitchDesktopWithFade */
+BOOL WINAPI SwitchDesktopWithFade_new(HDESK hDesktop, DWORD dwDuration)
+{
+	/* Only the mpr process can call this */
+	/* Future LogonUI must find MPREXE then call CreateRemoteThread on it
+	   and call this API */
+
+	PDESKTOP DesktopObject = NULL;
+	WORD i;
+	WORD wArray[3][256];
+	HDC hDC;
+
+	if(GetCurrentProcessId() != gpidMpr)
+	{
+		TRACE("Only mprexe (pid = 0x%X) can call this API\n", gpidMpr);
+		return FALSE;
+	}
+
+	TRACE_OUT("SwitchDesktopWithFade\n");
+
+    if(!IntValidateDesktopHandle(hDesktop, &DesktopObject))
+    {
+		TRACE_OUT("hDesktop is INVALID !\n");
+		SetLastError(ERROR_INVALID_HANDLE);
+        return FALSE;
+    }
+
+	if(DesktopObject == gpdeskInputDesktop)
+	{
+		TRACE("hDesktop 0x%X is already the current desktop !\n", hDesktop);
+		kexDereferenceObject(DesktopObject);
+		return TRUE;
+	}
+
+	if(!(kexGetHandleAccess(hDesktop) & DESKTOP_SWITCHDESKTOP))
+	{
+		ERR("hDesktop 0x%X doesn't have the DESKTOP_SWITCHDESKTOP access right !\n", hDesktop);
+		kexDereferenceObject(DesktopObject);
+		SetLastError(ERROR_ACCESS_DENIED);
+		return FALSE;
+	}
+
+	hDC = GetDC(NULL);
+
+	GetDeviceGammaRamp(hDC, wArray);
+
+	TRACE_OUT("About to change the brightness\n");
+
+	for(i=128;i>0;i--)
+	{
+		IntSetBrightness(i);
+		Sleep(dwDuration/2/128);
+	}
+
+	SwitchDesktop_new(hDesktop);
+
+	for(i=0;i<=128;i++)
+	{
+		IntSetBrightness(i);
+		Sleep(dwDuration/2/128);
+	}
+
+	SetDeviceGammaRamp(hDC, wArray);
+
+	ReleaseDC(NULL, hDC);
 
 	return TRUE;
 }
