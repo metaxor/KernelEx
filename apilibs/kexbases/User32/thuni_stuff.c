@@ -34,6 +34,9 @@ HMODULE g_hUser32;
 HMODULE g_hUser16;
 HMODULE g_hKernel16;
 
+static DWORD GFSR_Address;
+static DWORD _UserSeeUserDo;
+
 BOOL InitUniThunkLayerStuff()
 {
 	g_hUser16 = (HMODULE)LoadLibrary16("user");
@@ -48,6 +51,22 @@ BOOL InitUniThunkLayerStuff()
 
 	if(gSharedInfo != NULL)
 		UserHeap = *(DWORD*)((DWORD)gSharedInfo + 0x1007C);
+
+	GFSR_Address = GetProcAddress16(g_hUser16, "GetFreeSystemResources");
+
+	if(GFSR_Address == 0)
+	{
+		TRACE_OUT("Can't find GetFreeSystemResources in USER.EXE !\n");
+		return 0;
+	}
+
+	_UserSeeUserDo = GetProcAddress16(g_hUser16, "USERSEEUSERDO");
+
+	if(_UserSeeUserDo == 0)
+	{
+		TRACE_OUT("Can't find UserSeeUserDo in USER.EXE !\n");
+		return 0;
+	}
 
 	TRACE("ThunkLayer initialized: gSharedInfo = 0x%X, g_hUser16 = 0x%X, g_hKernel16 = 0x%X, g_hUser32 = 0x%X\n", gSharedInfo, g_hUser16, g_hKernel16, g_hUser32);
 	return (gSharedInfo && g_hUser32);
@@ -190,76 +209,51 @@ void UpdateLRKeyState(LPMSG msg)
 	}	
 }
 
-HINSTANCE hUser16 = NULL;
-DWORD GFSR_Address = NULL;
-WORD result = 0;
-
-UINT FASTCALL GetFreeSystemResources(UINT uFlags)
+__declspec(naked)
+UINT GetFreeSystemResources(UINT uFlags)
 {
-    char buffer[0x40]; 
- 
-    buffer[0] = 0;
+__asm {
 
-	hUser16 = (HINSTANCE)LoadLibrary16("USER.EXE");
+		push	ebp
+		mov		ebp, esp
+		sub		esp, 40h
 
-	if(hUser16 < (HINSTANCE)32)
-	{
-		SetLastError((DWORD)hUser16);
-		return 0;
+		mov		edx, [GFSR_Address]
+		xor		eax, eax
+
+		push	word ptr [uFlags]
+		call	ds:QT_Thunk
+
+		movzx	eax, ax
+
+		leave
+		retn
 	}
-
-	GFSR_Address = GetProcAddress16(hUser16, "GetFreeSystemResources");
-
-	if(GFSR_Address == NULL)
-	{
-		SetLastError(ERROR_INVALID_ADDRESS);
-		FreeLibrary16(hUser16);
-		return 0;
-	}
-
-	SetLastError(0);
-
-	__asm	xor			eax, eax
-	__asm	push		[uFlags]
-	__asm	mov edx,	[GFSR_Address]
-	__asm	call		ds:QT_Thunk
-	__asm	mov			[result], ax
-
-	FreeLibrary16(hUser16);
-
-	return result;
 }
 
-UINT FASTCALL UserSeeUserDo(UINT uFlags)
+__declspec(naked)
+UINT UserSeeUserDo(WORD wAction, WORD wParam1, WORD wParam2, WORD wParam3)
 {
-	HINSTANCE hModule;
-	DWORD _UserSeeUserDo;
-	DWORD result;
+__asm {
 
-	hModule = (HINSTANCE)LoadLibrary16("USER.EXE");
+		push	ebp
+		mov		ebp, esp
+		sub		esp, 40h
 
-	if((DWORD)hModule < 32)
-	{
-		TRACE("(err %d) can't load USER.EXE !\n", hModule);
-		return 0;
+		mov		edx, [_UserSeeUserDo]
+		xor		eax, eax
+
+		push	word ptr [wAction]
+		push	word ptr [wParam1]
+		push	word ptr [wParam2]
+		push	word ptr [wParam3]
+		call	ds:QT_Thunk
+
+		movzx	eax, ax
+		and		edx, 0FFFFh
+		add		eax, edx
+
+		leave
+		retn	8
 	}
-
-	_UserSeeUserDo = GetProcAddress16(hModule, "USERSEEUSERDO");
-
-	if(_UserSeeUserDo == NULL)
-	{
-		TRACE_OUT("Can't find UserSeeUserDo in USER.EXE !\n");
-		FreeLibrary16(hModule);
-		return 0;
-	}
-
-	__asm	xor			eax, eax
-	__asm	push		[uFlags]
-	__asm	mov edx,	[_UserSeeUserDo]
-	__asm	call		ds:QT_Thunk
-	__asm	mov			[result], eax
-
-	FreeLibrary16(hModule);
-
-	return result;
 }
