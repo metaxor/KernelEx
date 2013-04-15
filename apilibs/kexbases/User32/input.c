@@ -90,23 +90,15 @@ static inline int NoLeftRightVK(int nVirtKey)
 
 BOOL FASTCALL InitInputSegment(void)
 {
-	HINSTANCE hUser16 = (HINSTANCE)LoadLibrary16("user");
 	WORD *InputSegment = NULL;
 
 	TRACE_OUT("InitInputSegment\n");
 
-	if((DWORD)hUser16 < 32)
-	{
-		TRACE("Failed to load USER (err=%d)\n", hUser16);
-		return FALSE;
-	}
-
-	InputSegment = (WORD*)MapSL(GetProcAddress16(hUser16, "GETASYNCKEYSTATE") + 6);
+	InputSegment = (WORD*)MapSL(GetProcAddress16(g_hUser16, "GETASYNCKEYSTATE") + 6);
 
 	if(InputSegment == NULL)
 	{
-		TRACE_OUT("Failed to load GetAsyncKeyState\n");
-		FreeLibrary16(hUser16);
+		TRACE_OUT("Failed to find GetAsyncKeyState\n");
 		return FALSE;
 	}
 
@@ -115,11 +107,9 @@ BOOL FASTCALL InitInputSegment(void)
 	if(pInputData == NULL)
 	{
 		TRACE_OUT("Failed to get the input segment\n");
-		FreeLibrary16(hUser16);
 		return FALSE;
 	}
 
-	FreeLibrary16(hUser16);
 	return TRUE;
 }
 
