@@ -83,7 +83,7 @@ INT_PTR CALLBACK EndTaskDialogProc(HWND hwndDlg,
 			SetDlgItemText(hwndDlg, IDT_STATIC2, NewText);
 
 			/* The end task dialog should be the top window */
-			SetWindowPos(hwndDlg, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+			SetWindowPos_fix(hwndDlg, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
 
 			return TRUE;
 
@@ -174,7 +174,7 @@ INT_PTR CALLBACK GhostWindowProc(HWND hwnd,
 		if(dwSmto)
 		{
 			SetWindowLong(hwnd, GWL_USERDATA, 0);
-			ShowWindowAsync(phi->hwndReplace, SW_SHOW);
+			ShowWindowAsync_fix(phi->hwndReplace, SW_SHOW);
 			EndDialog(hwnd, 0);
 			return 1;
 		}
@@ -200,7 +200,7 @@ INT_PTR CALLBACK GhostWindowProc(HWND hwnd,
 
 			SetWindowText(hwnd, phi->Title);
 
-			SetWindowPos(hwnd,
+			SetWindowPos_fix(hwnd,
 					NULL,
 					phi->x, phi->y, phi->cx, phi->cy,
 					SWP_NOZORDER | SWP_SHOWWINDOW);
