@@ -40,9 +40,6 @@ int HungAppTimeout = 5000;
 int TimeBetweenTermination = 250;
 ULONG LogoffTimeout = 2 * 1250 * 60; // 2 minutes 30 seconds - shut down doesn't take more than 2 minutes
 
-HWND hwndGlobalText = NULL;
-HWND hwndShutdownDlg = NULL;
-
 /* RegRemapPreDefKey - Remap a predefined key (e.g: HKEY_CURRENT_USER) to a new key
    HKEY hKey: Handle to a predefined key
    HKEY hNewHKey: Handle to an open key
@@ -161,8 +158,8 @@ void ReloadMPRServices()
 
 DWORD WINAPI MprReinit(PVOID lParam)
 {
-	SendMessage(hwndShutdownDlg, WM_INITDIALOG, 0, 0);
-	SetWindowText(hwndGlobalText, "Windows is starting up...");
+	DestroyStatusDialog();
+	CreateStatusDialog("Please wait...", "Windows is starting up...");
 
 	IntSwitchUser(".DEFAULT", TRUE, INFINITE, TRUE);
 
@@ -190,7 +187,7 @@ VOID IntReinitialize()
 	{
 		CloseHandle(hProcess);
 		EnableOEMLayer();
-		SendMessage(hwndShutdownDlg, WM_USER+20, 0, 0);
+		DestroyStatusDialog();
 		return;
 	}
 
@@ -199,7 +196,7 @@ VOID IntReinitialize()
 	CloseHandle(hThread);
 	CloseHandle(hProcess);
 
-	while(GetForegroundWindow() == hwndShutdownDlg)
+	while(GetForegroundWindow() == hwndStatusDlg)
 	{
 		Sleep(1);
 		PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE);
@@ -207,7 +204,7 @@ VOID IntReinitialize()
 		DispatchMessage(&msg);
 	}
 
-	SendMessage(hwndShutdownDlg, WM_USER+20, 0, 0);
+	DestroyStatusDialog();
 
 	return;
 }
@@ -408,44 +405,15 @@ INT_PTR CALLBACK DialogProc(HWND hwndDlg,
 	LPARAM lParam
 )
 {
-    int screenWidth;
-    int screenHeight;
-    int x;
-    int y;
-    int Width;
-    int Height;
-    RECT rc;
-
 	switch(uMsg)
 	{
 		case WM_INITDIALOG:
 
-			hwndGlobalText = GetDlgItem(hwndDlg, IDT_TEXT);
-			hwndShutdownDlg = hwndDlg;
-
-			screenWidth = GetSystemMetrics(SM_CXSCREEN);
-			screenHeight = GetSystemMetrics(SM_CYSCREEN);
-
-			GetWindowRect(hwndDlg, &rc);
-
-			Width = rc.right - rc.left;
-			Height = rc.bottom - rc.top;
-			x = (screenWidth - Width)/2;
-			y = (screenHeight - Height)/3;
-
-			SetWindowPos(hwndDlg,
-						NULL,
-						x, y, 0, 0,
-						SWP_NOSIZE | SWP_NOZORDER | SWP_SHOWWINDOW);
+			CenterDialog(hwndDlg);
 			break;
 
 		case WM_PAINT:
 			break;
-
-		case WM_USER+20:
-			PostQuitMessage(0);
-			DestroyWindow(hwndDlg);
-			return 1;
 
 		case WM_COMMAND:
 			switch(LOWORD(wParam))
@@ -467,8 +435,6 @@ DWORD WINAPI CreateShutdownWindow(PVOID lParam)
 	MSG msg;
 	BOOL result;
 	HWND hWnd;
-	HANDLE hEvent = (HANDLE)LOWORD(lParam);
-	BOOL fShuttingDown = HIWORD(lParam);
 	CHAR Directory[255];
 	CHAR Path[255];
 	HMODULE hModule = NULL;
@@ -490,14 +456,12 @@ DWORD WINAPI CreateShutdownWindow(PVOID lParam)
 	}
 
 	hWnd = CreateDialog(hModule,
-						fShuttingDown ? MAKEINTRESOURCE(IDD_SHUTTINGDOWN) : MAKEINTRESOURCE(IDD_SHUTDOWN_SAFE),
+						MAKEINTRESOURCE(IDD_SHUTDOWN_SAFE),
 						NULL,
 						DialogProc);
 
 	if(fLoaded)
 		FreeLibrary(hModule);
-
-	SetEvent(hEvent);
 
 	if(hWnd == NULL)
 		return 0;
@@ -523,12 +487,20 @@ VOID CreateShutdownDialog(BOOL fShuttingDown)
 	HANDLE hEvent;
 	HANDLE hThread;
 
+	if(fShuttingDown)
+	{
+		dwShutdownThreadId = CreateStatusDialog("Shutdown in Progress",
+												"Please wait while the system writes unsaved data to the disk.");
+		pShutdownThread = (PTDB98)kexGetThread(dwShutdownThreadId);
+		return;
+	}
+
 	hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 
 	hThread = CreateThread(NULL,
 						0,
 						CreateShutdownWindow,
-						(LPVOID)MAKELONG((WORD)hEvent, fShuttingDown),
+						NULL,
 						0,
 						&ShutdownThreadWndId);
 
@@ -817,24 +789,24 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 			{
 				if((sa.uFlags & EWX_SHUTDOWN) || (sa.uFlags & EWX_POWEROFF))
 				{
-					SetWindowText(hwndGlobalText, "32-bit message VxD server terminated. Shutting down...");
+					SetStatusDialogText("32-bit message VxD server terminated. Shutting down...");
 					NtShutdownSystem(ShutdownPowerOff);
 				}
 				else if((sa.uFlags & EWX_REBOOT) || (sa.uFlags & EWX_FASTRESTART))
 				{
-					SetWindowText(hwndGlobalText, "32-bit message VxD server terminated. Rebooting...");
+					SetStatusDialogText("32-bit message VxD server terminated. Rebooting...");
 					NtShutdownSystem(ShutdownReboot);
 				}
 				else
 				{
-					SetWindowText(hwndGlobalText, "msgsrv32 terminated. You can now turn of your computer.");
+					SetStatusDialogText("msgsrv32 terminated. You can now turn of your computer.");
 					NtShutdownSystem(ShutdownNoReboot);
 				}
 
 				while(1){}
 			}
 
-			SetWindowText(hwndGlobalText, "Please wait while the system is logging off.");
+			SetStatusDialogText("Please wait while the system is logging off.");
 
 			Sleep(50);
 
@@ -849,7 +821,7 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 				Win32RaiseHardError(buffer, "Shut down", MB_OK, TRUE);
 			}
 
-			SetWindowText(hwndGlobalText, "Please wait while the system is terminating services processes.");
+			SetStatusDialogText("Please wait while the system is terminating services processes.");
 			sa.fEndServices = TRUE;
 			LogoffCurrentUser(&sa);
 
@@ -868,8 +840,7 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 			}
 		}
 
-		if(hwndGlobalText != NULL)
-			SetWindowText(hwndGlobalText, "Please wait while the system is flushing the registry.");
+		SetStatusDialogText("Please wait while the system is flushing the registry.");
 
 		RegFlushKey(HKEY_CLASSES_ROOT);
 		RegFlushKey(HKEY_CURRENT_CONFIG);
@@ -879,15 +850,14 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 		RegFlushKey(HKEY_USERS);
 		RegFlushKey(HKEY_DYN_DATA);
 
-		if(hwndGlobalText != NULL)
-			SetWindowText(hwndGlobalText, "Please wait while the system is shutting down.");
+		SetStatusDialogText("Please wait while the system is shutting down.");
 
 	
 		if(IsPwrShutdownAllowed != NULL)
 		{
 			if(!IsPwrShutdownAllowed() && (sa.uFlags & EWX_SHUTDOWN || sa.uFlags & EWX_POWEROFF))
 			{
-				SendMessage(hwndShutdownDlg, WM_USER+20, 0, 0);
+				DestroyStatusDialog();
 				CreateShutdownDialog(FALSE);
 				goto finished;
 			}
@@ -897,7 +867,7 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 
 		if(sa.uFlags & EWX_FASTRESTART)
 		{
-			SetWindowText(hwndGlobalText, "Windows is restarting...");
+			SetStatusDialogText("Windows is restarting...");
 			Sleep(1000);
 			IntReinitialize();
 			goto finished;
@@ -929,7 +899,6 @@ finished:
 		fShutdown = FALSE;
 		fLoggingOff = FALSE;
 		fForceShutdown = FALSE;
-		hwndGlobalText = NULL;
 		//SystemParametersInfo(SPI_SETSCREENSAVERRUNNING, FALSE, 0, 0);
 
 		TranslateMessage(&msg);
