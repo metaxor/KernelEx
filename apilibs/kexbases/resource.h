@@ -5,7 +5,7 @@
 #define IDD_ENDTASK                     101
 #define IDD_ENDTASK2                    102
 #define IDD_SHUTDOWN_SAFE               103
-#define IDD_SHUTTINGDOWN                104
+#define IDD_STATUSDLG                   104
 #define IDC_WAITTASK                    1000
 #define IDC_ENDTASK                     1001
 #define IDT_STATIC2                     1002
