@@ -44,9 +44,6 @@ DWORD HardErrorThreadId = 0;
 PHARDERRORDATA *pHardErrorData;
 LONG NumHardError = 0;
 
-HWND hwndStartup = NULL;
-HWND hwndStartupText = NULL;
-
 BOOL SetParent_fix_init();
 
 DWORD WINAPI HardErrorThread(PVOID lParam)
@@ -170,130 +167,6 @@ BOOL WINAPI Win32RaiseHardError(LPCSTR lpszMessage, LPCSTR lpszTitle, UINT uMsgT
 
 DWORD WINAPI ShutdownThread(PVOID lParam);
 
-INT_PTR CALLBACK StartupDlgProc(
-	HWND hWnd,
-	UINT uMsg,
-	WPARAM wParam,
-	LPARAM lParam
-)
-{
-    int screenWidth;
-    int screenHeight;
-    int x;
-    int y;
-    int Width;
-    int Height;
-    RECT rc;
-	HFONT hFont;
-
-	switch(uMsg)
-	{
-		case WM_INITDIALOG:
-			SetWindowText(hWnd, "Please wait...");
-
-			hFont = CreateFont(8,
-							0,
-							0,
-							0,
-							FW_DONTCARE,
-							FALSE,
-							FALSE,
-							FALSE,
-							ANSI_CHARSET, 
-							OUT_TT_PRECIS,
-							CLIP_DEFAULT_PRECIS,
-							DEFAULT_QUALITY, 
-							DEFAULT_PITCH | FF_DONTCARE, "MS Shell Dlg");
-
-			hwndStartupText = CreateWindowEx(WS_EX_NOPARENTNOTIFY,
-						"STATIC",
-						"Windows is starting up...",
-						SS_LEFT | WS_CHILD | WS_VISIBLE | WS_GROUP,
-						11*2,
-						10*2,
-						112*3/2,
-						18*2,
-						hWnd,
-						NULL,
-						GetModuleHandle(0),
-						NULL);
-
-			SendMessage(hwndStartupText, WM_SETFONT, (WPARAM)hFont, TRUE);
-
-			screenWidth = GetSystemMetrics(SM_CXSCREEN);
-			screenHeight = GetSystemMetrics(SM_CYSCREEN);
-
-			GetWindowRect(hWnd, &rc);
-
-			Width = rc.right - rc.left;
-			Height = rc.bottom - rc.top;
-			x = (screenWidth - Width)/2;
-			y = (screenHeight - Height)/3;
-
-			SetWindowPos(hWnd,
-						NULL,
-						x, y, 0, 0,
-						SWP_NOSIZE | SWP_NOZORDER | SWP_SHOWWINDOW);
-			break;
-
-		case WM_USER+40:
-			PostQuitMessage(0);
-			return 1;
-	}
-
-	return 0;
-}
-
-DWORD WINAPI StartupWndThread(PVOID lpParameter)
-{
-	HGLOBAL hGlobal = GlobalAlloc(GMEM_ZEROINIT, sizeof(DLGTEMPLATE)*2);
-	LPDLGTEMPLATE pDlg = (LPDLGTEMPLATE)GlobalLock(hGlobal);
-	MSG msg;
-	BOOL result;
-	HANDLE hEvent = (HANDLE)lpParameter;
-
-	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
-
-	pDlg->cdit = 0;
-	pDlg->cx = 105;
-	pDlg->cy = 34;
-	pDlg->dwExtendedStyle = 0;
-	pDlg->style = DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION;
-	pDlg->x = 0;
-	pDlg->y = 0;
-
-	GlobalUnlock(hGlobal);
-
-	hwndStartup = CreateDialogIndirect(GetModuleHandle(0),
-									(LPDLGTEMPLATE)hGlobal,
-									NULL,
-									StartupDlgProc);
-
-	GlobalFree(hGlobal);
-
-	SetEvent(hEvent);
-
-	if(hwndStartup == NULL)
-		return 0;
-
-	while((result = GetMessage( &msg, NULL, 0, 0 )) != 0 && GetForegroundWindow() == hwndStartup)
-	{
-		if (result == -1)
-		{
-			DestroyWindow(hwndStartup);
-			return 0;
-		}
-		else
-		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
-	}
-
-	DestroyWindow(hwndStartup);
-	return 0;
-}
-
 BOOL init_user32()
 {
 	HMODULE hUser32 = GetModuleHandle("USER32.DLL");
@@ -304,35 +177,22 @@ BOOL init_user32()
 	DWORD dwThreadId = 0;
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
-	HANDLE hEvent;
-	HANDLE hGlobalEvent;
 	PPROCESSINFO ppi = get_pdb()->Win32Process;
 
-	hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+	MprProcess = get_pdb();
+	gpidMpr = GetCurrentProcessId();
+	pKernelProcess = MprProcess->ParentPDB->ParentPDB;
 
-	hGlobalEvent = ConvertToGlobalHandle(hEvent);
-
-	hStartupWndThread = CreateKernelThread(NULL, 0, StartupWndThread, hGlobalEvent, 0, &dwThreadId);
-
-	CloseHandle(hStartupWndThread);
-
-	if(hStartupWndThread != NULL)
-		WaitForSingleObject(hGlobalEvent, INFINITE);
-
-	CloseHandle(hEvent);
-	CloseHandle(hGlobalEvent);
+	CreateStatusDialog("Please wait...", "Windows is starting up...");
 
 	Sleep(25);
-	SetWindowText(hwndStartupText, "Windows is starting up (initializing thunk layer)...");
+	SetStatusDialogText("Windows is starting up (initializing thunk layer)...");
 
 	if(!InitUniThunkLayer())
 		goto _ret;
 
 	Sleep(25);
-	SetWindowText(hwndStartupText, "Windows is starting up (retrieving undocumented API)...");
-
-	MprProcess = get_pdb();
-	gpidMpr = GetCurrentProcessId();
+	SetStatusDialogText("Windows is starting up (retrieving undocumented API)...");
 
 	/* Get MSGSRV32 */
 	Msg32Process = MprProcess->ParentPDB;
@@ -343,12 +203,12 @@ BOOL init_user32()
 	GetMouseMovePoints_pfn = (GetMouseMovePoints_t)kexGetProcAddress(hUser32, "GetMouseMovePoints");
 
 	Sleep(25);
-	SetWindowText(hwndStartupText, "Windows is starting up (retrieving the USER input segment)...");
+	SetStatusDialogText("Windows is starting up (retrieving the USER input segment)...");
 
 	fInputResult = InitInputSegment();
 
 	Sleep(25);
-	SetWindowText(hwndStartupText, "Windows is starting up (creating window station and desktops)...");
+	SetStatusDialogText("Windows is starting up (creating window station and desktops)...");
 
 	if(!WTSInitializeSession())
 		goto _ret;
@@ -363,7 +223,7 @@ BOOL init_user32()
 
 	Sleep(25);
 
-	SetWindowText(hwndStartupText, "Windows is starting up (creating system threads)...");
+	SetStatusDialogText("Windows is starting up (creating system threads)...");
 
 	/* Create the desktop thread */
 	hThread = CreateKernelThread(NULL, 0, DesktopThread, NULL, 0, &dwThreadId);
@@ -392,9 +252,6 @@ BOOL init_user32()
 		hThread = hThread2 = NULL;
 	}
 
-	/* Prevent the kernel process from being terminated by adding the terminating flag */
-	pKernelProcess->Flags |= fTerminating;
-
 	/* Create the hang manager thread */
 	hThread4 = CreateKernelThread(NULL, 0, HangManagerThread, NULL, 0, &dwThreadId);
 
@@ -414,7 +271,7 @@ BOOL init_user32()
 
 #ifdef _DEBUG
 	Sleep(25);
-	SetWindowText(hwndStartupText, "Windows is starting up (starting DRWATSON)...");
+	SetStatusDialogText("Windows is starting up (starting DRWATSON)...");
 
 	CreateProcess(NULL,
 				"DRWATSON.EXE",
@@ -432,7 +289,7 @@ BOOL init_user32()
 
 _ret:
 	Sleep(25);
-	SetWindowText(hwndStartupText, "Windows is starting up...");
+	SetStatusDialogText("Windows is starting up...");
 
 	return IsHungThread_pfn && DrawCaptionTempA_pfn && GetMouseMovePoints_pfn
 			&& hThread && hThread2 && hThread3 && hThread4 && fInputResult;
