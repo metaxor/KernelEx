@@ -98,6 +98,7 @@ HDESK WINAPI OpenDesktopA_new(LPSTR lpszDesktop, DWORD dwFlags, BOOL fInherit, A
 HDESK WINAPI OpenInputDesktop_new(DWORD dwFlags, BOOL fInherit, ACCESS_MASK dwDesiredAccess);
 BOOL WINAPI SetThreadDesktop_new(HDESK hDesktop);
 BOOL WINAPI SwitchDesktop_new(HDESK hDesktop);
+BOOL WINAPI SwitchDesktopWithFade_new(HDESK hDesktop, DWORD dwDuration);
 HWND WINAPI CreateDialogIndirectParamA_fix(HINSTANCE hInstance, LPCDLGTEMPLATE lpTemplate, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM lParamInit);
 HWND WINAPI CreateDialogParamA_fix(HINSTANCE hInstance, LPCTSTR lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam);
 HWND WINAPI GetNextDlgTabItem_fix(HWND hDlg, HWND hCtl, BOOL bPrevious);
@@ -216,7 +217,6 @@ BOOL WINAPI IsGUIThread_new(BOOL bConvert);
 BOOL WINAPI IsHungAppWindow_new(HWND hWnd);
 BOOL WINAPI IsWindowVisible_fix(HWND hWnd);
 BOOL WINAPI LockSetForegroundWindow_98(UINT lockcode);
-UINT WINAPI RegisterWindowMessageA_nothunk(LPCSTR lpString);
 BOOL WINAPI SetForegroundWindow_fix(HWND hWnd);
 BOOL WINAPI SetWindowPos_fix(HWND hWnd, HWND hWndInsertAfter, int X, int Y, int cx, int cy, UINT uFlags);
 BOOL WINAPI ShowWindow_fix(HWND hWnd, int nCmdShow);
