@@ -21,6 +21,227 @@
 
 #include <windows.h>
 #include "desktop.h"
+#include "resource.h"
+
+HWND hwndStatusDlg = NULL;
+HWND hwndStatusDlgText = NULL;
+
+typedef struct _STATUSDLGSTRUCT
+{
+	HANDLE hEvent;
+	LPSTR lpCaption;
+	LPSTR lpText;
+} STATUSDLGSTRUCT, *PSTATUSDLGSTRUCT;
+
+BOOL FASTCALL CenterDialog(HWND hWnd)
+{
+    int screenWidth;
+    int screenHeight;
+    int x;
+    int y;
+    int Width;
+    int Height;
+    RECT rc;
+
+	if(hWnd == NULL)
+		return FALSE;
+
+	if(!PostMessage(hWnd, WM_NULL, 0, 0))
+		return FALSE;
+
+	screenWidth = GetSystemMetrics(SM_CXSCREEN);
+	screenHeight = GetSystemMetrics(SM_CYSCREEN);
+
+	GetWindowRect(hWnd, &rc);
+
+	Width = rc.right - rc.left;
+	Height = rc.bottom - rc.top;
+	x = (screenWidth - Width)/2;
+	y = (screenHeight - Height)/3;
+
+	SetWindowPos(hWnd,
+				NULL,
+				x, y, 0, 0,
+				SWP_NOSIZE | SWP_NOZORDER | SWP_SHOWWINDOW);
+
+	return TRUE;
+}
+
+INT_PTR CALLBACK StatusDialogProc(HWND hwndDlg,
+	UINT uMsg,
+	WPARAM wParam,
+	LPARAM lParam
+)
+{
+	PSTATUSDLGSTRUCT sDlg;
+
+	switch(uMsg)
+	{
+		case WM_INITDIALOG:
+
+			sDlg = (PSTATUSDLGSTRUCT)lParam;
+
+			hwndStatusDlg = hwndDlg;
+			hwndStatusDlgText = GetDlgItem(hwndDlg, IDT_TEXT);
+
+			SetWindowText(hwndStatusDlg, sDlg->lpCaption);
+			SetWindowText(hwndStatusDlgText, sDlg->lpText);
+
+			CenterDialog(hwndDlg);
+			break;
+
+		case WM_PAINT:
+			break;
+
+		case WM_USER+20:
+			PostQuitMessage(0);
+			DestroyWindow(hwndDlg);
+			return 1;
+	}
+
+	return 0;
+}
+
+DWORD WINAPI CreateStatusDlgThread(PVOID lParam)
+{
+	MSG msg;
+	BOOL result;
+	PSTATUSDLGSTRUCT sDlg = (PSTATUSDLGSTRUCT)lParam;
+	CHAR Directory[255];
+	CHAR Path[255];
+	HMODULE hModule = NULL;
+	BOOL fLoaded = FALSE;
+
+	TRACE_OUT("5\n");
+	memset(Directory, 0, sizeof(Directory));
+	memset(Path, 0, sizeof(Path));
+
+	TRACE_OUT("6\n");
+	kexGetKernelExDirectory(Directory, sizeof(Directory));
+
+	TRACE_OUT("7\n");
+	wsprintf(Path, "%sKEXBASES.DLL", Directory);
+
+	hModule = GetModuleHandle(Path);
+
+	TRACE_OUT("8\n");
+	if(hModule == NULL)
+	{
+		fLoaded = TRUE;
+		hModule = LoadLibrary(Path);
+	}
+
+	TRACE_OUT("9\n");
+	hwndStatusDlg = CreateDialogParam(hModule,
+						MAKEINTRESOURCE(IDD_STATUSDLG),
+						NULL,
+						StatusDialogProc,
+						(LPARAM)sDlg);
+
+	if(fLoaded)
+		FreeLibrary(hModule);
+
+	TRACE_OUT("10\n");
+	SetEvent(sDlg->hEvent);
+
+	TRACE_OUT("11\n");
+	if(hwndStatusDlg == NULL)
+		return 0;
+
+	while((result = GetMessage( &msg, NULL, 0, 0 )) != 0)
+	{
+		if (result == -1)
+		{
+			return 0;
+		}
+		else
+		{
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+	}
+
+	return 0;
+}
+
+DWORD FASTCALL CreateStatusDialog(LPCSTR lpCaption, LPCSTR lpText)
+{
+	HANDLE hEvent;
+	HANDLE hThread;
+	PSTATUSDLGSTRUCT sDlg = (PSTATUSDLGSTRUCT)kexAllocObject(sizeof(sDlg));
+	DWORD dwThreadId = 0;
+	HANDLE hGlobalEvent;
+
+	TRACE_OUT("1\n");
+
+	hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+
+	hGlobalEvent = ConvertToGlobalHandle(hEvent);
+
+	if(hEvent == NULL || hGlobalEvent == NULL)
+		return 0;
+
+	TRACE_OUT("2\n");
+	sDlg->hEvent = hGlobalEvent;
+	sDlg->lpCaption = (LPSTR)kexAllocObject(strlen(lpCaption));
+	sDlg->lpText = (LPSTR)kexAllocObject(strlen(lpText));
+
+	strcpy(sDlg->lpCaption, lpCaption);
+	strcpy(sDlg->lpText, lpText);
+
+	TRACE_OUT("3\n");
+	hThread = CreateKernelThread(NULL,
+						0,
+						CreateStatusDlgThread,
+						(LPVOID)sDlg,
+						0,
+						&dwThreadId);
+
+	TRACE_OUT("4\n");
+	if(hThread != NULL)
+		WaitForSingleObject(hGlobalEvent, INFINITE);
+
+	TRACE_OUT("12\n");
+	CloseHandle(hEvent);
+	CloseHandle(hGlobalEvent);
+	CloseHandle(hThread);
+
+	if(sDlg != NULL)
+	{
+		kexFreeObject(sDlg->lpCaption);
+		kexFreeObject(sDlg->lpText);
+		kexFreeObject(sDlg);
+	}
+
+	return dwThreadId;
+}
+
+VOID FASTCALL DestroyStatusDialog(void)
+{
+	if(hwndStatusDlg == NULL)
+		return;
+
+	SendMessage(hwndStatusDlg, WM_USER+20, 0, 0);
+
+	hwndStatusDlg = NULL;
+	hwndStatusDlgText = NULL;
+}
+
+VOID FASTCALL SetStatusDialogCaption(LPCSTR lpCaption)
+{
+	if(hwndStatusDlg == NULL)
+		return;
+
+	SetWindowText(hwndStatusDlg, lpCaption);
+}
+
+VOID FASTCALL SetStatusDialogText(LPCSTR lpText)
+{
+	if(hwndStatusDlg == NULL)
+		return;
+
+	SetWindowText(hwndStatusDlgText, lpText);
+}
 
 /* MAKE_EXPORT CreateDialogIndirectParamA_fix=CreateDialogIndirectParamA */
 HWND WINAPI CreateDialogIndirectParamA_fix(HINSTANCE hInstance,
