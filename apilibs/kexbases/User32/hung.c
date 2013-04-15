@@ -444,6 +444,19 @@ DWORD WINAPI HangManagerThread(PVOID lpParameter)
 {
 	MSG msg;
 
+	if(hwndStatusDlg != NULL)
+	{
+		while(GetForegroundWindow() == hwndStatusDlg)
+		{
+			Sleep(1);
+			PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE);
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+
+		DestroyStatusDialog();
+	}
+
 	HangManagerThreadId = GetCurrentThreadId();
 
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_LOWEST);
