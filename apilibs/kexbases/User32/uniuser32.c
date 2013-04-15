@@ -200,5 +200,5 @@ UINT WINAPI RegisterWindowMessageW_new(LPCWSTR lpStringW)
 {
 	ALLOC_WtoA(lpString);
 
-	return RegisterWindowMessageA_nothunk(lpStringA);
+	return RegisterWindowMessageA(lpStringA);
 }
