@@ -63,17 +63,22 @@ static const char c_szDBCSProp[]="kexDBCS";
 #define GFSR_USERRESOURCES     0x0002
 
 /* UserSeeUserDo flags */
-#define USUD_ALLOC_DGROUP       1	// Allocate in the USER's heap
-#define USUD_FREE_DGROUP        2
-#define USUD_COMPACT_DGROUP     3
-#define USUD_GET_MENUHEAP       4
-#define USUD_GET_PCLSLIST       5
-#define USUD_GET_DGROUP         6
-#define USUD_GET_POCEFIRST      8
-#define USUD_GET_PWNDDESKTOP    9
-#define USUD_ALLOC_MEMORY       10
-#define USUD_FREE_MEMORY        11
-#define USUD_UNKNOWN            7
+#define USUD_ALLOC_DGROUP			1	// Allocate in the USER's heap
+#define USUD_FREE_DGROUP			2	// Free in the USER's heap
+#define USUD_COMPACT_DGROUP			3	// Compact the USER's heap
+#define USUD_GET_MENUHEAP			4	// Get the menu heap handle
+#define USUD_GET_PCLSLIST			5	// Get the system class list
+#define USUD_GET_DGROUP				6	// Get the user's DGROUP (gSharedInfo)
+#define USUD_GET_POCEFIRST			8	// Get the first device context entry
+#define USUD_GET_PWNDDESKTOP		9	// Return the desktop PWND
+#define USUD_ALLOC_WINDOWMENUHEAP	10	// If param1 is TRUE, allocate in the menu heap, otherwise allocate in the window heap
+#define USUD_FREE_WINDOWMENUHEAP	11	// If param1 is TRUE, free memory in the menu heap, otherwise free memory in the window heap
+#define USUD_UNUSED1				7	// USUD_UNUSEDx always return 0xFFFF
+#define USUD_UNUSED2				12
+#define USUD_UNUSED3				13
+#define USUD_UNKNOWN1				14
+#define USUD_UNUSED4				15
+#define USUD_UNKNOWN2				16
 
 /* Undocumented ExitWindowsEx flags */
 #define EWX_FASTRESTART			0x00000040
@@ -127,10 +132,10 @@ BOOL InitUniThunkLayer();
 LRESULT WINAPI SendMessageA_fix(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 
 //resources
-UINT FASTCALL GetFreeSystemResources(UINT uFlags);
+UINT GetFreeSystemResources(UINT uFlags);
 
 //user
-UINT FASTCALL UserSeeUserDo(UINT uFlags);
+UINT UserSeeUserDo(WORD wAction, WORD wParam1, WORD wParam2, WORD wParam3);
 
 //unexported remade functions
 BOOL WINAPI GetClientRect_source(HWND hWnd, LPRECT lpRect);
