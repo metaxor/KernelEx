@@ -20,9 +20,9 @@
  *
  */
 
-#include <windows.h>
 #include "common.h"
 #include "..\user32\desktop.h"
+#include "_kernel32_apilist.h"
 
 /* MAKE_EXPORT CreateProcessA_fix=CreateProcessA */
 BOOL WINAPI CreateProcessA_fix(LPCSTR lpApplicationName, LPSTR lpCommandLine, LPSECURITY_ATTRIBUTES lpProcessAttributes, LPSECURITY_ATTRIBUTES lpThreadAttributes, BOOL bInheritHandles, DWORD dwCreationFlags, LPVOID lpEnvironment, LPCSTR lpCurrentDirectory, LPSTARTUPINFOA lpStartupInfo, LPPROCESS_INFORMATION lpProcessInformation)
@@ -31,6 +31,11 @@ BOOL WINAPI CreateProcessA_fix(LPCSTR lpApplicationName, LPSTR lpCommandLine, LP
 	PPDB98 Process = get_pdb();
 	PCHAR pszDesktop = NULL;
 	BOOL result = FALSE;
+	HANDLE hFile;
+	HANDLE hFileMapping;
+	LPVOID lpFileBase;
+	PIMAGE_DOS_HEADER dosHeader;
+	PIMAGE_NT_HEADERS pNTHeader;
 
     if(IsBadWritePtr(lpStartupInfo, sizeof(STARTUPINFO)) || IsBadWritePtr(lpProcessInformation, sizeof(PROCESS_INFORMATION)))
         return FALSE;
@@ -54,6 +59,70 @@ BOOL WINAPI CreateProcessA_fix(LPCSTR lpApplicationName, LPSTR lpCommandLine, LP
     if(dwCreationFlags & CREATE_UNICODE_ENVIRONMENT)
         dwCreationFlags &= ~CREATE_UNICODE_ENVIRONMENT;
 
+	hFile = CreateFileA_fix(lpApplicationName != NULL ? lpApplicationName : lpCommandLine,
+							GENERIC_READ,
+							FILE_SHARE_READ,
+							NULL,
+							OPEN_EXISTING,
+							FILE_ATTRIBUTE_NORMAL,
+							0);
+                    
+	if(hFile == INVALID_HANDLE_VALUE)
+	{
+		SetLastError(ERROR_FILE_NOT_FOUND);
+		return FALSE;
+	}
+
+	hFileMapping = CreateFileMapping(hFile,
+									NULL,
+									PAGE_READONLY,
+									0,
+									0,
+									NULL);
+
+	if(hFileMapping == NULL)
+	{
+		SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+		return FALSE;
+	}
+
+	lpFileBase = MapViewOfFile(hFileMapping,
+							FILE_MAP_READ,
+							0,
+							0,
+							0);
+
+	if(lpFileBase == NULL)
+	{
+		SetLastError(ERROR_NOT_ENOUGH_MEMORY);
+		return FALSE;
+	}
+
+	dosHeader = (PIMAGE_DOS_HEADER)lpFileBase;
+
+	__try
+	{
+		pNTHeader = (PIMAGE_NT_HEADERS)dosHeader->e_lfanew;
+
+		if(pNTHeader->FileHeader.Characteristics == IMAGE_FILE_DLL)
+		{
+			SetLastError(ERROR_BAD_EXE_FORMAT);
+			return FALSE;
+		}
+
+		if(pNTHeader->OptionalHeader.Subsystem != IMAGE_SUBSYSTEM_WINDOWS_GUI &&
+			pNTHeader->OptionalHeader.Subsystem != IMAGE_SUBSYSTEM_WINDOWS_CUI)
+		{
+			/* Set the famous "The %1 application cannot be run in Win32 mode" error */
+			SetLastError(ERROR_CHILD_NOT_COMPLETE);
+			return FALSE;
+		}
+	}
+	__except(EXCEPTION_EXECUTE_HANDLER)
+	{
+		SetLastError(ERROR_BAD_EXE_FORMAT);
+		return FALSE;
+	}
 
 	__try
 	{
