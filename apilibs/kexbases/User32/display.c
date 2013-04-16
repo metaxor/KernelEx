@@ -66,8 +66,6 @@ LONG WINAPI ChangeDisplaySettingsExA_fix(
 	if(result != DISP_CHANGE_SUCCESSFUL)
 		return result;
 
-	GrabWin16Lock();
-
 	/* Change the thread's desktop pdev flags */
 	if(DevMode.dmFields & DM_BITSPERPEL)
 		Desktop->pdev->dmBitsPerPel = DevMode.dmBitsPerPel;
@@ -86,8 +84,6 @@ LONG WINAPI ChangeDisplaySettingsExA_fix(
 
 	if(DevMode.dmFields & DM_POSITION)
 		Desktop->pdev->dmPosition = DevMode.dmPosition;
-
-	ReleaseWin16Lock();
 
 	return result;
 }
