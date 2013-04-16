@@ -39,33 +39,33 @@ typedef struct _RECTS
 
 typedef struct _WND
 {
-	struct _WND *spwndNext;    // 00h (GW_HWNDNEXT) HWND of next sibling window
-	struct _WND *spwndChild;   // 04h (GW_CHILD) First child window
-	struct _WND *spwndParent;  // 08h Parent window handle
-	struct _WND *spwndOwner;   // 0Ch Owning window handle
-	RECTS   rcWindow;          // 10h Rectangle describing entire window
-	RECTS   rcClient;          // 18h Rectangle for client area of window
-	WORD    hQueue;            // 20h Application message queue handle
-	WORD    hrgnUpdate;        // 22h window region needing an update
-	WORD    wndClass;          // 24h handle to an INTWNDCLASS
-	WORD    hInstance;         // 26h hInstance of creating application
-	WNDPROC lpfnWndProc;       // 28h Window procedure address
-	DWORD   dwFlags;           // 2Ch internal state flags
-	DWORD   style;             // 30h WS_XXX style flags
-	DWORD   ExStyle;           // 34h WS_EX_XXX extended style flags
-	DWORD   moreFlags;         // 38h flags
-	HANDLE  spmenu;            // 3Ch GetDlgCtrlId or hMenu
-	WORD    windowTextOffset;  // 40h Offset of the window's text in atom heap
-	WORD    scrollBar;         // 42h DWORD associated with the scroll bars
-	WORD    properties;        // 44h Handle for first window property
-	WORD    hWnd16;            // 46h Actual HWND value for this window
-	struct _WND *lastActive;   // 48h Last active owned popup window
-	HANDLE  hMenuSystem;       // 4Ch handle to the system menu
-	DWORD   un1;               // 50h
-	WORD    scrollbarOffset;         // 54h (This might have something to do with the scroll bar) Offset of the window's scrollbar in gSharedInfo
-	WORD    classAtom;         // 56h See also offs. 2 in the field 24 struct ptr
-	DWORD   alternatePID;      // 58h
-	DWORD   alternateTID;      // 5Ch
+	struct _WND *spwndNext;		// 00h (GW_HWNDNEXT) HWND of next sibling window
+	struct _WND *spwndChild;	// 04h (GW_CHILD) First child window
+	struct _WND *spwndParent;	// 08h Parent window handle
+	struct _WND *spwndOwner;	// 0Ch Owning window handle
+	RECTS   rcWindow;			// 10h Rectangle describing entire window
+	RECTS   rcClient;			// 18h Rectangle for client area of window
+	WORD    hQueue;				// 20h Application message queue handle
+	WORD    hrgnUpdate;			// 22h window region needing an update
+	WORD    wndClass;			// 24h handle to an INTWNDCLASS
+	WORD    hInstance;			// 26h hInstance of creating application
+	WNDPROC lpfnWndProc;		// 28h Window procedure address
+	DWORD   dwFlags;			// 2Ch internal state flags
+	DWORD   style;				// 30h WS_XXX style flags
+	DWORD   ExStyle;			// 34h WS_EX_XXX extended style flags
+	DWORD   moreFlags;			// 38h flags
+	HANDLE  spmenu;				// 3Ch GetDlgCtrlId or hMenu
+	WORD    windowTextOffset;	// 40h Offset of the window's text in atom heap
+	WORD    scrollBar;			// 42h DWORD associated with the scroll bars
+	WORD    properties;			// 44h Handle for first window property
+	WORD    hWnd16;				// 46h Actual HWND value for this window
+	struct _WND *lastActive;	// 48h Last active owned popup window
+	HANDLE  hMenuSystem;		// 4Ch handle to the system menu
+	DWORD   un1;				// 50h
+	WORD    scrollbarOffset;	// 54h (This might have something to do with the scroll bar) Offset of the window's scrollbar in gSharedInfo
+	WORD    classAtom;			// 56h See also offs. 2 in the field 24 struct ptr
+	DWORD   alternatePID;		// 58h
+	DWORD   alternateTID;		// 5Ch
 } WND, *PWND;
 
 typedef struct _USERDGROUP // Size = 0x1B6F (from USER)
@@ -84,32 +84,37 @@ typedef struct _USERDGROUP // Size = 0x1B6F (from USER)
 	BYTE	un4[0x384];					// 246h
 	HWND	ShellWindow;				// 5CAh - Shell window (usually explorer)
 	WORD	pSysClass;					// 5CEh - Pointer to system classes list
-	BYTE	un5[0xEA];					// 5D0h
-	HWND	ClipboardOwner;				// 6BAh - Called by GETCLIPBOARDOWNER
-	HWND	ClipboardViewer;			// 6BEh - Called by GETCLIPBOARDVIEWER
-	WORD	un6[2];						// 6C2h
-	HWND	ClipboardWindow;			// 6C6h - Called by GETOPENCLIPBOARDWINDOW
-	BYTE	un7[0x4A];					// 6CAh
+	BYTE	un5[0xA8];					// 5D0h
+	WORD	fBeep;						// 678h - Beep (1 = enabled, 0 = disabled)
+	BYTE	un6[0x40];					// 67Ah
+	HWND	ClipboardOwner;				// 6BAh - Clipboard owner
+	HWND	ClipboardViewer;			// 6BEh - Clipboard viewer
+	WORD	un7[2];						// 6C2h
+	HWND	ClipboardWindow;			// 6C6h - Clipboard window
+	BYTE	un8[0x4A];					// 6CAh
 	PWND	pwndDesktop;				// 714h - Pointer to the desktop window structure
-	BYTE	un8[0x32];					// 718h
+	BYTE	un9[0x32];					// 718h
 	DWORD	DebugFlags;					// 74Ah - USER debug flags
 	WORD	MenuHeap32;					// 74Eh - USER32 menu heap
 	DWORD	MenuHeapHandleTableBase;	// 750h - Menu heap handle table
 	DWORD	WindowHeapHandleTableBase;	// 754h - Window heap handle table
-	BYTE	un9[0x53A];					// 758h
+	BYTE	un10[0x2C];					// 758h
+	WORD	wBlockInputTask;			// 784h
+	DWORD	dwInstalledEventHooks;		// 786h
+	BYTE	un11[0x508];				// 78Ah
 	WORD	wInputSeg;					// C92h - USER input segment (dseg33)
-	BYTE	un10[0x1FA];				// C94h
+	BYTE	un12[0x1FA];				// C94h
 	ATOM	AtomHeap;					// E8Eh - Global atom heap (allocated by internal USER GlobalInitAtom)
-	BYTE	un11[0x3B6];				// E90h
+	BYTE	un13[0x3B6];				// E90h
 	WORD	wForegroundIndex;			// 1246h - Index to the foreground window ( *(DWORD*)((DWORD)gSharedInfo + wForegroundIndex) to get the PWND)
 	HWND	hwndDesktop;				// 1248h - Desktop window
-	BYTE	un12[0x3A0];				// 124Ch
+	BYTE	un14[0x3A0];				// 124Ch
 	DWORD	*SysColorTable;				// 15ECh - Pointer to the system color table (array of 28 colors)
-	BYTE	un13[0x2CE];				// 15F0h
+	BYTE	un15[0x2CE];				// 15F0h
 	WORD	*SysColorBrushTable;		// 18BEh - Pointer to the system brush color table (array of 28 colors)
-	BYTE	un14[0x88];					// 18C0h
+	BYTE	un16[0x88];					// 18C0h
 	WORD	POCEFirst;					// 1948h - Head of DCE (Device Context Entry) list
-	BYTE	un15[0x225];				// 194Ah
+	BYTE	un17[0x225];				// 194Ah
 } USERDGROUP, *PUSERDGROUP;
 
 typedef struct _MSGQUEUE
