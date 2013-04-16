@@ -728,6 +728,9 @@ BOOL WINAPI CloseDesktop_new(HDESK hDesktop)
 
 	if(DesktopObject->cReferences < 1)
 	{
+		if(DesktopObject->rpwinstaParent->ActiveDesktop == DesktopObject)
+			DesktopObject->rpwinstaParent->ActiveDesktop = NULL;
+
 		TRACE("Removing desktop 0x%X from the system\n", DesktopObject);
 		if(RemoveEntryList(&DesktopObject->ListEntry))
 		{
@@ -881,6 +884,9 @@ HDESK WINAPI CreateDesktopA_new(LPCSTR lpszDesktop, LPCSTR lpszDevice, LPDEVMODE
 		ReleaseWin16Lock();
 		return NULL;
 	}
+
+	if(WindowStationObject->ActiveDesktop == NULL)
+		WindowStationObject->ActiveDesktop = DesktopObject;
 
 	hDesktop = (HDESK)kexAllocHandle(Process, DesktopObject, dwDesiredAccess | flags);
 
@@ -1341,14 +1347,13 @@ BOOL WINAPI SwitchDesktop_new(HDESK hDesktop)
 	/* Set the window station's active desktop */
 	InputWindowStation->ActiveDesktop = gpdeskInputDesktop;
 
-	if(pdev->dmBitsPerPel != polddev->dmBitsPerPel || pdev->dmPelsWidth != polddev->dmPelsWidth
-		|| pdev->dmPelsHeight != polddev->dmPelsHeight || pdev->dmDisplayFlags != polddev->dmDisplayFlags
-		|| pdev->dmDisplayFrequency != polddev->dmDisplayFrequency || pdev->dmPosition.x != polddev->dmPosition.x
-		|| pdev->dmPosition.y != polddev->dmPosition.y)
+	if(memcmp(pdev, polddev, sizeof(DEVMODE)) != 0)
 	{
 		/* Set the new display setting if the new desktop's display setting is different than the current one */
 		TRACE("DesktopObject 0x%X has different display setting than the input desktop, changing display settings...\n", DesktopObject);
+		ReleaseWin16Lock();
 		ChangeDisplaySettings(DesktopObject->pdev, CDS_UPDATEREGISTRY);
+		GrabWin16Lock();
 	}
 
 	if(fParent == FALSE && !fFirstSwitch)
