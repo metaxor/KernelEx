@@ -311,6 +311,24 @@ _ret:
 	return fFound;
 }
 
+/* MAKE_EXPORT BringWindowToTop_nothunk=BringWindowToTop */
+BOOL WINAPI BringWindowToTop_nothunk(HWND hWnd)
+{
+	return SetWindowPos_fix(hWnd,
+							HWND_TOP,
+							0,
+							0,
+							0,
+							0,
+							SWP_NOSIZE | SWP_NOMOVE);
+}
+
+/* MAKE_EXPORT CloseWindow_nothunk=CloseWindow */
+BOOL WINAPI CloseWindow_nothunk(HWND hWnd)
+{
+	return ShowWindow_fix(hWnd, SW_MINIMIZE);
+}
+
 /* MAKE_EXPORT CreateMDIWindowA_fix=CreateMDIWindowA */
 HWND WINAPI CreateMDIWindowA_fix(LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int X, int Y, int nWidth, int nHeight, HWND hWndParent, HINSTANCE hInstance, LPARAM lParam)
 {
