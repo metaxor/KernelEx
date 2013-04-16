@@ -91,6 +91,12 @@ DWORD WINAPI HardErrorThread(PVOID lParam)
 
 		hEvent = pData->hEvent;
 
+		if(pInputData->fInputBlocked)
+		{
+			pInputData->fInputBlocked = FALSE;
+			gSharedInfo->wBlockInputTask = 0;
+		}
+
 		MessageBox(NULL, pData->lpHardErrorMessage, pData->lpHardErrorTitle, MB_ICONERROR | MB_SYSTEMMODAL | pData->uType);
 
 		if(hEvent != NULL)
@@ -386,6 +392,8 @@ static const apilib_named_api user32_named_apis[] =
 	DECL_API("AllowSetForegroundWindow", AllowSetForegroundWindow_98),
 	DECL_API("AnyPopup", AnyPopup_nothunk),
 	DECL_API("AppendMenuW", AppendMenuW_new),
+	DECL_API("BlockInput", BlockInput_nothunk),
+	DECL_API("BringWindowToTop", BringWindowToTop_nothunk),
 	DECL_API("CallMsgFilterW", CallMsgFilterA),
 	DECL_API("CallWindowProcA", CallWindowProcA_fix),
 	DECL_API("CallWindowProcW", CallWindowProcW_new),
@@ -403,6 +411,7 @@ static const apilib_named_api user32_named_apis[] =
 	DECL_API("CharUpperBuffW", CharUpperBuffW_new),
 	DECL_API("CharUpperW", CharUpperW_new),
 	DECL_API("CloseDesktop", CloseDesktop_new),
+	DECL_API("CloseWindow", CloseWindow_nothunk),
 	DECL_API("CloseWindowStation", CloseWindowStation_new),
 	DECL_API("CopyAcceleratorTableW", CopyAcceleratorTableA),
 	DECL_API("CreateAcceleratorTableW", CreateAcceleratorTableA),
