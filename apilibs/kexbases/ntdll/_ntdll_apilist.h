@@ -98,6 +98,46 @@ typedef struct _IO_STATUS_BLOCK {
   ULONG_PTR Information;
 } IO_STATUS_BLOCK, *PIO_STATUS_BLOCK;
 
+typedef enum _SECTION_INFORMATION_CLASS
+{
+	SectionBasicInformation,
+	SectionImageInformation
+} SECTION_INFORMATION_CLASS, *PSECTION_INFORMATION_CLASS;
+
+typedef struct _SECTION_BASIC_INFORMATION
+{
+	PVOID BaseAddress;
+	ULONG Attributes;
+	LARGE_INTEGER Size;
+} SECTION_BASIC_INFORMATION, *PSECTION_BASIC_INFORMATION;
+
+typedef struct _SECTION_IMAGE_INFORMATION
+{
+	PVOID TransferAddress;
+	ULONG ZeroBits;
+	SIZE_T MaximumStackSize;
+	SIZE_T CommittedStackSize;
+	ULONG SubSystemType;
+	union
+	{
+		struct
+		{
+			USHORT SubSystemMinorVersion;
+			USHORT SubSystemMajorVersion;
+		};
+		ULONG SubSystemVersion;
+	};
+	ULONG GpValue;
+	USHORT ImageCharacteristics;
+	USHORT DllCharacteristics;
+	USHORT Machine;
+	UCHAR ImageContainsCode;
+	UCHAR Spare1;
+	ULONG LoaderFlags;
+	ULONG ImageFileSize;
+	ULONG Reserved[1];
+} SECTION_IMAGE_INFORMATION, *PSECTION_IMAGE_INFORMATION;
+
 typedef CONST char *PCSZ;
 
 BOOL init_ntdll();
@@ -110,7 +150,9 @@ ULONG NTAPI RtlNtStatusToDosError(NTSTATUS Status);
 NTSTATUS NTAPI NtRaiseHardError(IN NTSTATUS ErrorStatus, IN ULONG NumberOfParameters, IN ULONG UnicodeStringParameterMask, IN PULONG_PTR Parameters, IN ULONG ValidResponseOptions, OUT PULONG Response);
 NTSTATUS NTAPI LdrLoadDll(IN PWCHAR PathToFile OPTIONAL, IN ULONG Flags OPTIONAL, IN PUNICODE_STRING ModuleFileName, OUT PHANDLE ModuleHandle);
 NTSTATUS NTAPI LdrUnloadDll(IN PHANDLE ModuleHandle);
+NTSTATUS NTAPI NtCreateSection(OUT PHANDLE SectionHandle, IN ACCESS_MASK DesiredAccess, IN POBJECT_ATTRIBUTES ObjectAttributes OPTIONAL, IN PLARGE_INTEGER MaximumSize OPTIONAL, IN ULONG SectionPageProtection OPTIONAL, IN ULONG AllocationAttributes, IN HANDLE FileHandle OPTIONAL);
 NTSTATUS NTAPI NtOpenFile(OUT PHANDLE FileHandle, IN ACCESS_MASK DesiredAccess, IN POBJECT_ATTRIBUTES ObjectAttributes, OUT PIO_STATUS_BLOCK IoStatusBlock, IN ULONG ShareAccess, IN ULONG OpenOptions);
+NTSTATUS NTAPI NtQuerySection(IN HANDLE SectionHandle, IN SECTION_INFORMATION_CLASS SectionInformationClass, OUT PVOID SectionInformation, IN SIZE_T SectionInformationLength, OUT PSIZE_T ResultLength OPTIONAL);
 NTSTATUS NTAPI NtClose(IN HANDLE Handle);
 NTSTATUS NTAPI NtDuplicateObject(IN HANDLE SourceProcessHandle, IN HANDLE SourceHandle, IN HANDLE TargetProcessHandle OPTIONAL, OUT PHANDLE TargetHandle OPTIONAL, IN ACCESS_MASK DesiredAccess, IN ULONG HandleAttributes, IN ULONG Options);
 NTSTATUS WINAPI NtWaitForSingleObject(IN HANDLE Handle, IN BOOLEAN Alertable, IN PLARGE_INTEGER Timeout);
