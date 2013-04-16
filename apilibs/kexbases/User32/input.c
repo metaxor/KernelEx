@@ -113,6 +113,68 @@ BOOL FASTCALL InitInputSegment(void)
 	return TRUE;
 }
 
+/* MAKE_EXPORT BlockInput_nothunk=BlockInput */
+BOOL WINAPI BlockInput_nothunk(BOOL fBlockIt)
+{
+	PTDB98 Thread = get_tdb();
+	PTHREADINFO pti = Thread->Win32Thread;
+	PPROCESSINFO ppi = get_pdb()->Win32Process;
+	WORD ThreadId = LOWORD(GetCurrentThreadId());
+
+	GrabWin16Lock();
+
+	if(pti == NULL || ppi == NULL || pti->rpdesk == NULL || (Thread->Flags & INVALID_FLAGS))
+	{
+		ReleaseWin16Lock();
+		return FALSE;
+	}
+
+	if(!(kexGetHandleAccess(ppi->hwinsta) & WINSTA_WRITEATTRIBUTES))
+	{
+		ERR_OUT("Cannot lock the input because the process window station doesn't have the WINSTA_WRITEATTRIBUTES access right !\n");
+		SetLastError(ERROR_ACCESS_DENIED);
+		ReleaseWin16Lock();
+		return FALSE;
+	}
+
+	if(pti->rpdesk->rpwinstaParent->ActiveDesktop != pti->rpdesk)
+	{
+		ERR_OUT("The current thread desktop is not the active desktop, cannot lock the input !\n");
+		SetLastError(ERROR_ACCESS_DENIED);
+		ReleaseWin16Lock();
+		return FALSE;
+	}
+
+	if(fBlockIt)
+	{
+		if(pInputData->fInputBlocked)
+		{
+			SetLastError(ERROR_ACCESS_DENIED);
+			ReleaseWin16Lock();
+			return FALSE;
+		}
+
+		pInputData->fInputBlocked = TRUE;
+		gSharedInfo->wBlockInputTask = ThreadId;
+	}
+	else
+	{
+		if(!pInputData->fInputBlocked && gSharedInfo->wBlockInputTask != ThreadId)
+		{
+			ERR("Thread 0x%X attempt to unlock the input while it has already been locked by another thread !\n", ThreadId);
+			SetLastError(ERROR_ACCESS_DENIED);
+			ReleaseWin16Lock();
+			return FALSE;
+		}
+
+		pInputData->fInputBlocked = FALSE;
+		gSharedInfo->wBlockInputTask = 0;
+	}
+
+	ReleaseWin16Lock();
+	return TRUE;
+}
+
 /* MAKE_EXPORT GetAsyncKeyState_nothunk=GetAsyncKeyState */
 SHORT WINAPI GetAsyncKeyState_nothunk(int vKey)
 {
