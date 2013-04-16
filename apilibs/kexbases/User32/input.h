@@ -35,7 +35,10 @@ typedef struct _INPUTDATA
 	WORD		wMouseBtnSide;					// 074h - 0 = Right-handed, 1 = Left-handed
 	POINTS		CursorPos;						// 076h - Cursor position
 	POINTS		CursorPos2;						// 07Ah - Cursor position (2) ???
-	BYTE		un3[0xF52];						// 07Eh
+	BYTE		un3[0x7EC];						// 07Eh
+	POINTS		MouseDelta;						// 86Ah - Mouse threshold values
+	WORD		MouseAccel;						// 86Eh - Mouse acceleration
+	BYTE		un4[0x760];						// 870h
 	BOOL		fInputBlocked;					// FD0h - 0 = Enabled, 1 = Blocked (cannot use the mouse & keyboard)
 } INPUTDATA, *PINPUTDATA;
 
