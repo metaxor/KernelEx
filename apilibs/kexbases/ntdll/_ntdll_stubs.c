@@ -22,4 +22,46 @@
 #include "common.h"
 
 UNIMPL_FUNC(NtCreateProcess, 8);
+UNIMPL_FUNC(NtFsControlFile, 10);
+UNIMPL_FUNC(NtOpenDirectoryObject, 3);
+UNIMPL_FUNC(NtOpenSymbolicLinkObject, 3);
+UNIMPL_FUNC(NtQueryDirectoryObject, 7);
+UNIMPL_FUNC(NtQueryInformationFile, 5);
+UNIMPL_FUNC(NtQuerySymbolicLinkObject, 3);
+UNIMPL_FUNC(NtSetInformationFile, 5);
+
+UNIMPL_FUNC(RtlAddAccessAllowedAce, 4);
+UNIMPL_FUNC(RtlAddAce, 5);
+UNIMPL_FUNC(RtlClearBits, 3);
+UNIMPL_FUNC(RtlCreateAcl, 3);
+UNIMPL_FUNC(RtlDecompressBuffer, 6);
+UNIMPL_FUNC(RtlDeleteElementGenericTable, 2);
+UNIMPL_FUNC(RtlEnumerateGenericTableWithoutSplaying, 2);
+UNIMPL_FUNC(RtlFindMessage, 5);
+UNIMPL_FUNC(RtlFindSetBits, 3);
+UNIMPL_FUNC(RtlFormatMessage, 8);
+UNIMPL_FUNC(RtlInitializeGenericTable, 5);
+UNIMPL_FUNC(RtlInsertElementGenericTable, 4);
+UNIMPL_FUNC(RtlLengthSecurityDescriptor, 1);
+UNIMPL_FUNC(RtlLookupElementGenericTable, 2);
+UNIMPL_FUNC(RtlNewSecurityObject, 6);
+UNIMPL_FUNC(RtlNormalizeProcessParams, 1);
+UNIMPL_FUNC(RtlNumberOfSetBits, 1);
+UNIMPL_FUNC(RtlQueryInformationAcl, 4);
+UNIMPL_FUNC(RtlQueryRegistryValues, 5);
+UNIMPL_FUNC(RtlSetBits, 3);
+UNIMPL_FUNC(RtlSetDaclSecurityDescriptor, 4);
+UNIMPL_FUNC(RtlSetGroupSecurityDescriptor, 3);
+UNIMPL_FUNC(RtlSetOwnerSecurityDescriptor, 3);
+UNIMPL_FUNC(RtlTimeToTimeFields, 2);
+UNIMPL_FUNC(RtlValidSecurityDescriptor, 1);
+UNIMPL_FUNC(RtlWriteRegistryValue, 6);
+
 UNIMPL_FUNC(ZwCreateProcess, 8);
+UNIMPL_FUNC(ZwFsControlFile, 10);
+UNIMPL_FUNC(ZwOpenDirectoryObject, 3);
+UNIMPL_FUNC(ZwOpenSymbolicLinkObject, 3);
+UNIMPL_FUNC(ZwQueryDirectoryObject, 7);
+UNIMPL_FUNC(ZwQueryInformationFile, 5);
+UNIMPL_FUNC(ZwQuerySymbolicLinkObject, 3);
+UNIMPL_FUNC(ZwSetInformationFile, 5);
