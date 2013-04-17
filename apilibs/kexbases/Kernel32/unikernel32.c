@@ -68,6 +68,14 @@ BOOL WINAPI CreateDirectoryW_new(LPCWSTR PathW, LPSECURITY_ATTRIBUTES SecAttr)
 	return CreateDirectoryA(PathA, SecAttr);
 }
 
+/* MAKE_EXPORT CreateEventW_new=CreateEventW */
+HANDLE WINAPI CreateEventW_new(LPSECURITY_ATTRIBUTES lpEventAttributes, BOOL bManualReset, BOOL bInitialState, LPCWSTR lpNameW)
+{
+	ALLOC_WtoA(lpName);
+
+	return CreateEventA(lpEventAttributes, bManualReset, bInitialState, lpNameA);
+}
+
 //MAKE_EXPORT CreateFileW_new=CreateFileW
 HANDLE WINAPI CreateFileW_new(LPCWSTR strW, DWORD access, DWORD sharemode,
 	LPSECURITY_ATTRIBUTES secattr, DWORD creatdistr, DWORD flags, HANDLE temp)
@@ -136,6 +144,32 @@ BOOL WINAPI DeleteFileW_new(LPCWSTR lpFileNameW)
 	file_GetCP();
 	file_ALLOC_WtoA(lpFileName);
 	return DeleteFileA(lpFileNameA);
+}
+
+//MAKE_EXPORT ExpandEnvironmentStringsW_new=ExpandEnvironmentStringsW
+DWORD WINAPI ExpandEnvironmentStringsW_new(LPCWSTR lpSrcW, LPWSTR lpDstW, DWORD nSize)
+{
+	char *lpDstA = (char*)malloc(nSize);
+	DWORD result = 0;
+
+	if(lpDstA == NULL)
+		return 0;
+
+	ALLOC_WtoA(lpSrc);
+
+	result = ExpandEnvironmentStringsA(lpSrcA, lpDstA, nSize);
+
+	if(!result)
+	{
+		free(lpDstA);
+		return 0;
+	}
+
+	STACK_AtoW(lpDstA, lpDstW);
+
+	free(lpDstA);
+
+	return result;
 }
 
 //MAKE_EXPORT FindAtomW_new=FindAtomW
