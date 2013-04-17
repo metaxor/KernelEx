@@ -117,11 +117,15 @@ BOOL FASTCALL InitInputSegment(void)
 BOOL WINAPI BlockInput_nothunk(BOOL fBlockIt)
 {
 	PTDB98 Thread = get_tdb();
+	PPDB98 Process = get_pdb();
 	PTHREADINFO pti = Thread->Win32Thread;
-	PPROCESSINFO ppi = get_pdb()->Win32Process;
+	PPROCESSINFO ppi = Process->Win32Process;
 	WORD ThreadId = LOWORD(GetCurrentThreadId());
 
 	GrabWin16Lock();
+
+	if(Process == pKernelProcess)
+		goto skipchecks;
 
 	if(pti == NULL || ppi == NULL || pti->rpdesk == NULL || (Thread->Flags & INVALID_FLAGS))
 	{
@@ -145,6 +149,7 @@ BOOL WINAPI BlockInput_nothunk(BOOL fBlockIt)
 		return FALSE;
 	}
 
+skipchecks:
 	if(fBlockIt)
 	{
 		if(pInputData->fInputBlocked)
