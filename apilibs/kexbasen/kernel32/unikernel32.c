@@ -54,14 +54,6 @@ BOOL WINAPI CommConfigDialogW_new(LPCWSTR lpszNameW, HWND hWnd, LPCOMMCONFIG lpC
 	return CommConfigDialogA(lpszNameA, hWnd, lpCC);
 }
 
-/* MAKE_EXPORT CreateEventW_new=CreateEventW */
-HANDLE WINAPI CreateEventW_new(LPSECURITY_ATTRIBUTES lpEventAttributes, BOOL bManualReset, BOOL bInitialState, LPCWSTR lpNameW)
-{
-	ALLOC_WtoA(lpName);
-
-	return CreateEventA(lpEventAttributes, bManualReset, bInitialState, lpNameA);
-}
-
 /* MAKE_EXPORT CreateFileMappingW_new=CreateFileMapping */
 HANDLE WINAPI CreateFileMappingW_new(HANDLE hFile, LPSECURITY_ATTRIBUTES lpAttributes, DWORD flProtect, DWORD dwMaximumSizeHigh, DWORD dwMaximumSizeLow, LPCWSTR lpNameW)
 {
@@ -149,32 +141,6 @@ BOOL WINAPI EnumTimeFormatsW_new(TIMEFMT_ENUMPROC lpTimeFmtEnumProc, LCID Locale
 {
 	SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
 	return FALSE;
-}
-
-/* MAKE_EXPORT ExpandEnvironmentStringsW_new=ExpandEnvironmentStringsW */
-DWORD WINAPI ExpandEnvironmentStringsW_new(LPCWSTR lpSrcW, LPWSTR lpDstW, DWORD nSize)
-{
-	char *lpDstA = (char*)malloc(nSize);
-	DWORD result = 0;
-
-	if(lpDstA == NULL)
-		return 0;
-
-	ALLOC_WtoA(lpSrc);
-
-	result = ExpandEnvironmentStringsA(lpSrcA, lpDstA, nSize);
-
-	if(!result)
-	{
-		free(lpDstA);
-		return 0;
-	}
-
-	STACK_AtoW(lpDstA, lpDstW);
-
-	free(lpDstA);
-
-	return result;
 }
 
 /* MAKE_EXPORT FatalAppExitW_new=FatalAppExitW */
