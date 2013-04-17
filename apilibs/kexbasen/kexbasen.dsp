@@ -436,6 +436,18 @@ SOURCE=.\netapi32\netget.c
 SOURCE=.\netapi32\netshare.c
 # End Source File
 # End Group
+# Begin Group "unicows"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\unicows\_unicows_apilist.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\unicows\_unicows_apilist.h
+# End Source File
+# End Group
 # Begin Source File
 
 SOURCE=..\..\common\common.c

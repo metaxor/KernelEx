@@ -37,9 +37,10 @@
 #include "cryptui/_cryptui_apilist.h"
 #include "ntdll/_ntdll_apilist.h"
 #include "netapi32/_netapi32_apilist.h"
+#include "unicows/_unicows_apilist.h"
 //#include "/__apilist.h"
 
-static apilib_api_table api_table[16];
+static apilib_api_table api_table[17];
 
 static void fill_apitable()
 {
@@ -58,6 +59,7 @@ static void fill_apitable()
 	api_table[12] = apitable_cryptui;
 	api_table[13] = apitable_ntdll;
 	api_table[14] = apitable_netapi32;
+	api_table[15] = apitable_unicows;
 	//last entry is null terminator
 }
 
@@ -74,7 +76,8 @@ static BOOL init()
 	return common_init() && init_kernel32() && init_gdi32() && init_user32() 
 		&& init_advapi32() && init_comdlg32() && init_shell32() && init_rpcrt4() 
 		&& init_winspool() && init_shfolder() && init_winmm() && init_ws2_32()
-		&& init_ole32() && init_cryptui() && init_ntdll() && init_netapi32();
+		&& init_ole32() && init_cryptui() && init_ntdll() && init_netapi32()
+		&& init_unicows();
 }
 
 static void uninit()
