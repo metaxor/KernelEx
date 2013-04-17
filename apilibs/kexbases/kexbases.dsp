@@ -589,6 +589,10 @@ SOURCE=.\ntdll\ntprocess.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\ntdll\ntreg.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\ntdll\ntthread.c
 # End Source File
 # Begin Source File
