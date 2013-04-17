@@ -1,7 +1,6 @@
-#include <windows.h>
+#include "common.h"
 #include <ntsecapi.h>
 #include <accctrl.h>
-#include "common.h"
 #include "_advapi32_apilist.h"
 
 #ifndef SID_MAX_SUB_AUTHORITIES
@@ -24,7 +23,7 @@ WNetGetUserA(
 	if(hInstance == NULL)
 		return FALSE;
 
-	Address = GetProcAddress(hInstance, "WNetGetUserA");
+	Address = kexGetProcAddress(hInstance, "WNetGetUserA");
 
 	if(Address == NULL)
 	{
@@ -58,7 +57,7 @@ WNetGetUserW(
 	if(hInstance == NULL)
 		return FALSE;
 
-	Address = GetProcAddress(hInstance, "WNetGetUserW");
+	Address = kexGetProcAddress(hInstance, "WNetGetUserW");
 
 	if(Address == NULL)
 	{
@@ -91,7 +90,7 @@ WNetVerifyPasswordA(
 	if(hInstance == NULL)
 		return FALSE;
 
-	Address = GetProcAddress(hInstance, "WNetVerifyPasswordA");
+	Address = kexGetProcAddress(hInstance, "WNetVerifyPasswordA");
 
 	if(Address == NULL)
 	{
@@ -123,7 +122,7 @@ WNetVerifyPasswordW(
 	if(hInstance == NULL)
 		return FALSE;
 
-	Address = GetProcAddress(hInstance, "WNetVerifyPasswordW");
+	Address = kexGetProcAddress(hInstance, "WNetVerifyPasswordW");
 
 	if(Address == NULL)
 	{
