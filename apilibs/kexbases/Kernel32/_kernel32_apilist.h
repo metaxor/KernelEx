@@ -145,10 +145,12 @@ BOOL WINAPI CopyFileExW_new(LPCWSTR lpExistingFileNameW, LPCWSTR lpNewFileNameW,
 BOOL WINAPI CopyFileW_new(LPCWSTR lpExistingFileNameW, LPCWSTR lpNewFileNameW, BOOL bFailIfExists);
 BOOL WINAPI CreateDirectoryExW_new(LPCWSTR templatedirW, LPCWSTR newdirW, LPSECURITY_ATTRIBUTES secattr);
 BOOL WINAPI CreateDirectoryW_new(LPCWSTR PathW, LPSECURITY_ATTRIBUTES SecAttr);
+HANDLE WINAPI CreateEventW_new(LPSECURITY_ATTRIBUTES lpEventAttributes, BOOL bManualReset, BOOL bInitialState, LPCWSTR lpNameW);
 HANDLE WINAPI CreateFileW_new(LPCWSTR strW, DWORD access, DWORD sharemode, LPSECURITY_ATTRIBUTES secattr, DWORD creatdistr, DWORD flags, HANDLE temp);
 BOOL WINAPI CreateProcessW_new(LPCWSTR lpApplicationNameW, LPWSTR lpCommandLineW, LPSECURITY_ATTRIBUTES lpProcessAttributes, LPSECURITY_ATTRIBUTES lpThreadAttributes, BOOL bInheritHandles, DWORD dwCreationFlags, LPVOID lpEnvironment, LPCWSTR lpCurrentDirectoryW, LPSTARTUPINFOW lpStartupInfo, LPPROCESS_INFORMATION lpProcessInformation);
 BOOL WINAPI DefineDosDeviceW_new(DWORD dwFlags, LPCWSTR lpDeviceNameW, LPCWSTR lpTargetPathW);
 BOOL WINAPI DeleteFileW_new(LPCWSTR lpFileNameW);
+DWORD WINAPI ExpandEnvironmentStringsW_new(LPCWSTR lpSrcW, LPWSTR lpDstW, DWORD nSize);
 ATOM WINAPI FindAtomW_new(LPCWSTR strW);
 HANDLE WINAPI FindFirstChangeNotificationW_new(LPCWSTR pathW, BOOL watchsubtree, DWORD filter);
 HANDLE WINAPI FindFirstFileW_new(LPCWSTR strW, LPWIN32_FIND_DATAW dataW);
