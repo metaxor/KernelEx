@@ -48,7 +48,6 @@ BOOL WINAPI BuildCommDCBAndTimeoutsW_new(LPCWSTR lpDefW, LPDCB lpDCB, LPCOMMTIME
 BOOL WINAPI BuildCommDCBW_new(LPCWSTR lpDefW, LPDCB lpDCB);
 BOOL WINAPI CallNamedPipeW_new(LPCWSTR lpNamedPipeNameW, LPVOID lpInBuffer, DWORD nInBufferSize, LPVOID lpOutBuffer, DWORD nOutBufferSize, LPDWORD lpBytesRead, DWORD nTimeOut);
 BOOL WINAPI CommConfigDialogW_new(LPCWSTR lpszNameW, HWND hWnd, LPCOMMCONFIG lpCC);
-HANDLE WINAPI CreateEventW_new(LPSECURITY_ATTRIBUTES lpEventAttributes, BOOL bManualReset, BOOL bInitialState, LPCWSTR lpNameW);
 HANDLE WINAPI CreateFileMappingW_new(HANDLE hFile, LPSECURITY_ATTRIBUTES lpAttributes, DWORD flProtect, DWORD dwMaximumSizeHigh, DWORD dwMaximumSizeLow, LPCWSTR lpNameW);
 HANDLE WINAPI CreateMailslotW_new(LPCWSTR lpNameW, DWORD nMaxMessageSize, DWORD lReadTimeout, LPSECURITY_ATTRIBUTES lpSecurityAttributes);
 HANDLE WINAPI CreateMutexW_new(LPSECURITY_ATTRIBUTES lpMutexAttributes, BOOL bInitialOwner, LPCWSTR lpNameW);
@@ -61,7 +60,6 @@ BOOL WINAPI EnumDateFormatsW_new(DATEFMT_ENUMPROC lpDateFmtEnumProc, LCID Locale
 BOOL WINAPI EnumSystemCodePagesW_new(CODEPAGE_ENUMPROC lpCodePageEnumProc, DWORD dwFlags);
 BOOL WINAPI EnumSystemLocalesW_new(LOCALE_ENUMPROC lpLocaleEnumProc, DWORD dwFlags);
 BOOL WINAPI EnumTimeFormatsW_new(TIMEFMT_ENUMPROC lpTimeFmtEnumProc, LCID Locale, DWORD dwFlags);
-DWORD WINAPI ExpandEnvironmentStringsW_new(LPCWSTR lpSrcW, LPWSTR lpDstW, DWORD nSize);
 void WINAPI FatalAppExitW_new(UINT uAction, LPCWSTR lpMessageTextW);
 BOOL WINAPI FillConsoleOutputCharacterW_new(HANDLE hConsoleOutput, WCHAR cCharacterW, DWORD nLength, COORD dwWriteCoord, LPDWORD lpNumberOfCharsWritten);
 DWORD WINAPI FormatMessageW_new(DWORD dwFlags, LPCVOID lpSource, DWORD dwMessageId, DWORD dwLanguageId, LPWSTR lpBufferW, DWORD nSize, va_list* Arguments);
