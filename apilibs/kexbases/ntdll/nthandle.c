@@ -45,6 +45,47 @@ NTSTATUS NTAPI NtClose(IN HANDLE Handle)
 	return STATUS_SUCCESS;
 }
 
+/* MAKE_EXPORT NtCreateEvent=NtCreateEvent */
+/* MAKE_EXPORT NtCreateEvent=ZwCreateEvent */
+NTSTATUS
+NTAPI
+NtCreateEvent(
+	OUT PHANDLE EventHandle,
+	IN ACCESS_MASK DesiredAccess,
+	IN POBJECT_ATTRIBUTES ObjectAttributes OPTIONAL,
+	IN EVENT_TYPE EventType,
+	IN BOOLEAN InitialState 
+) 	
+{
+	DWORD Attributes;
+	DWORD dwFlags;
+	SECURITY_ATTRIBUTES sa;
+
+	if(IsBadWritePtr(EventHandle, sizeof(DWORD)))
+		return STATUS_INVALID_PARAMETER_1;
+
+	if(ObjectAttributes != NULL)
+		Attributes = ObjectAttributes->Attributes;
+
+	if(Attributes & OBJ_INHERIT)
+	{
+		sa.nLength = sizeof(SECURITY_ATTRIBUTES);
+		sa.lpSecurityDescriptor = NULL;
+		sa.bInheritHandle = TRUE;
+
+		dwFlags = HF_INHERIT;
+	}
+
+	*EventHandle = CreateEventW_new(&sa,
+							FALSE,
+							FALSE,
+							ObjectAttributes != NULL ? ObjectAttributes->ObjectName->Buffer : NULL);
+
+	if(*EventHandle == NULL)
+		return STATUS_INVALID_PARAMETER;
+
+	return STATUS_SUCCESS;
+}
 
 /* MAKE_EXPORT NtDuplicateObject=NtDuplicateObject */
 /* MAKE_EXPORT NtDuplicateObject=ZwDuplicateObject */
@@ -83,9 +124,35 @@ NTSTATUS NTAPI NtDuplicateObject(IN HANDLE SourceProcessHandle,
 	return STATUS_SUCCESS;
 }
 
+/* MAKE_EXPORT NtSetEvent=NtSetEvent */
+/* MAKE_EXPORT NtSetEvent=ZwSetEvent */
+NTSTATUS
+NTAPI
+NtSetEvent(
+	IN HANDLE EventHandle,
+	OUT PLONG PreviousState OPTIONAL
+)
+{
+	BOOL result = SetEvent(EventHandle);
+
+	if(!result)
+	{
+		DWORD dwError = GetLastError();
+
+		if(dwError == ERROR_ACCESS_DENIED)
+			return STATUS_ACCESS_DENIED;
+		else if(dwError == ERROR_NOT_ENOUGH_MEMORY)
+			return STATUS_INSUFFICIENT_RESOURCES;
+		else if(dwError == ERROR_INVALID_HANDLE)
+			return STATUS_INVALID_HANDLE;
+	}
+
+	return STATUS_SUCCESS;
+}
+
 /* MAKE_EXPORT NtWaitForSingleObject=NtWaitForSingleObject */
 /* MAKE_EXPORT NtWaitForSingleObject=ZwWaitForSingleObject */
-NTSTATUS WINAPI NtWaitForSingleObject(IN HANDLE Handle,
+NTSTATUS NTAPI NtWaitForSingleObject(IN HANDLE Handle,
 	IN BOOLEAN Alertable,
 	IN PLARGE_INTEGER Timeout
 )
