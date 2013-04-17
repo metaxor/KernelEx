@@ -132,6 +132,63 @@ NtCreateSection(
 	return STATUS_SUCCESS;
 }
 
+/* MAKE_EXPORT NtDeviceIoControlFile=NtDeviceIoControlFile */
+/* MAKE_EXPORT NtDeviceIoControlFile=ZwDeviceIoControlFile */
+NTSTATUS
+NTAPI
+NtDeviceIoControlFile(
+	IN HANDLE FileHandle,
+	IN HANDLE Event,
+	IN PVOID ApcRoutine,
+	IN PVOID ApcContext,
+	OUT PIO_STATUS_BLOCK IoStatusBlock,
+	IN ULONG IoControlCode,
+	IN PVOID InputBuffer,
+	IN ULONG InputBufferLength,
+	OUT PVOID OutputBuffer,
+	IN ULONG OutputBufferLength
+)
+{
+	BOOL result;
+	DWORD BytesReturned = 0;
+
+	result = DeviceIoControl(FileHandle,
+							IoControlCode,
+							InputBuffer,
+							InputBufferLength,
+							OutputBuffer,
+							OutputBufferLength,
+							&BytesReturned,
+							NULL);
+
+	if(!result)
+		return STATUS_INVALID_PARAMETER;
+
+	return STATUS_SUCCESS;
+}
+
+/* MAKE_EXPORT NtDisplayString=NtDisplayString */
+/* MAKE_EXPORT NtDisplayString=ZwDisplayString */
+NTSTATUS
+NTAPI
+NtDisplayString(IN PUNICODE_STRING String)
+{
+	OEM_STRING OemString;
+	DWORD dwBytesWritten;
+
+	RtlUnicodeStringToOemString(&OemString, String, TRUE);
+
+	WriteFile(GetStdHandle(STD_OUTPUT_HANDLE),
+			OemString.Buffer,
+			OemString.Length,
+			&dwBytesWritten,
+			NULL);
+
+	RtlFreeOemString(&OemString);
+
+	return STATUS_SUCCESS;
+}
+
 /* MAKE_EXPORT NtOpenFile=NtOpenFile */
 /* MAKE_EXPORT NtOpenFile=ZwOpenFile */
 NTSTATUS
@@ -246,7 +303,7 @@ NtQuerySection(
 
 	__try
 	{
-		pNTHeader = (PIMAGE_NT_HEADERS)dosHeader->e_lfanew;
+		pNTHeader = (PIMAGE_NT_HEADERS)((DWORD)lpFileBase + dosHeader->e_lfanew);
 		pOptHeader = &pNTHeader->OptionalHeader;
 		pFileHeader = &pNTHeader->FileHeader;
 
@@ -271,6 +328,71 @@ NtQuerySection(
 	__except(EXCEPTION_EXECUTE_HANDLER)
 	{
 	}
+
+	return STATUS_SUCCESS;
+}
+
+/* MAKE_EXPORT NtReadFile=NtReadFile */
+/* MAKE_EXPORT NtReadFile=ZwReadFile */
+NTSTATUS
+NTAPI NtReadFile(
+	IN HANDLE FileHandle,
+	IN HANDLE Event OPTIONAL,
+	IN PVOID ApcRoutine OPTIONAL,
+	IN PVOID ApcContext OPTIONAL,
+	OUT PIO_STATUS_BLOCK IoStatusBlock,
+	OUT PVOID Buffer,
+	IN ULONG Length,
+	IN PLARGE_INTEGER ByteOffset OPTIONAL,
+	IN PULONG Key OPTIONAL 
+) 	
+{
+	BOOL result;
+	OVERLAPPED ol;
+
+	result = ReadFileEx(FileHandle,
+						Buffer,
+						Length,
+						&ol,
+						NULL);
+
+	if(!result)
+		return STATUS_INVALID_PARAMETER;
+
+	IoStatusBlock->Pointer = ol.Pointer;
+
+	return STATUS_SUCCESS;
+}
+
+/* MAKE_EXPORT NtWriteFile=NtWriteFile */
+/* MAKE_EXPORT NtWriteFile=ZwWriteFile */
+NTSTATUS
+NTAPI
+NtWriteFile(
+	IN HANDLE FileHandle,
+	IN HANDLE Event OPTIONAL,
+	IN PVOID ApcRoutine OPTIONAL,
+	IN PVOID ApcContext OPTIONAL,
+	OUT PIO_STATUS_BLOCK IoStatusBlock,
+	IN PVOID Buffer,
+	IN ULONG Length,
+	IN PLARGE_INTEGER ByteOffset OPTIONAL,
+	IN PULONG Key OPTIONAL
+)
+{
+	BOOL result;
+	OVERLAPPED ol;
+
+	result = WriteFileEx(FileHandle,
+						Buffer,
+						Length,
+						&ol,
+						NULL);
+
+	if(!result)
+		return STATUS_INVALID_PARAMETER;
+
+	IoStatusBlock->Pointer = ol.Pointer;
 
 	return STATUS_SUCCESS;
 }
