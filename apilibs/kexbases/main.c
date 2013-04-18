@@ -200,7 +200,7 @@ BOOL APIENTRY DllMain(HINSTANCE instance, DWORD reason, BOOL load_static)
 	PPDB98 Process = get_pdb();
 	PTDB98 Thread = get_tdb();
 
-	if(Process == pKernelProcess)
+	if(Process == ppdbKernelProcess)
 		return TRUE;
 
 	switch (reason) 
