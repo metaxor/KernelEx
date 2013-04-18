@@ -124,7 +124,7 @@ _KEXCOREIMP LPSTR kexAllocObjectName(PVOID Object, LPCSTR lpName);
  */
 _KEXCOREIMP VOID kexFreeObject(PVOID Object);
 
-/** kexAllocHandle - alloc an handle for the specified process
+/** kexAllocHandle - allocate an handle for the specified process
  * @param TargetProcess - Target process to allocate the handle, NULL means the current process
  * @param Object - should contains type (offset 0x00), a ref (offset 0x02), object must be located at shared memory
  * (kexAllocObject return a pointer to shared memory), otherwise other process will have problems accessing to this object
@@ -145,7 +145,7 @@ _KEXCOREIMP HANDLE kexAllocHandle(PVOID TargetProcess, PVOID Object, DWORD dwDes
  */
 _KEXCOREIMP PTDB98 kexCreateRemoteThread(PPDB98 Process, SIZE_T dwStackSize, LPTHREAD_START_ROUTINE lpStartAddress, LPVOID lpParameter, DWORD dwCreationFlags);
 
-/** kexDereferenceObject - Dereference an object that as been referenced by any handle opening/allocation functions
+/** kexDereferenceObject - Dereference an object that as been referenced by any handle functions
  * @param Object - Pointer to a valid object to dereference
  * @return TRUE if successful, FALSE otherwise
  */
@@ -210,17 +210,18 @@ _KEXCOREIMP DWORD kexGetCoreCaps();
  */
 #ifndef KEXCORE_EXPORTS
 #ifndef _DEBUG
-#define DBGPRINTF(x)		do { } while(0)
-#define TRACE(fmt, args)	do { } while(0)
-#define TRACE_OUT(x)		do { } while(0)
-#define WARN(fmt, args)		do { } while(0)
-#define WARN_OUT(x)			do { } while(0)
-#define ERR(fmt, args)		do { } while(0)
-#define ERR_OUT(x)			do { } while(0)
-#define FIXME(fmt, args)	do { } while(0)
-#define FIXME_OUT(x)		do { } while(0)
-#define UNIMPLEMENTED		do { } while(0)
-#define UNIMPLEMENTED2		do { } while(0);
+#define DBGPRINTF(x)
+#define TRACE(fmt, args)
+#define TRACE_OUT(x)
+#define WARN(fmt, args)
+#define WARN_OUT(x)
+#define ERR(fmt, args)
+#define ERR_OUT(x)
+#define FIXME(fmt, args)
+#define FIXME_OUT(x)
+#define UNIMPLEMENTED
+#define UNIMPLEMENTED2
+#define ASSERT(x)
 #else
 #define DBGPRINTF(x)		kexDebugPrint x
 #define TRACE(fmt, args)	kexDebugPrint("(%s:%d) " fmt , __FILE__ , __LINE__, args)
@@ -233,6 +234,7 @@ _KEXCOREIMP DWORD kexGetCoreCaps();
 #define FIXME_OUT(x)		kexDebugPrint("(%s:%d) FIXME: " x , __FILE__ , __LINE__)
 #define UNIMPLEMENTED		kexDebugPrint("(%s:%d) WARNING: %s is UNIMPLEMENTED!\n", __FILE__, __LINE__, __FUNCTION__);
 #define UNIMPLEMENTED2		kexDebugPrint("(%s:%d) WARNING: stub !\n", __FILE__, __LINE__);
+#define ASSERT(x) if(!(x)) { kexDebugPrint("Assertion " #x " failed at %s:%d\n", __FILE__, __LINE__); DebugBreak(); }
 #endif
 
 #define TRACEW TRACE
@@ -293,7 +295,7 @@ _KEXCOREIMP BOOL kexSetHandleAccess(HANDLE hHandle, DWORD dwDesiredAccess);
 _KEXCOREIMP PVOID kexGetHandleObject(HANDLE hHandle, WORD ObjectType, DWORD);
 
 /** kexGetHandleObjectFromProcess - Same as kexGetHandleObject, instead this function
- * will able to get objects from another process
+ * is able to get objects from another process
  * @param Process - A pointer to PPDB98
  * @return a pointer to the object from the handle
  */
@@ -319,7 +321,7 @@ _KEXCOREIMP PVOID kexGetThread(DWORD dwThreadId);
 _KEXCOREIMP BOOL kexGetProcessName(DWORD dwProcessId, char *buffer);
 
 /** kexOpenObjectByName - open an object by name, this functions searches the name through the system
- * and check if the name match, it check it the object type also match
+ * and check if the name match, it check if the object type also match
  * @param lpName - Name of the object
  * @param ObjectType - Object type (types are defined in kstructs.h)
  * @param dwDesiredAccess - can have HF_INHERIT if the handle can be inherited by child processes
