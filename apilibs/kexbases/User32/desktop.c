@@ -32,8 +32,8 @@
 
 LPCRITICAL_SECTION gpdeskLock;
 
-PTDB98 pDesktopThread = NULL;
-DWORD dwDesktopThreadId = NULL;
+PTDB98 gptdbDesktopThread = NULL;
+DWORD gpidDesktopThread = NULL;
 
 PWND pwndDesktop = NULL;
 
@@ -449,7 +449,7 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
 	if(Thread == NULL || Process == NULL)
 		return TRUE;
 
-	if(Process == pKernelProcess)
+	if(Process == ppdbKernelProcess)
 		return TRUE;
 
 	//if(Process->Flags & fWin16Process)
@@ -578,14 +578,14 @@ DWORD WINAPI DesktopThread(PVOID lParam)
 
 	kexGrabLocks();
 
-	pDesktopThread = get_tdb();
-	pKernelProcess = get_pdb();
+	gptdbDesktopThread = get_tdb();
+	ppdbKernelProcess = get_pdb();
 
 	/* Prevent the kernel process from being terminated by adding the terminating flag */
-	pKernelProcess->Flags |= fTerminating;
+	ppdbKernelProcess->Flags |= fTerminating;
 
-	dwDesktopThreadId = GetCurrentThreadId();
-	dwKernelProcessId = GetCurrentProcessId();
+	gpidDesktopThread = GetCurrentThreadId();
+	gpidKernelProcess = GetCurrentProcessId();
 
 	kexReleaseLocks();
 
@@ -602,6 +602,10 @@ DWORD WINAPI DesktopThread(PVOID lParam)
 		PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE);
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
+
+		/* If the input desktop is NULL, wait for it to be created */
+		if(gpdeskInputDesktop == NULL)
+			continue;
 
 		if(pWin16Mutex->LockCount == 0 && fNewDesktop == FALSE)
 			continue;
@@ -761,16 +765,12 @@ HDESK WINAPI CreateDesktopA_new(LPCSTR lpszDesktop, LPCSTR lpszDevice, LPDEVMODE
 
 	GrabWin16Lock();
 
+	ASSERT(ppi);
+	ASSERT(gptdbDesktopThread);
+
 	if(pDevmode != NULL && IsBadReadPtr(pDevmode, sizeof(DEVMODE)))
 	{
 		SetLastError(ERROR_INVALID_PARAMETER);
-		ReleaseWin16Lock();
-		return NULL;
-	}
-
-	if(ppi == NULL)
-	{
-		SetLastError(ERROR_ACCESS_DENIED);
 		ReleaseWin16Lock();
 		return NULL;
 	}
@@ -1189,12 +1189,8 @@ BOOL WINAPI SetThreadDesktop_new(HDESK hDesktop)
 	pti = get_tdb()->Win32Thread;
 	ppi = get_pdb()->Win32Process;
 
-	if(pti == NULL)
-	{
-		SetLastError(ERROR_ACCESS_DENIED);
-		ReleaseWin16Lock();
-		return FALSE;
-	}
+	ASSERT(pti);
+	ASSERT(ppi);
 
 	if(pti->hdesk == hDesktop)
 	{
