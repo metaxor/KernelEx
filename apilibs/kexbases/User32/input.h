@@ -39,7 +39,7 @@ typedef struct _INPUTDATA
 	POINTS		MouseDelta;						// 86Ah - Mouse threshold values
 	WORD		MouseAccel;						// 86Eh - Mouse acceleration
 	BYTE		un4[0x760];						// 870h
-	BOOL		fInputBlocked;					// FD0h - 0 = Enabled, 1 = Blocked (cannot use the mouse & keyboard)
+	WORD		fInputBlocked;					// FD0h - 0 = Enabled, 1 = Blocked (cannot use the mouse & keyboard)
 } INPUTDATA, *PINPUTDATA;
 
 #pragma pack()
