@@ -94,7 +94,7 @@ VOID TerminateAllProcesses()
 
 		Process = (PPDB98)kexGetProcess(pProcess[i]);
 
-		if(Process == pKernelProcess || Process == Msg32Process || Process == MprProcess)
+		if(Process == ppdbKernelProcess || Process == Msg32Process || Process == MprProcess)
 			continue;
 
 		hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pProcess[i]);
@@ -333,7 +333,7 @@ BOOL CALLBACK EnumProcessesProc(DWORD dwProcessId, PSHUTDOWNDATA ShutdownData)
 	}
 
 	/* The kernel process doesn't have the fServiceProcess flag */
-	if(Process == pKernelProcess)
+	if(Process == ppdbKernelProcess)
 		return TRUE;
 
 	hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, dwProcessId);
@@ -379,7 +379,7 @@ ULONG GetUserProcessesCount(PSHUTDOWNDATA sa)
 		if(!(Process->Flags & fServiceProcess) && sa->fEndServices)
 			continue;
 
-		if(Process == pKernelProcess || Process == MprProcess || Process == Msg32Process)
+		if(Process == ppdbKernelProcess || Process == MprProcess || Process == Msg32Process)
 			continue;
 
 		if(Process->Win32Process != NULL && Process->Win32Process->SessionId != sa->SessionId)
@@ -558,7 +558,7 @@ VOID FASTCALL DestroyKernelWnd(PSHUTDOWNDATA ShutdownData, BOOL fCloseAll)
 
 		wndThread = GetWindowThreadProcessId(hWnd, &wndProcess);
 
-		if(wndProcess == dwKernelProcessId && wndThread != dwShutdownThreadId && wndThread != ShutdownThreadWndId)
+		if(wndProcess == gpidKernelProcess && wndThread != dwShutdownThreadId && wndThread != ShutdownThreadWndId)
 		{
 			Sleep(TimeBetweenTermination);
 

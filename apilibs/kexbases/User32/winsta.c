@@ -24,8 +24,8 @@
 LIST_ENTRY WindowStationList;
 PWINSTATION_OBJECT InputWindowStation = NULL;
 
-DWORD dwKernelProcessId = 0;
-PPDB98 pKernelProcess = NULL;
+DWORD gpidKernelProcess = 0;
+PPDB98 ppdbKernelProcess = NULL;
 
 DWORD gpidSession = 0;
 

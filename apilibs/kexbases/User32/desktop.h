@@ -204,10 +204,10 @@ extern BOOL fNewDesktop;
 
 extern HANDLE gpdeskSwitchEvent;
 
-extern PPDB98 pKernelProcess;
-extern PTDB98 pDesktopThread;
-extern DWORD dwDesktopThreadId;
-extern DWORD dwKernelProcessId;
+extern PPDB98 ppdbKernelProcess;
+extern PTDB98 gptdbDesktopThread;
+extern DWORD gpidDesktopThread;
+extern DWORD gpidKernelProcess;
 
 extern DWORD gpidSession;
 

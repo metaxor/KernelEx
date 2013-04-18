@@ -343,7 +343,7 @@ HWND FASTCALL CreateGhostWindow(DWORD dwProcessId, DWORD dwThreadId, HWND hwndRe
 	pwndReplace = HWNDtoPWND(hwndReplace);
 
 	if(hProcess == NULL || Process == NULL || Thread == NULL || pwndReplace == NULL || phunginf == NULL ||
-		Process == pKernelProcess || ppi == NULL || pti == NULL || Process == pKernelProcess || phunginf == NULL)
+		Process == ppdbKernelProcess || ppi == NULL || pti == NULL || Process == ppdbKernelProcess || phunginf == NULL)
 	{
 		TRACE_OUT("CreateGhostWindow failed\n");
 		return NULL;
@@ -421,7 +421,7 @@ BOOL CALLBACK EnumHungWindowsProc(HWND hwnd, LPARAM lParam)
 	if(pwnd == NULL)
 		return TRUE;
 
-	if(dwProcessId == dwKernelProcessId)
+	if(dwProcessId == gpidKernelProcess)
 		return TRUE;
 
 	if(!IsWindowVisible_fix(hwnd) || (pwnd->style & WS_CHILD))
