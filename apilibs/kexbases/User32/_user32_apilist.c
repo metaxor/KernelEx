@@ -187,7 +187,7 @@ BOOL init_user32()
 
 	MprProcess = get_pdb();
 	gpidMpr = GetCurrentProcessId();
-	pKernelProcess = MprProcess->ParentPDB->ParentPDB;
+	ppdbKernelProcess = MprProcess->ParentPDB->ParentPDB;
 
 	CreateStatusDialog("Please wait...", "Windows is starting up...");
 
@@ -218,14 +218,6 @@ BOOL init_user32()
 
 	if(!WTSInitializeSession())
 		goto _ret;
-
-	InitDesktops();
-
-	if(InputWindowStation == NULL)
-	{
-		if(!CreateWindowStationAndDesktops())
-			goto _ret;
-	}
 
 	Sleep(25);
 
@@ -268,6 +260,14 @@ BOOL init_user32()
 		CloseHandle(hThread2);
 		CloseHandle(hThread3);
 		hThread = hThread2 = hThread3 = NULL;
+	}
+
+	InitDesktops();
+
+	if(InputWindowStation == NULL)
+	{
+		if(!CreateWindowStationAndDesktops())
+			goto _ret;
 	}
 
 	memset(&si, 0, sizeof(STARTUPINFO));
@@ -336,6 +336,22 @@ VOID process_user_uninit(PPDB98 Process)
 	PHANDLE_TABLE pHandleTable = Process->pHandleTable;
 	PK32OBJHEAD Object;
 	UINT index;
+	DWORD dwThreads = 0;
+	DWORD pThread[255];
+	ULONG i;
+
+	kexEnumThreads(GetCurrentProcessId(), pThread, sizeof(pThread), &dwThreads);
+
+	for(i=0;i<=dwThreads;i++)
+	{
+		PTDB98 Thread = (PTDB98)kexGetThread(pThread[i]);
+
+		if(Thread == NULL || Thread->Win32Thread == NULL)
+			continue;
+
+		Thread->Win32Thread->rpdesk = NULL;
+		Thread->Win32Thread->hdesk = NULL;
+	}
 
 	__try
 	{
