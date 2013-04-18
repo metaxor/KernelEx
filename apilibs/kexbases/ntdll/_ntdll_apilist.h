@@ -268,8 +268,8 @@ NTSTATUS NTAPI NtOpenProcess(OUT PHANDLE ProcessHandle, IN ACCESS_MASK AccessMas
 NTSTATUS NTAPI NtResumeProcess(IN HANDLE ProcessHandle);
 NTSTATUS NTAPI NtSuspendProcess(IN HANDLE ProcessHandle);
 NTSTATUS NTAPI NtTerminateProcess(IN HANDLE ProcessHandle OPTIONAL, IN NTSTATUS ExitStatus);
-NTSTATUS NTAPI NtQueryValueKey(IN HANDLE KeyHandle, IN PUNICODE_STRING ValueName, IN KEY_VALUE_INFORMATION_CLASS KeyValueInformationClass, OUT PVOID KeyValueInformation OPTIONAL, IN ULONG Length, OUT PULONG ResultLength);
 NTSTATUS NTAPI NtOpenKey(OUT PHANDLE KeyHandle, IN ACCESS_MASK DesiredAccess, IN POBJECT_ATTRIBUTES ObjectAttributes);
+NTSTATUS NTAPI NtQueryValueKey(IN HANDLE KeyHandle, IN PUNICODE_STRING ValueName, IN KEY_VALUE_INFORMATION_CLASS KeyValueInformationClass, OUT PVOID KeyValueInformation OPTIONAL, IN ULONG Length, OUT PULONG ResultLength);
 NTSTATUS NTAPI NtCreateThread(OUT PHANDLE ThreadHandle, IN ACCESS_MASK DesiredAccess, IN POBJECT_ATTRIBUTES ObjectAttributes OPTIONAL, IN HANDLE ProcessHandle, OUT PCLIENT_ID ClientId, IN PCONTEXT ThreadContext, IN PINITIAL_TEB InitialTeb, IN BOOLEAN CreateSuspended);
 NTSTATUS NTAPI NtGetContextThread(IN HANDLE ThreadHandle, OUT PCONTEXT pContext);
 NTSTATUS NTAPI NtSetContextThread(IN HANDLE ThreadHandle, IN PCONTEXT Context);
