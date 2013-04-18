@@ -124,7 +124,7 @@ BOOL WINAPI BlockInput_nothunk(BOOL fBlockIt)
 
 	GrabWin16Lock();
 
-	if(Process == pKernelProcess)
+	if(Process == ppdbKernelProcess)
 		goto skipchecks;
 
 	if(pti == NULL || ppi == NULL || pti->rpdesk == NULL || (Thread->Flags & INVALID_FLAGS))
@@ -154,6 +154,8 @@ skipchecks:
 	{
 		if(pInputData->fInputBlocked)
 		{
+			DBGPRINTF(("pInputData->fInputBlocked = %d\n", pInputData->fInputBlocked));
+			ERR("Thread 0x%X attempt to lock the input while it has been already locked !\n", ThreadId);
 			SetLastError(ERROR_ACCESS_DENIED);
 			ReleaseWin16Lock();
 			return FALSE;
@@ -164,7 +166,7 @@ skipchecks:
 	}
 	else
 	{
-		if(!pInputData->fInputBlocked && gSharedInfo->wBlockInputTask != ThreadId)
+		if(pInputData->fInputBlocked && gSharedInfo->wBlockInputTask != ThreadId)
 		{
 			ERR("Thread 0x%X attempt to unlock the input while it has already been locked by another thread !\n", ThreadId);
 			SetLastError(ERROR_ACCESS_DENIED);
@@ -176,6 +178,7 @@ skipchecks:
 		gSharedInfo->wBlockInputTask = 0;
 	}
 
+	TRACE("Input locked successfully by thread 0x%X\n", ThreadId);
 	ReleaseWin16Lock();
 	return TRUE;
 }
