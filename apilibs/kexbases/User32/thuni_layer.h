@@ -92,6 +92,13 @@ extern PUSERDGROUP gSharedInfo;
 extern HMODULE g_hUser32;
 extern HMODULE g_hUser16;
 extern HMODULE g_hKernel16;
+extern DWORD pLDT; 
+extern WORD selLDT;
+extern DWORD pSelTables;
+extern DWORD pBurgerMaster;
+extern DWORD CallProc32W;
+extern DWORD EnterWin16Lock16;
+extern DWORD LeaveWin16Lock16;
 extern HWND hwndStatusDlg;
 extern HWND hwndStatusDlgText;
 BOOL InitUniThunkLayerStuff();
@@ -129,6 +136,10 @@ LRESULT WINAPI DefMDIChildProcW_NEW( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM 
 BOOL IsWindowReallyUnicode(HWND hwnd);
 BOOL WINAPI IsWindowUnicode_NEW( HWND hWnd );
 BOOL InitUniThunkLayer();
+void ReplaceByte(unsigned char* Array, int iArraySize, BYTE from, BYTE to);
+void ReplaceWord(char* Array, int iArraySize, WORD from, WORD to);
+void ReplaceDWord(char* Array, int iArraySize, DWORD from, DWORD to);
+DWORD ReplaceFunction16(FARPROC pFunction16, FARPROC pTargetFunction32, WORD nParams, BOOL fFarReturn);
 
 //sendmessage_fix
 LRESULT WINAPI SendMessageA_fix(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
