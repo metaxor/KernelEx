@@ -42,6 +42,24 @@ typedef struct
 
 typedef struct
 {
+	BYTE callfar;	
+	DWORD addr;
+} CALLFAR16, *PCALLFAR16;
+
+typedef struct
+{
+	BYTE callnear;	
+	WORD call_reladdr;
+} CALL16, *PCALL16;
+
+typedef struct
+{
+	BYTE callcode;
+	DWORD call_reladdr;
+} CALL32, *PCALL32;
+
+typedef struct
+{
 	UINT fuFlags;
 	UINT uTimeout;
 	LPDWORD lpdwResult;
@@ -59,5 +77,9 @@ static BOOL IsValidThunk( THUNKPROC proc )
 
 PROCESS_THUNKS GetProcessThunks();
 PROCESS_THUNKS GrowProcessThunks(PROCESS_THUNKS lastChunk);
+void MakeSelectorExecutable(WORD wSelector);
+void GlobalSetOwner(WORD gHandle, WORD wOwner);
+DWORD WINAPI CreateThunk16(DWORD dwSize);
+DWORD GetCall16Addr(DWORD code16);
 
 #endif
