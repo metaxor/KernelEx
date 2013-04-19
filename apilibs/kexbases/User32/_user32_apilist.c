@@ -214,12 +214,6 @@ BOOL init_user32()
 	fInputResult = InitInputSegment();
 
 	Sleep(25);
-	SetStatusDialogText("Windows is starting up (creating window station and desktops)...");
-
-	if(!WTSInitializeSession())
-		goto _ret;
-
-	Sleep(25);
 
 	SetStatusDialogText("Windows is starting up (creating system threads)...");
 
@@ -262,13 +256,16 @@ BOOL init_user32()
 		hThread = hThread2 = hThread3 = NULL;
 	}
 
-	InitDesktops();
+	Sleep(25);
+	SetStatusDialogText("Windows is starting up (creating window station and desktops)...");
 
 	if(InputWindowStation == NULL)
 	{
 		if(!CreateWindowStationAndDesktops())
 			goto _ret;
 	}
+
+	InitDesktops();
 
 	memset(&si, 0, sizeof(STARTUPINFO));
 	memset(&pi, 0, sizeof(PROCESS_INFORMATION));
