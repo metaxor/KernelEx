@@ -253,7 +253,16 @@ WhiteScan:
 
 	__try
 	{
+		if(dosHeader->e_magic != IMAGE_DOS_SIGNATURE && dosHeader->e_magic != 0x5A4D)
+			RaiseException(EXCEPTION_ACCESS_VIOLATION, 0, 0, NULL);
+
+		if(dosHeader->e_lfanew == 0)
+			__leave; // Could be a DOS app
+
 		pNTHeader = (PIMAGE_NT_HEADERS)((DWORD)lpFileBase + dosHeader->e_lfanew);
+
+		if(IsBadReadPtr(pNTHeader, sizeof(IMAGE_NT_HEADERS)) || pNTHeader->Signature != IMAGE_NT_SIGNATURE)
+			__leave; // Could be a 16-bit app
 
 		/* Fail if the executable is a DLL (Win9x doesn't care if the image
 		   is a DLL but can execute) */
@@ -276,9 +285,7 @@ WhiteScan:
 	}
 	__except(EXCEPTION_EXECUTE_HANDLER)
 	{
-		TRACE("An exception occured, the executable %s is in a bad format\n", lpApplicationName);
-		SetLastError(ERROR_BAD_EXE_FORMAT);
-		return FALSE;
+		WARN("The executable %s could be a bad format\n", lpApplicationName);
 	}
 
 	UnmapViewOfFile(lpFileBase);
