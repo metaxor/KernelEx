@@ -52,8 +52,7 @@ typedef struct _DESKTOP
 
     DWORD pDeskInfo;							// 04
 	DWORD unused;								// 08
-	PCHAR pName;								// 0C
-	PCHAR lpName;								// 10
+	PCHAR lpName;								// 0C
     LIST_ENTRY ListEntry;
 
 	DWORD SessionId;
@@ -144,8 +143,7 @@ typedef struct _WINSTATION_OBJECT
 
 	DWORD Lock;			// 04
 	DWORD unused1;		// 08
-    PCHAR pName;		// 0C
-	PCHAR lpName;		// 10
+	PCHAR lpName;		// 0C
     LIST_ENTRY DesktopListHead;
 	LIST_ENTRY ListEntry;
     DWORD AtomTable;
