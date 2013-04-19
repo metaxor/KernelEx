@@ -81,40 +81,43 @@ typedef struct _USERDGROUP // Size = 0x1B6F (from USER)
 	WORD	wFont1;						// 0A2h - Used by CREATEFONTINDIRECT
 	BYTE	un3[0x1A0];					// 0A4h
 	WORD	wCursorTimer;				// 244h - Changed by SETCHECKCURSORTIMER
-	BYTE	un4[0x384];					// 246h
+	BYTE	un4[0x346];					// 246h
+	WORD	fLoggingOff;				// 58Ch - 1 = Logging off, 0 = Not logging off
+	WORD	EW_un1;						// 58Eh
+	BYTE	un5[0x3A];					// 590h
 	HWND	ShellWindow;				// 5CAh - Shell window (usually explorer)
 	WORD	pSysClass;					// 5CEh - Pointer to system classes list
-	BYTE	un5[0xA8];					// 5D0h
+	BYTE	un6[0xA8];					// 5D0h
 	WORD	fBeep;						// 678h - Beep (1 = enabled, 0 = disabled)
-	BYTE	un6[0x40];					// 67Ah
+	BYTE	un7[0x40];					// 67Ah
 	HWND	ClipboardOwner;				// 6BAh - Clipboard owner
 	HWND	ClipboardViewer;			// 6BEh - Clipboard viewer
-	WORD	un7[2];						// 6C2h
+	WORD	un8[2];						// 6C2h
 	HWND	ClipboardWindow;			// 6C6h - Clipboard window
-	BYTE	un8[0x4A];					// 6CAh
+	BYTE	un9[0x4A];					// 6CAh
 	PWND	pwndDesktop;				// 714h - Pointer to the desktop window structure
-	BYTE	un9[0x32];					// 718h
+	BYTE	un10[0x32];					// 718h
 	DWORD	DebugFlags;					// 74Ah - USER debug flags
 	WORD	MenuHeap32;					// 74Eh - USER32 menu heap
 	DWORD	MenuHeapHandleTableBase;	// 750h - Menu heap handle table
 	DWORD	WindowHeapHandleTableBase;	// 754h - Window heap handle table
-	BYTE	un10[0x2C];					// 758h
+	BYTE	un11[0x2C];					// 758h
 	WORD	wBlockInputTask;			// 784h
 	DWORD	dwInstalledEventHooks;		// 786h
-	BYTE	un11[0x508];				// 78Ah
+	BYTE	un12[0x508];				// 78Ah
 	WORD	wInputSeg;					// C92h - USER input segment (dseg33)
-	BYTE	un12[0x1FA];				// C94h
+	BYTE	un13[0x1FA];				// C94h
 	ATOM	AtomHeap;					// E8Eh - Global atom heap (allocated by internal USER GlobalInitAtom)
-	BYTE	un13[0x3B6];				// E90h
+	BYTE	un14[0x3B6];				// E90h
 	WORD	wForegroundIndex;			// 1246h - Index to the foreground window ( *(DWORD*)((DWORD)gSharedInfo + wForegroundIndex) to get the PWND)
 	HWND	hwndDesktop;				// 1248h - Desktop window
-	BYTE	un14[0x3A0];				// 124Ch
+	BYTE	un15[0x3A0];				// 124Ch
 	DWORD	*SysColorTable;				// 15ECh - Pointer to the system color table (array of 28 colors)
-	BYTE	un15[0x2CE];				// 15F0h
+	BYTE	un16[0x2CE];				// 15F0h
 	WORD	*SysColorBrushTable;		// 18BEh - Pointer to the system brush color table (array of 28 colors)
-	BYTE	un16[0x88];					// 18C0h
+	BYTE	un17[0x88];					// 18C0h
 	WORD	POCEFirst;					// 1948h - Head of DCE (Device Context Entry) list
-	BYTE	un17[0x225];				// 194Ah
+	BYTE	un18[0x225];				// 194Ah
 } USERDGROUP, *PUSERDGROUP;
 
 typedef struct _MSGQUEUE
