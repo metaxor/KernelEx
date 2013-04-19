@@ -139,7 +139,7 @@ BOOL InitUniThunkLayer();
 void ReplaceByte(unsigned char* Array, int iArraySize, BYTE from, BYTE to);
 void ReplaceWord(char* Array, int iArraySize, WORD from, WORD to);
 void ReplaceDWord(char* Array, int iArraySize, DWORD from, DWORD to);
-DWORD ReplaceFunction16(FARPROC pFunction16, FARPROC pTargetFunction32, WORD nParams, BOOL fFarReturn);
+BOOL ReplaceFunction16(FARPROC pFunction16, FARPROC pTargetFunction32, WORD nParams, BOOL fFarReturn);
 
 //sendmessage_fix
 LRESULT WINAPI SendMessageA_fix(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);

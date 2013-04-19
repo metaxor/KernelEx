@@ -655,3 +655,118 @@ BOOL __fastcall IntCompleteRedrawWindow(PWND pWnd)
 
 	return TRUE;
 }
+
+void ReplaceByte(unsigned char* Array, int iArraySize, BYTE from, BYTE to)
+{
+	int i;
+
+	for (i=0;i<iArraySize-(int)sizeof(BYTE);i++)
+	{
+		if (*(BYTE*)Array == from)
+		{
+			*(BYTE*)Array = to;
+			break;
+		}
+		Array++;
+	}
+}
+
+void ReplaceWord(unsigned char* Array, int iArraySize, WORD from, WORD to)
+{
+	int i;
+
+	for (i=0;i<iArraySize-(int)sizeof(WORD);i++)
+	{
+		if (*(WORD*)Array == from)
+		{
+			*(WORD*)Array = to;
+			break;
+		}
+		Array++;
+	}
+}
+
+void ReplaceDWord(unsigned char* Array, int iArraySize, DWORD from, DWORD to)
+{
+	int i;
+
+	for (i=0;i<iArraySize-(int)sizeof(DWORD);i++)
+	{
+		if (*(DWORD*)Array == from)
+		{
+			*(DWORD*)Array = to;
+			break;
+		}
+		Array++;
+	}
+}
+
+/********************************************************************************
+ * ReplaceFunction16
+ *		Replace a 16-bit with a 32-bit export
+ *
+ * Parameters :
+ *		pFunction16 : 16-bit function to replace (returned by GetProcAddress16)
+ *		pTargetFunction32 : Target function that the 16-bit function will call
+ *		nParams : Number of parameters in the 32-bit function
+ *		fFarReturn : Determines whether the 16-bit function far return
+ *
+ * Return value :
+ *		TRUE on success, FALSE otherwise
+ *******************************************************************************/
+BOOL ReplaceFunction16(
+	FARPROC pFunction16,
+	FARPROC pTargetFunction32,
+	WORD nParams,
+	BOOL fFarReturn
+)
+{
+	PVOID pVDMPointer;
+	WORD wBytesParams;
+
+	/* Thunk code (see HookFunction.asm for details) */
+	unsigned char thunk_code[] = {
+		0x55,
+		0x89,0xE5,0x9A,0x03,0x00,0x02,0x00,0xC9,
+		0x31,0xC0,0x68,0x99,0x99,0x68,0x66,0x66,
+		0x50,0x50,0x50,0x68,0x11,0x11,0x9A,0x04,
+		0x00,0x03,0x00,0x66,0x50,0x9A,0x05,0x00,
+		0x04,0x00,0x66,0x58,0xBB,0x33,0x33,0x85,
+		0xDB,0x75,0x03,0xC2,0x22,0x22,0xCA,0x22,
+		0x22,
+	};
+
+	if((DWORD)pFunction16 < 32)
+		return FALSE;
+
+	GrabWin16Lock();
+
+	wBytesParams = nParams * sizeof(WORD);
+
+	/* Get a linear address to the 16-bit function */
+	pVDMPointer = K32WOWGetVDMPointerFix((DWORD)pFunction16, 0x1000, TRUE);
+
+	if(pVDMPointer == NULL)
+	{
+		ReleaseWin16Lock();
+		return FALSE;
+	}
+
+	/* Replace "built-in" variables in the assembly */
+	ReplaceDWord(thunk_code, sizeof(thunk_code), 0x00020003, EnterWin16Lock16);
+	ReplaceWord(thunk_code, sizeof(thunk_code), 0x9999, HIWORD(pTargetFunction32));
+	ReplaceWord(thunk_code, sizeof(thunk_code), 0x6666, LOWORD(pTargetFunction32));
+	ReplaceWord(thunk_code, sizeof(thunk_code), 0x1111, nParams);
+	ReplaceDWord(thunk_code, sizeof(thunk_code), 0x00030004, CallProc32W);
+	ReplaceDWord(thunk_code, sizeof(thunk_code), 0x00040005, LeaveWin16Lock16);
+	ReplaceWord(thunk_code, sizeof(thunk_code), 0x3333, fFarReturn);
+	ReplaceWord(thunk_code, sizeof(thunk_code), 0x2222, wBytesParams);
+	ReplaceWord(thunk_code, sizeof(thunk_code), 0x2222, wBytesParams); // It appears 2 times in the thunk code, so replace it 3 times
+
+	/* Copy the content from our thunk code to the target 16-bit function */
+	memcpy(pVDMPointer, thunk_code, sizeof(thunk_code));
+
+	ReleaseWin16Lock();
+
+	return TRUE;
+}
