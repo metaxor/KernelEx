@@ -106,7 +106,6 @@ BOOL WINAPI CloseWindowStation_new(HWINSTA hWinSta)
 		if(RemoveEntryList(&WindowStationObject->ListEntry))
 		{
 			kexFreeObject(WindowStationObject->lpName);
-			kexFreeObject(WindowStationObject->pName);
 			kexFreeObject(WindowStationObject);
 		}
 	}
@@ -177,16 +176,7 @@ HWINSTA WINAPI CreateWindowStationA_new(LPCSTR lpwinsta, DWORD dwFlags, ACCESS_M
 	WindowStationObject->cReferences = 0;
 
     WindowStationObject->SystemMenuTemplate = (HANDLE)0;
-    WindowStationObject->pName = kexAllocObjectName(WindowStationObject, WindowStationPath);
 	WindowStationObject->lpName = (PCHAR)WindowStationName;
-
-	if(WindowStationObject->pName == NULL)
-	{
-		kexFreeObject(WindowStationName);
-		kexFreeObject(WindowStationObject);
-		SetLastError(ERROR_NOT_ENOUGH_MEMORY);
-		return NULL;
-	}
 
 	if(InputWindowStation == NULL)
 		InputWindowStation = WindowStationObject;

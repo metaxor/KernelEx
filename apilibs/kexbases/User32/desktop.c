@@ -607,11 +607,10 @@ DWORD WINAPI DesktopThread(PVOID lParam)
 		if(gpdeskInputDesktop == NULL)
 			continue;
 
-		if(pWin16Mutex->LockCount == 0 && fNewDesktop == FALSE)
-			continue;
-
 		/* Only enum windows when necessary (the user lock has been grabbed), e.g : a window is created,
 		   a message has been sent to a window... */
+		if(pWin16Mutex->LockCount == 0 && fNewDesktop == FALSE)
+			continue;
 
 		EnterCriticalSection(gpdeskLock);
 
@@ -739,7 +738,6 @@ BOOL WINAPI CloseDesktop_new(HDESK hDesktop)
 		if(RemoveEntryList(&DesktopObject->ListEntry))
 		{
 			kexFreeObject(DesktopObject->lpName);
-			kexFreeObject(DesktopObject->pName);
 			kexFreeObject(DesktopObject->pdev);
 			kexFreeObject(DesktopObject);
 		}
@@ -867,7 +865,6 @@ HDESK WINAPI CreateDesktopA_new(LPCSTR lpszDesktop, LPCSTR lpszDevice, LPDEVMODE
 	DesktopObject->Type = K32OBJ_DESKTOP;
 	DesktopObject->cReferences = 0;
 	DesktopObject->SessionId = ppi->SessionId;
-	DesktopObject->pName = kexAllocObjectName(DesktopObject, DesktopPath);
 	DesktopObject->lpName = (PCHAR)DesktopName;
 	DesktopObject->rpwinstaParent = Process->Win32Process->rpwinsta;
 	DesktopObject->pdev = pdev;
@@ -875,15 +872,6 @@ HDESK WINAPI CreateDesktopA_new(LPCSTR lpszDesktop, LPCSTR lpszDevice, LPDEVMODE
 
 	DesktopObject->pheapDesktop = (DWORD)gSharedInfo; // Using USER32's Heap for each desktop
 	DesktopObject->ulHeapSize = 4194304; // USER32's Heap size
-
-	if(DesktopObject->pName == NULL)
-	{
-		kexFreeObject(DesktopName);
-		kexFreeObject(DesktopObject);
-		SetLastError(ERROR_NOT_ENOUGH_MEMORY);
-		ReleaseWin16Lock();
-		return NULL;
-	}
 
 	if(WindowStationObject->ActiveDesktop == NULL)
 		WindowStationObject->ActiveDesktop = DesktopObject;
