@@ -26,6 +26,7 @@
 #include <windows.h>
 #include <kexcoresdk.h>
 #include "thuni_layer.h"
+#include "desktop.h"
 
 LPCRITICAL_SECTION pWin16Mutex;
 PUSERDGROUP gSharedInfo;
@@ -33,17 +34,50 @@ DWORD UserHeap;
 HMODULE g_hUser32;
 HMODULE g_hUser16;
 HMODULE g_hKernel16;
+DWORD pLDT; 
+WORD selLDT;
+DWORD pSelTables;
+DWORD pBurgerMaster;
+DWORD CallProc32W;
+DWORD EnterWin16Lock16;
+DWORD LeaveWin16Lock16;
 
 static DWORD GFSR_Address;
 static DWORD _UserSeeUserDo;
+
+static BOOL FASTCALL InitUSERHooks(void);
 
 BOOL InitUniThunkLayerStuff()
 {
 	g_hUser16 = (HMODULE)LoadLibrary16("user");
 	g_hKernel16 = (HMODULE)LoadLibrary16("KRNL386.EXE");
+	DWORD* ldt;
+
+	if((DWORD)g_hKernel16 < 32)
+		g_hKernel16 = (HMODULE)LoadLibrary16("kernel");
 
 	if((DWORD)g_hUser16 < 32 || (DWORD)g_hKernel16 < 32)
 		return FALSE;
+
+	/* Get LDT table start */
+	ldt = (DWORD*)((DWORD)MapSL + 33);
+	pLDT = *(DWORD*)*ldt;
+
+	/* Get LDT segment */
+	ldt = (DWORD*)((DWORD)MapSL + 20);
+	selLDT = *(WORD*)*ldt;
+
+	/* Get global arenas offset */
+	ldt = (DWORD*)((DWORD)K32WOWGetVDMPointerFix + 48);
+	pSelTables = *(DWORD*)*ldt;
+
+	/* Get burger master */
+	ldt = (DWORD*)((DWORD)K32WOWGetVDMPointerFix + 64);
+	pBurgerMaster = *(DWORD*)*ldt;
+
+	EnterWin16Lock16 = GetProcAddress16(g_hKernel16, (LPSTR)480);
+	LeaveWin16Lock16 = GetProcAddress16(g_hKernel16, (LPSTR)481);
+	CallProc32W = GetProcAddress16(g_hKernel16, "CallProc32W");
 
 	_GetpWin16Lock( &pWin16Mutex );
 	gSharedInfo = (PUSERDGROUP)MapSL((DWORD)g_hUser16 << 16);
@@ -65,6 +99,12 @@ BOOL InitUniThunkLayerStuff()
 	if(_UserSeeUserDo == 0)
 	{
 		TRACE_OUT("Can't find UserSeeUserDo in USER.EXE !\n");
+		return 0;
+	}
+
+	if(!InitUSERHooks())
+	{
+		TRACE_OUT("Failed to hook USER.EXE functions !\n");
 		return 0;
 	}
 
@@ -207,6 +247,11 @@ void UpdateLRKeyState(LPMSG msg)
 		}
 		break;
 	}	
+}
+
+static BOOL FASTCALL InitUSERHooks(void)
+{
+	return TRUE;
 }
 
 __declspec(naked)
