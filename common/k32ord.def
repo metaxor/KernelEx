@@ -1,43 +1,109 @@
 LIBRARY     KERNEL32.dll
 
 EXPORTS
-    CommonUnimpStub @17 NONAME
-	VxDCall0 @1 NONAME
-    VxDCall1 @2 NONAME
-    VxDCall2 @3 NONAME
-    VxDCall3 @4 NONAME
-    VxDCall4 @5 NONAME
-    VxDCall5 @6 NONAME
-    VxDCall6 @7 NONAME
-    VxDCall7 @8 NONAME
-    VxDCall8 @9 NONAME
-	_ReleaseThunkLock @48 NONAME
-	_RestoreThunkLock @49 NONAME
-	_LeaveSysLevel_NoThk @86 NONAME
-    _GetpWin16Lock @93 NONAME
-	_CheckNotSysLevel @94 NONAME
-	_ConfirmSysLevel @95 NONAME
-	_ConfirmWin16Lock @96 NONAME
-    _EnterSysLevel @97 NONAME
-    _LeaveSysLevel @98 NONAME
+	VxDCall0					@1 NONAME
+    VxDCall1					@2 NONAME
+    VxDCall2					@3 NONAME
+    VxDCall3					@4 NONAME
+    VxDCall4					@5 NONAME
+    VxDCall5					@6 NONAME
+    VxDCall6					@7 NONAME
+    VxDCall7					@8 NONAME
+    VxDCall8					@9 NONAME
+	k32CharToOemA				@10 NONAME
+	k32CharToOemBuffA			@11 NONAME
+	k32OemToCharA				@12 NONAME
+	k32OemToCharBuffA			@13 NONAME
+	k32LoadStringA				@14 NONAME
+	k32wsprintfA				@15 NONAME
+	k32wvsprintfA				@16 NONAME
+    CommonUnimpStub				@17 NONAME
+	GetProcessDword				@18 NONAME
+	DosFileHandleToWin32Handle	@20 NONAME
+	Win32HandleToDosFileHandle	@21 NONAME
+	DisposeLZ32Handle			@22 NONAME
+	HouseCleanLogicallyDeadHandles @33 NONAME
+;	AllocMappedBuffer			@38 NONAME
+;	FreeMappedBuffer			@39 NONAME
+;	OT_32ThkLSF					@40 NONAME
+;	ThunkInitLSF				@41 NONAME
+;	LogApiThkLSF				@42 NONAME
+;	ThunkInitLS					@43 NONAME
+;	LogApiThkSL					@44 NONAME
+;	Common32ThkLS				@45 NONAME
+;	ThunkInitSL					@46 NONAME
+;	LogCBThkSL					@47 NONAME
+	_ReleaseThunkLock			@48 NONAME
+	_RestoreThunkLock			@49 NONAME
+;	W32S_BackTo32				@51 NONAME
+;	GetThunkBuff				@52 NONAME
+;	GetThunkStuff				@53 NONAME
     MakeCriticalSectionGlobal
 	ConvertToGlobalHandle
 	CloseSystemHandle
 	CreateKernelThread
 	RegisterServiceProcess
-	GlobalAlloc16 @24 NONAME
-	GlobalLock16 @25 NONAME
-	GlobalSize16 @32 NONAME
-	GlobalUnlock16 @26 NONAME
-    K32WOWGetVDMPointerFix @68 NONAME
-    K32WOWGetVDMPointerUnfix @69 NONAME
+	GlobalAlloc16				@24 NONAME
+	GlobalLock16				@25 NONAME
+	GlobalUnlock16				@26 NONAME
+	GlobalFix16					@27 NONAME
+	GlobalUnfix16				@28 NONAME
+	GlobalWire16				@29 NONAME
+	GlobalUnWire16				@30 NONAME
+	GlobalFree16				@31 NONAME
+	GlobalSize16				@32 NONAME
+	K32WOWCallback16			@54 NONAME
+	K32WOWCallback16Ex			@55 NONAME
+	K32WOWGetVDMPointer			@56 NONAME
+	K32WOWHandle32				@57 NONAME
+	K32WOWHandle16				@58 NONAME
+	K32WOWGlobalAlloc16			@59 NONAME
+	K32WOWGlobalLock16			@60 NONAME
+	K32WOWGlobalUnlock16		@61 NONAME
+	K32WOWGlobalFree16			@62 NONAME
+	K32WOWGlobalAllocLock16		@63 NONAME
+	K32WOWGlobalUnlockFree16	@64 NONAME
+	K32WOWGlobalLockSize16		@65 NONAME
+	K32WOWYield16				@66 NONAME
+	K32WOWDirectedYield16		@67 NONAME
+    K32WOWGetVDMPointerFix		@68 NONAME
+    K32WOWGetVDMPointerUnfix	@69 NONAME
+	K32WOWGetDescriptor			@70 NONAME
+	IsThreadId					@71 NONAME
+	K32RtlLargeIntegerAdd				@72 NONAME
+	K32RtlEnlargedIntegerMultiply		@73 NONAME
+	K32RtlEnlargedUnsignedMultiply		@74 NONAME
+	K32RtlEnlargedUnsignedDivide		@75 NONAME
+	K32RtlExtendedLargeIntegerDivide	@76 NONAME
+	K32RtlExtendedMagicDivide			@77 NONAME
+	K32RtlExtendedIntegerMultiply		@78 NONAME
+	K32RtlLargeIntegerShiftLeft			@79 NONAME
+	K32RtlLargeIntegerShiftRight		@80 NONAME
+	K32RtlLargeIntegerArithmeticShift	@81 NONAME
+	K32RtlLargeIntegerNegate			@82 NONAME
+	K32RtlLargeIntegerSubtract			@83 NONAME
+	K32RtlConvertLongToLargeInteger		@84 NONAME
+	K32RtlConvertUlongToLargeInteger	@85 NONAME
 	MapHModuleLS
     MapSL
 	MapLS
-    LoadLibrary16 @35 NONAME
-	GetProcAddress16 @37 NONAME
-	FreeLibrary16 @36 NONAME
+	GetWin16DOSEnv				@34 NONAME
+    LoadLibrary16				@35 NONAME
+	FreeLibrary16				@36 NONAME
+	GetProcAddress16			@37 NONAME
+	FT_Thunk
 	QT_Thunk
-    K32_RtlNtStatusToDosError
-	GDIReallyCares @23 NONAME
+	_LeaveSysLevel_NoThk		@86 NONAME
+	FT_PrologPrime				@89 NONAME
+	QT_ThunkPrime				@90 NONAME
+	PK16FNF						@91 NONAME
+	GetPK16SysVar				@92 NONAME
+	_GetpWin16Lock				@93 NONAME
+	_CheckNotSysLevel			@94 NONAME
+	_ConfirmSysLevel			@95 NONAME
+	_ConfirmWin16Lock			@96 NONAME
+	_EnterSysLevel				@97 NONAME
+	_LeaveSysLevel				@98 NONAME
+	K32_RtlNtStatusToDosError
+	GDIReallyCares				@23 NONAME
 	ThunkConnect32
