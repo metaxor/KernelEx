@@ -111,6 +111,43 @@
 #define CRST_SAFE                     0x00004000
 #define BLOCK_TERMINATE_APC           0x00040000
 
+/* [GS]etProcessDword offsets */
+#define GPD_APP_COMPAT_FLAGS	(-56)
+#define GPD_LOAD_DONE_EVENT		(-52)
+#define GPD_HINSTANCE16			(-48)
+#define GPD_WINDOWS_VERSION		(-44)
+#define GPD_THDB				(-40)
+#define GPD_PDB					(-36)
+#define GPD_STARTF_SHELLDATA	(-32)
+#define GPD_STARTF_HOTKEY		(-28)
+#define GPD_STARTF_SHOWWINDOW	(-24)
+#define GPD_STARTF_SIZE			(-20)
+#define GPD_STARTF_POSITION		(-16)
+#define GPD_STARTF_FLAGS		(-12)
+#define GPD_PARENT				(- 8)
+#define GPD_FLAGS				(- 4)
+#define GPD_USERDATA			(  0)
+
+typedef enum
+{
+	WOW_TYPE_HWND,
+	WOW_TYPE_HMENU,
+	WOW_TYPE_HDWP,
+	WOW_TYPE_HDROP,
+	WOW_TYPE_HDC,
+	WOW_TYPE_HFONT,
+	WOW_TYPE_HMETAFILE,
+	WOW_TYPE_HRGN,
+	WOW_TYPE_HBITMAP,
+	WOW_TYPE_HBRUSH,
+	WOW_TYPE_HPALETTE,
+	WOW_TYPE_HPEN,
+	WOW_TYPE_HACCEL,
+	WOW_TYPE_HTASK,
+	WOW_TYPE_FULLHWND
+
+} WOW_HANDLE_TYPE;
+
 #pragma pack(push,1)
 
 typedef struct _K32OBJHEAD
