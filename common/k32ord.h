@@ -155,6 +155,8 @@ MAKE_HEADER(DWORD __stdcall FreeLibrary16(HANDLE hModule))
 MAKE_HEADER(DWORD __stdcall GetProcAddress16(HANDLE hModule, LPSTR procname))
 
 /* Thunk functions */
+MAKE_HEADER(BOOL __stdcall SSOnBigStack(void))
+MAKE_HEADER(DWORD __cdecl SSCall(DWORD dwArgBytes, DWORD dwFlags, FARPROC pFunction, ...))
 MAKE_HEADER(void __stdcall FT_Thunk())
 MAKE_HEADER(void __stdcall  QT_Thunk())
 MAKE_HEADER(void __stdcall FT_PrologPrime())

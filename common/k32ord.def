@@ -94,6 +94,8 @@ EXPORTS
 	FT_Thunk
 	QT_Thunk
 	_LeaveSysLevel_NoThk		@86 NONAME
+	SSOnBigStack				@87 NONAME
+	SSCall						@88 NONAME
 	FT_PrologPrime				@89 NONAME
 	QT_ThunkPrime				@90 NONAME
 	PK16FNF						@91 NONAME
