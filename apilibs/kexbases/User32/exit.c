@@ -681,7 +681,7 @@ DWORD WINAPI ShutdownThread(PVOID lParam)
 		GetMessage(&msg, NULL, 0, 0);
 
 		/* Make sure the message is WM_QUERYENDSESSION */
-		if(msg.message != WM_QUERYENDSESSION)
+		if(msg.message != WM_QUERYENDSESSION && gSharedInfo->fLoggingOff == FALSE)
 		{
 			ERR("The message isn't WM_QUERYENDESSION ! (msg=0x%X)", msg.message);
 			goto finished;
@@ -931,5 +931,5 @@ BOOL WINAPI ExitWindowsEx_fix(UINT uFlags, DWORD dwReserved)
 			return FALSE;
 	}
 
-	return PostThreadMessage(dwShutdownThreadId, WM_QUERYENDSESSION, uFlags, ppi->SessionId);
+	return PostThreadMessage(dwShutdownThreadId, WM_QUERYENDSESSION, uFlags, ppi != NULL ? ppi->SessionId : 0);
 }
