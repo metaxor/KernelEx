@@ -106,6 +106,8 @@ EXPORTS
 	_ConfirmWin16Lock			@96 NONAME
 	_EnterSysLevel				@97 NONAME
 	_LeaveSysLevel				@98 NONAME
+	CheckClockDaylight			@99 NONAME
+	TerminateThreadEx			@100 NONAME
 	K32_RtlNtStatusToDosError
 	GDIReallyCares				@23 NONAME
 	ThunkConnect32

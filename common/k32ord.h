@@ -91,6 +91,7 @@ MAKE_HEADER(BOOL __stdcall CloseSystemHandle(HANDLE hObject))
 MAKE_HEADER(HANDLE __stdcall CreateKernelThread(LPSECURITY_ATTRIBUTES lpThreadAttributes, SIZE_T dwStackSize, LPTHREAD_START_ROUTINE lpStartAddress, LPVOID lpParameter, DWORD dwCreationFlags, LPDWORD lpThreadId))
 MAKE_HEADER(BOOL __stdcall RegisterServiceProcess(DWORD dwProcessId, BOOL fRegister))
 MAKE_HEADER(DWORD __stdcall GetProcessDword(DWORD dwProcessId, INT IdOffset))
+MAKE_HEADER(DWORD __stdcall TerminateThreadEx(HANDLE hThread, DWORD dwExitCode, BOOL fCleanup)) // Called by TerminateThread
 
 MAKE_HEADER(ULONG __stdcall CommonUnimpStub())
 
@@ -164,7 +165,46 @@ MAKE_HEADER(void __stdcall QT_ThunkPrime())
 MAKE_HEADER(ULONG __stdcall K32_RtlNtStatusToDosError(LONG status))
 MAKE_HEADER(BOOL __stdcall ThunkConnect32(PVOID pThunkData, LPSTR lpThunkName, LPSTR lpModule16, LPSTR lpModule32, HINSTANCE hInstance, DWORD dwReason))
 
+/* Misc */
 MAKE_HEADER(void __stdcall GDIReallyCares(HMODULE hModule))
+MAKE_HEADER(DWORD __stdcall CheckClockDaylight(DWORD un1))
+
+/* Inline functions */
+__inline HGLOBAL __stdcall GlobalReAlloc16(HGLOBAL hMem, SIZE_T dwBytes, UINT16 uFlags)
+{
+	HMODULE hKernel = (HMODULE)LoadLibrary16("krnl386");
+	DWORD GRA16;
+	HGLOBAL result;
+
+	if((DWORD)hKernel < 32)
+	{
+		TRACE("Couldn't load krnl386 (err %d)!\n", hKernel);
+		return NULL;
+	}
+
+	GRA16 = GetProcAddress16(hKernel, "GLOBALREALLOC");
+
+	if(GRA16 == 0)
+	{
+		TRACE_OUT("Failed to retrieve GLOBALREALLOC in krnl386");
+		FreeLibrary16(hKernel);
+		return NULL;
+	}
+
+__asm {
+		mov		edx, [GRA16]
+		xor		eax, eax
+
+		push	[hMem]
+		push	[dwBytes]
+		push	[uFlags]
+		call	ds:QT_Thunk
+		mov		[result], eax
+	}
+
+	FreeLibrary16(hKernel);
+	return result;
+}
 
 #ifdef __cplusplus
 }
