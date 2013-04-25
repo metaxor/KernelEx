@@ -301,6 +301,14 @@ SOURCE=.\User32\message.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\User32\simplecall.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\User32\simplecall.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\User32\SystemParametersInfo_fix.c
 # End Source File
 # Begin Source File
