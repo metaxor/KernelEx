@@ -89,6 +89,7 @@ static const char c_szDBCSProp[]="kexDBCS";
 //stuff
 extern LPCRITICAL_SECTION pWin16Mutex;
 extern PUSERDGROUP gSharedInfo;
+extern DWORD UserHeap;
 extern HMODULE g_hUser32;
 extern HMODULE g_hUser16;
 extern HMODULE g_hKernel16;
