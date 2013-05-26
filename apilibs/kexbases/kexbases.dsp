@@ -349,6 +349,10 @@ SOURCE=.\User32\uniuser32.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\User32\userheap.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\User32\window.c
 # End Source File
 # Begin Source File
